@@ -33,12 +33,12 @@ export default function DeveloperDashboard() {
   const [isAddingApp, setIsAddingApp] = useState(false);
   const [newApp, setNewApp] = useState({
     name: '',
-    shortDescription: '',
+    short_description: '',
     description: '',
-    category: '',
+    category_id: '',
     version: '1.0.0',
     size: '50 MB',
-    icon: '📱',
+    icon_url: '📱',
   });
 
   // Not authenticated
@@ -104,8 +104,8 @@ export default function DeveloperDashboard() {
                 Your developer application is under review. The dashboard will unlock automatically once approved.
               </p>
               <div className="p-4 rounded-lg bg-muted/50 text-left space-y-2">
-                <p className="text-sm"><strong>Developer:</strong> {developerProfile.developerName}</p>
-                <p className="text-sm"><strong>Type:</strong> {developerProfile.developerType}</p>
+                <p className="text-sm"><strong>Developer:</strong> {developerProfile.developer_name}</p>
+                <p className="text-sm"><strong>Type:</strong> {developerProfile.developer_type}</p>
                 <p className="text-sm flex items-center gap-2">
                   <strong>Status:</strong> 
                   <span className="flex items-center gap-1 text-warning">
@@ -124,9 +124,9 @@ export default function DeveloperDashboard() {
               <p className="text-muted-foreground mb-4">
                 Your developer application was not approved.
               </p>
-              {developerProfile.rejectionReason && (
+              {developerProfile.rejection_reason && (
                 <div className="p-4 rounded-lg bg-destructive/10 text-left mb-6">
-                  <p className="text-sm text-destructive"><strong>Reason:</strong> {developerProfile.rejectionReason}</p>
+                  <p className="text-sm text-destructive"><strong>Reason:</strong> {developerProfile.rejection_reason}</p>
                 </div>
               )}
             </>
@@ -138,8 +138,8 @@ export default function DeveloperDashboard() {
 
   const myApps = getAppsByDeveloper(developerProfile.id);
 
-  const handleAddApp = () => {
-    if (!newApp.name || !newApp.category || !newApp.shortDescription) {
+  const handleAddApp = async () => {
+    if (!newApp.name || !newApp.category_id || !newApp.short_description) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -148,30 +148,43 @@ export default function DeveloperDashboard() {
       return;
     }
 
-    addApp({
-      ...newApp,
-      developerId: developerProfile.id,
-      developerName: developerProfile.developerName,
-      screenshots: [],
-      featured: false,
-      trending: false,
-    });
+    try {
+      await addApp({
+        name: newApp.name,
+        description: newApp.description,
+        short_description: newApp.short_description,
+        category_id: newApp.category_id,
+        version: newApp.version,
+        size: newApp.size,
+        icon_url: newApp.icon_url,
+        developer_id: developerProfile.id,
+        screenshots: [],
+        featured: false,
+        trending: false,
+      });
 
-    toast({
-      title: "App Submitted!",
-      description: "Your app has been submitted for review"
-    });
+      toast({
+        title: "App Submitted!",
+        description: "Your app has been submitted for review"
+      });
 
-    setNewApp({
-      name: '',
-      shortDescription: '',
-      description: '',
-      category: '',
-      version: '1.0.0',
-      size: '50 MB',
-      icon: '📱',
-    });
-    setIsAddingApp(false);
+      setNewApp({
+        name: '',
+        short_description: '',
+        description: '',
+        category_id: '',
+        version: '1.0.0',
+        size: '50 MB',
+        icon_url: '📱',
+      });
+      setIsAddingApp(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit app. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const stats = {
@@ -196,7 +209,7 @@ export default function DeveloperDashboard() {
             <h1 className="text-3xl font-bold">Developer Dashboard</h1>
           </div>
           <p className="text-muted-foreground">
-            Welcome back, <span className="text-primary">{developerProfile.developerName}</span>
+            Welcome back, <span className="text-primary">{developerProfile.developer_name}</span>
           </p>
         </div>
 
@@ -216,8 +229,8 @@ export default function DeveloperDashboard() {
                 <div className="space-y-2">
                   <Label>Icon</Label>
                   <Input
-                    value={newApp.icon}
-                    onChange={(e) => setNewApp(prev => ({ ...prev, icon: e.target.value }))}
+                    value={newApp.icon_url}
+                    onChange={(e) => setNewApp(prev => ({ ...prev, icon_url: e.target.value }))}
                     className="text-center text-2xl"
                     placeholder="📱"
                   />
@@ -235,8 +248,8 @@ export default function DeveloperDashboard() {
               <div className="space-y-2">
                 <Label>Category *</Label>
                 <Select
-                  value={newApp.category}
-                  onValueChange={(value) => setNewApp(prev => ({ ...prev, category: value }))}
+                  value={newApp.category_id}
+                  onValueChange={(value) => setNewApp(prev => ({ ...prev, category_id: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
@@ -254,8 +267,8 @@ export default function DeveloperDashboard() {
               <div className="space-y-2">
                 <Label>Short Description *</Label>
                 <Input
-                  value={newApp.shortDescription}
-                  onChange={(e) => setNewApp(prev => ({ ...prev, shortDescription: e.target.value }))}
+                  value={newApp.short_description}
+                  onChange={(e) => setNewApp(prev => ({ ...prev, short_description: e.target.value }))}
                   placeholder="A brief description"
                 />
               </div>
@@ -410,7 +423,7 @@ export default function DeveloperDashboard() {
                         {app.status}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">{app.shortDescription}</p>
+                    <p className="text-sm text-muted-foreground truncate">{app.short_description}</p>
                   </div>
                   <div className="hidden md:flex items-center gap-6 text-sm">
                     <div className="text-center">

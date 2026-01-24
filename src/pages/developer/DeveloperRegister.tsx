@@ -39,10 +39,9 @@ export default function DeveloperRegister() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: user?.name || '',
-    email: user?.email || '',
-    developerType: 'individual' as 'individual' | 'company',
-    developerName: '',
+    full_name: user?.user_metadata?.full_name || '',
+    developer_type: 'individual' as 'individual' | 'company',
+    developer_name: '',
     country: '',
     phone: '',
     website: '',
@@ -95,8 +94,8 @@ export default function DeveloperRegister() {
                 Your developer application is being reviewed by our team. We'll notify you once it's approved.
               </p>
               <div className="p-4 rounded-lg bg-muted/50 text-left">
-                <p className="text-sm"><strong>Name:</strong> {developerProfile.developerName}</p>
-                <p className="text-sm"><strong>Type:</strong> {developerProfile.developerType}</p>
+                <p className="text-sm"><strong>Name:</strong> {developerProfile.developer_name}</p>
+                <p className="text-sm"><strong>Type:</strong> {developerProfile.developer_type}</p>
                 <p className="text-sm"><strong>Status:</strong> <span className="text-warning">Pending</span></p>
               </div>
             </>
@@ -122,9 +121,9 @@ export default function DeveloperRegister() {
               <p className="text-muted-foreground mb-4">
                 Unfortunately, your application was not approved.
               </p>
-              {developerProfile.rejectionReason && (
+              {developerProfile.rejection_reason && (
                 <div className="p-4 rounded-lg bg-destructive/10 text-left mb-6">
-                  <p className="text-sm text-destructive"><strong>Reason:</strong> {developerProfile.rejectionReason}</p>
+                  <p className="text-sm text-destructive"><strong>Reason:</strong> {developerProfile.rejection_reason}</p>
                 </div>
               )}
               <p className="text-sm text-muted-foreground">
@@ -140,7 +139,7 @@ export default function DeveloperRegister() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.developerName || !formData.country || !formData.phone) {
+    if (!formData.developer_name || !formData.country || !formData.phone) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -152,7 +151,15 @@ export default function DeveloperRegister() {
     setIsSubmitting(true);
 
     try {
-      await registerDeveloper(formData);
+      await registerDeveloper({
+        full_name: formData.full_name,
+        developer_type: formData.developer_type,
+        developer_name: formData.developer_name,
+        country: formData.country,
+        phone: formData.phone,
+        website: formData.website,
+        bio: formData.bio,
+      });
       toast({
         title: "Application Submitted!",
         description: "Your developer application is under review"
@@ -192,9 +199,9 @@ export default function DeveloperRegister() {
           <div className="space-y-3">
             <Label>Developer Type *</Label>
             <RadioGroup
-              value={formData.developerType}
+              value={formData.developer_type}
               onValueChange={(value: 'individual' | 'company') => 
-                setFormData(prev => ({ ...prev, developerType: value }))
+                setFormData(prev => ({ ...prev, developer_type: value }))
               }
               className="flex gap-4"
             >
@@ -223,8 +230,8 @@ export default function DeveloperRegister() {
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                  value={formData.full_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                   className="pl-10 bg-muted/50 border-muted"
                   placeholder="Your full name"
                 />
@@ -234,16 +241,16 @@ export default function DeveloperRegister() {
             {/* Developer/Company Name */}
             <div className="space-y-2">
               <Label htmlFor="developerName">
-                {formData.developerType === 'company' ? 'Company Name' : 'Developer Name'} *
+                {formData.developer_type === 'company' ? 'Company Name' : 'Developer Name'} *
               </Label>
               <div className="relative">
                 <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="developerName"
-                  value={formData.developerName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, developerName: e.target.value }))}
+                  value={formData.developer_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, developer_name: e.target.value }))}
                   className="pl-10 bg-muted/50 border-muted"
-                  placeholder={formData.developerType === 'company' ? 'Company name' : 'Display name'}
+                  placeholder={formData.developer_type === 'company' ? 'Company name' : 'Display name'}
                 />
               </div>
             </div>

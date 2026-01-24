@@ -19,7 +19,7 @@ import {
   Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth, useDevelopers, DeveloperProfile } from '@/contexts/AuthContext';
+import { useAuth, useDevelopers, Developer } from '@/contexts/AuthContext';
 import { useApps, App } from '@/contexts/AppsContext';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -119,7 +119,7 @@ export default function AdminPanel() {
 
 // Dashboard Tab
 function AdminDashboard() {
-  const developers = useDevelopers();
+  const { developers, isLoading } = useDevelopers();
   const { apps } = useApps();
 
   const stats = {
@@ -223,7 +223,7 @@ function AdminDashboard() {
               {developers.filter(d => d.status === 'pending').slice(0, 3).map((dev) => (
                 <div key={dev.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <div>
-                    <p className="font-medium">{dev.developerName}</p>
+                    <p className="font-medium">{dev.developer_name}</p>
                     <p className="text-sm text-muted-foreground">{dev.email}</p>
                   </div>
                   <span className="status-pending text-xs px-2 py-1 rounded-full">Pending</span>
@@ -248,7 +248,7 @@ function AdminDashboard() {
                     <span className="text-2xl">{app.icon}</span>
                     <div>
                       <p className="font-medium">{app.name}</p>
-                      <p className="text-sm text-muted-foreground">{app.developerName}</p>
+                      <p className="text-sm text-muted-foreground">{app.developer_name}</p>
                     </div>
                   </div>
                   <span className="status-pending text-xs px-2 py-1 rounded-full">Pending</span>
@@ -264,32 +264,48 @@ function AdminDashboard() {
 
 // Developers Tab
 function AdminDevelopers() {
-  const developers = useDevelopers();
+  const { developers, isLoading } = useDevelopers();
   const { updateDeveloperStatus } = useAuth();
   const { toast } = useToast();
-  const [rejectDialog, setRejectDialog] = useState<{ open: boolean; developer: DeveloperProfile | null }>({
+  const [rejectDialog, setRejectDialog] = useState<{ open: boolean; developer: Developer | null }>({
     open: false,
     developer: null,
   });
   const [rejectReason, setRejectReason] = useState('');
 
-  const handleApprove = (developer: DeveloperProfile) => {
-    updateDeveloperStatus(developer.id, 'approved');
-    toast({
-      title: "Developer Approved",
-      description: `${developer.developerName} has been approved`
-    });
+  const handleApprove = async (developer: Developer) => {
+    try {
+      await updateDeveloperStatus(developer.id, 'approved');
+      toast({
+        title: "Developer Approved",
+        description: `${developer.developer_name} has been approved`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve developer",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (rejectDialog.developer) {
-      updateDeveloperStatus(rejectDialog.developer.id, 'rejected', rejectReason);
-      toast({
-        title: "Developer Rejected",
-        description: `${rejectDialog.developer.developerName} has been rejected`
-      });
-      setRejectDialog({ open: false, developer: null });
-      setRejectReason('');
+      try {
+        await updateDeveloperStatus(rejectDialog.developer.id, 'rejected', rejectReason);
+        toast({
+          title: "Developer Rejected",
+          description: `${rejectDialog.developer.developer_name} has been rejected`
+        });
+        setRejectDialog({ open: false, developer: null });
+        setRejectReason('');
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to reject developer",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -323,14 +339,14 @@ function AdminDevelopers() {
                   <tr key={developer.id} className="border-b border-border/30 hover:bg-muted/20">
                     <td className="p-4">
                       <div>
-                        <p className="font-medium">{developer.developerName}</p>
-                        <p className="text-sm text-muted-foreground">{developer.fullName}</p>
+                        <p className="font-medium">{developer.developer_name}</p>
+                        <p className="text-sm text-muted-foreground">{developer.full_name}</p>
                       </div>
                     </td>
                     <td className="p-4 text-muted-foreground">{developer.email}</td>
                     <td className="p-4">
                       <span className="capitalize text-sm px-2 py-1 rounded-full bg-muted">
-                        {developer.developerType}
+                        {developer.developer_type}
                       </span>
                     </td>
                     <td className="p-4">
@@ -395,7 +411,7 @@ function AdminDevelopers() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <p className="text-muted-foreground">
-              Are you sure you want to reject <strong>{rejectDialog.developer?.developerName}</strong>?
+              Are you sure you want to reject <strong>{rejectDialog.developer?.developer_name}</strong>?
             </p>
             <div className="space-y-2">
               <label className="text-sm font-medium">Reason (optional)</label>
@@ -429,20 +445,36 @@ function AdminApps() {
   const { apps, updateAppStatus } = useApps();
   const { toast } = useToast();
 
-  const handleApprove = (app: App) => {
-    updateAppStatus(app.id, 'approved');
-    toast({
-      title: "App Approved",
-      description: `${app.name} has been approved`
-    });
+  const handleApprove = async (app: App) => {
+    try {
+      await updateAppStatus(app.id, 'approved');
+      toast({
+        title: "App Approved",
+        description: `${app.name} has been approved`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve app",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleReject = (app: App) => {
-    updateAppStatus(app.id, 'rejected');
-    toast({
-      title: "App Rejected",
-      description: `${app.name} has been rejected`
-    });
+  const handleReject = async (app: App) => {
+    try {
+      await updateAppStatus(app.id, 'rejected');
+      toast({
+        title: "App Rejected",
+        description: `${app.name} has been rejected`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject app",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -483,7 +515,7 @@ function AdminApps() {
                       {app.category}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{app.developerName}</p>
+                  <p className="text-sm text-muted-foreground">{app.developer_name}</p>
                 </div>
                 <div className="hidden md:flex items-center gap-6 text-sm">
                   <div className="text-center">
@@ -587,7 +619,7 @@ function AdminReviews() {
 // Stats Tab
 function AdminStats() {
   const { apps } = useApps();
-  const developers = useDevelopers();
+  const { developers } = useDevelopers();
 
   return (
     <div className="space-y-6">
@@ -653,7 +685,7 @@ function AdminStats() {
                 <span className="text-2xl">{app.icon}</span>
                 <div className="flex-1">
                   <p className="font-medium">{app.name}</p>
-                  <p className="text-sm text-muted-foreground">{app.developerName}</p>
+                  <p className="text-sm text-muted-foreground">{app.developer_name}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-semibold">{(app.downloads / 1000000).toFixed(1)}M</p>
