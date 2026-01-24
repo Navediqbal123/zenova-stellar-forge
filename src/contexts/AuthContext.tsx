@@ -1,173 +1,228 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatar?: string;
-}
-
-export interface DeveloperProfile {
-  id: string;
-  userId: string;
-  fullName: string;
-  email: string;
-  developerType: 'individual' | 'company';
-  developerName: string;
-  country: string;
-  phone: string;
-  website?: string;
-  bio?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  rejectionReason?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase, isAdminEmail } from '@/lib/supabase';
+import type { Developer, DeveloperInsert, DeveloperStatus, DeveloperUpdate } from '@/types/database.types';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   isAdmin: boolean;
-  developerProfile: DeveloperProfile | null;
+  developerProfile: Developer | null;
   isDeveloperApproved: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => void;
-  registerDeveloper: (data: Omit<DeveloperProfile, 'id' | 'userId' | 'status' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateDeveloperStatus: (developerId: string, status: 'approved' | 'rejected', reason?: string) => void;
+  logout: () => Promise<void>;
+  registerDeveloper: (data: Omit<DeveloperInsert, 'user_id' | 'email' | 'status' | 'created_at' | 'updated_at'>) => Promise<void>;
+  refreshDeveloperProfile: () => Promise<void>;
+  updateDeveloperStatus: (developerId: string, status: DeveloperStatus, reason?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock data storage (simulates backend)
-const STORAGE_KEY = 'zenova_auth';
-const DEVELOPERS_KEY = 'zenova_developers';
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [developerProfile, setDeveloperProfile] = useState<DeveloperProfile | null>(null);
-  const [allDevelopers, setAllDevelopers] = useState<DeveloperProfile[]>([]);
+  const [developerProfile, setDeveloperProfile] = useState<Developer | null>(null);
 
-  // Initialize auth state from storage
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const storedDevelopers = localStorage.getItem(DEVELOPERS_KEY);
-    
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setUser(parsed.user);
+  const fetchDeveloperProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('developers')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching developer profile:', error);
+        return null;
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Error in fetchDeveloperProfile:', err);
+      return null;
     }
-    
-    if (storedDevelopers) {
-      const developers = JSON.parse(storedDevelopers);
-      setAllDevelopers(developers);
-    }
-    
-    setIsLoading(false);
   }, []);
 
-  // Update developer profile when user or developers change
-  useEffect(() => {
-    if (user && allDevelopers.length > 0) {
-      const profile = allDevelopers.find(d => d.userId === user.id);
-      setDeveloperProfile(profile || null);
-    } else {
-      setDeveloperProfile(null);
+  const refreshDeveloperProfile = useCallback(async () => {
+    if (user?.id) {
+      const profile = await fetchDeveloperProfile(user.id);
+      setDeveloperProfile(profile);
     }
-  }, [user, allDevelopers]);
+  }, [user?.id, fetchDeveloperProfile]);
 
-  // Persist developers to storage
+  // Initialize auth state
   useEffect(() => {
-    if (allDevelopers.length > 0) {
-      localStorage.setItem(DEVELOPERS_KEY, JSON.stringify(allDevelopers));
-    }
-  }, [allDevelopers]);
+    let mounted = true;
 
-  const isAdmin = user?.email === 'admin@zenova.com';
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return;
+
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+
+      if (newSession?.user) {
+        // Defer fetching developer profile to avoid blocking
+        setTimeout(async () => {
+          if (mounted) {
+            const profile = await fetchDeveloperProfile(newSession.user.id);
+            if (mounted) {
+              setDeveloperProfile(profile);
+            }
+          }
+        }, 0);
+      } else {
+        setDeveloperProfile(null);
+      }
+
+      setIsLoading(false);
+    });
+
+    // Then get the initial session
+    supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
+      if (!mounted) return;
+
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+
+      if (initialSession?.user) {
+        const profile = await fetchDeveloperProfile(initialSession.user.id);
+        if (mounted) {
+          setDeveloperProfile(profile);
+        }
+      }
+
+      setIsLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchDeveloperProfile]);
+
+  // Set up real-time subscription for developer profile changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('developer_profile_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'developers',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            setDeveloperProfile(payload.new as Developer);
+          } else if (payload.eventType === 'DELETE') {
+            setDeveloperProfile(null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  const isAdmin = isAdminEmail(user?.email);
   const isDeveloperApproved = developerProfile?.status === 'approved';
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const mockUser: User = {
-      id: email === 'admin@zenova.com' ? 'admin-001' : `user-${Date.now()}`,
+    const { error } = await supabase.auth.signInWithPassword({
       email,
-      name: email === 'admin@zenova.com' ? 'Admin' : email.split('@')[0],
-      avatar: undefined,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: mockUser }));
-    setIsLoading(false);
+      password,
+    });
+
+    if (error) {
+      throw error;
+    }
   };
 
   const register = async (email: string, password: string, name: string) => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const mockUser: User = {
-      id: `user-${Date.now()}`,
+    const { error } = await supabase.auth.signUp({
       email,
-      name,
-      avatar: undefined,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: mockUser }));
-    setIsLoading(false);
+      password,
+      options: {
+        data: {
+          full_name: name,
+        },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw error;
+    }
     setDeveloperProfile(null);
-    localStorage.removeItem(STORAGE_KEY);
   };
 
-  const registerDeveloper = async (data: Omit<DeveloperProfile, 'id' | 'userId' | 'status' | 'createdAt' | 'updatedAt'>) => {
+  const registerDeveloper = async (data: Omit<DeveloperInsert, 'user_id' | 'email' | 'status' | 'created_at' | 'updated_at'>) => {
     if (!user) throw new Error('Must be logged in');
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newProfile: DeveloperProfile = {
+
+    const developerData: DeveloperInsert = {
       ...data,
-      id: `dev-${Date.now()}`,
-      userId: user.id,
+      user_id: user.id,
+      email: user.email!,
       status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
-    
-    setAllDevelopers(prev => [...prev, newProfile]);
-    setDeveloperProfile(newProfile);
+
+    const { data: newDeveloper, error } = await supabase
+      .from('developers')
+      .insert([developerData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Developer registration error:', error);
+      throw error;
+    }
+
+    setDeveloperProfile(newDeveloper);
   };
 
-  const updateDeveloperStatus = (developerId: string, status: 'approved' | 'rejected', reason?: string) => {
-    setAllDevelopers(prev => 
-      prev.map(dev => 
-        dev.id === developerId 
-          ? { 
-              ...dev, 
-              status, 
-              rejectionReason: reason,
-              updatedAt: new Date().toISOString() 
-            } 
-          : dev
-      )
-    );
+  const updateDeveloperStatus = async (developerId: string, status: DeveloperStatus, reason?: string) => {
+    const updateData: DeveloperUpdate = {
+      status,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (reason) {
+      updateData.rejection_reason = reason;
+    }
+
+    const { error } = await supabase
+      .from('developers')
+      .update(updateData)
+      .eq('id', developerId);
+
+    if (error) {
+      console.error('Error updating developer status:', error);
+      throw error;
+    }
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        session,
         isAuthenticated: !!user,
         isLoading,
         isAdmin,
@@ -177,6 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         registerDeveloper,
+        refreshDeveloperProfile,
         updateDeveloperStatus,
       }}
     >
@@ -195,38 +251,71 @@ export function useAuth() {
 
 // Hook to get all developers (for admin)
 export function useDevelopers() {
-  const [developers, setDevelopers] = useState<DeveloperProfile[]>([]);
-  
-  useEffect(() => {
-    const stored = localStorage.getItem(DEVELOPERS_KEY);
-    if (stored) {
-      setDevelopers(JSON.parse(stored));
+  const [developers, setDevelopers] = useState<Developer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchDevelopers = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('developers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching developers:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (err) {
+      console.error('Error in fetchDevelopers:', err);
+      return [];
     }
-    
-    // Listen for storage changes
-    const handleStorage = () => {
-      const stored = localStorage.getItem(DEVELOPERS_KEY);
-      if (stored) {
-        setDevelopers(JSON.parse(stored));
-      }
-    };
-    
-    window.addEventListener('storage', handleStorage);
-    
-    // Also poll for changes (for same-tab updates)
-    const interval = setInterval(() => {
-      const stored = localStorage.getItem(DEVELOPERS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setDevelopers(parsed);
-      }
-    }, 500);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      clearInterval(interval);
-    };
   }, []);
-  
-  return developers;
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadDevelopers = async () => {
+      setIsLoading(true);
+      const data = await fetchDevelopers();
+      if (mounted) {
+        setDevelopers(data);
+        setIsLoading(false);
+      }
+    };
+
+    loadDevelopers();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('all_developers_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'developers',
+        },
+        async () => {
+          if (mounted) {
+            const data = await fetchDevelopers();
+            if (mounted) {
+              setDevelopers(data);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, [fetchDevelopers]);
+
+  return { developers, isLoading };
 }
+
+// Re-export types for convenience
+export type { Developer, DeveloperStatus };

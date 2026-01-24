@@ -97,14 +97,14 @@ export default function Index() {
                 <div className="glass-card p-6 hover-glow transition-all duration-300">
                   <div className="flex items-start gap-4 mb-4">
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-3xl animate-float">
-                      {featuredApps[0].icon}
+                      {featuredApps[0].icon || '📱'}
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{featuredApps[0].name}</h3>
-                      <p className="text-sm text-muted-foreground">{featuredApps[0].developerName}</p>
+                      <p className="text-sm text-muted-foreground">{featuredApps[0].developer_name}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4">{featuredApps[0].shortDescription}</p>
+                  <p className="text-sm text-muted-foreground mb-4">{featuredApps[0].short_description}</p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 text-sm">
                       <span className="flex items-center gap-1 text-warning">
@@ -185,13 +185,13 @@ export default function Index() {
                 <div className="glass-card p-4 hover-glow transition-all duration-300 group">
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                      {app.icon}
+                      {app.icon || '📱'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
                         {app.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground truncate">{app.category}</p>
+                      <p className="text-sm text-muted-foreground truncate">{app.category_id}</p>
                       <div className="flex items-center gap-3 mt-2 text-xs">
                         <span className="flex items-center gap-1 text-warning">
                           <Star className="w-3 h-3 fill-current" />
