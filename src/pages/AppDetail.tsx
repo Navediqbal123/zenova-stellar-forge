@@ -29,7 +29,7 @@ export default function AppDetail() {
     );
   }
 
-  const category = categories.find(c => c.id === app.category);
+  const category = categories.find(c => c.id === app.category_id);
 
   return (
     <motion.div
@@ -37,30 +37,28 @@ export default function AppDetail() {
       animate={{ opacity: 1 }}
       className="max-w-4xl mx-auto space-y-8"
     >
-      {/* Back Button */}
       <Link to="/apps" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Back to Apps
       </Link>
 
-      {/* App Header */}
       <div className="glass-card p-8">
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-6xl shrink-0 animate-float">
-            {app.icon}
+            {app.icon || '📱'}
           </div>
           
           <div className="flex-1 space-y-4">
             <div>
               <h1 className="text-3xl font-bold mb-1">{app.name}</h1>
-              <p className="text-primary">{app.developerName}</p>
+              <p className="text-primary">{app.developer_name}</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-1">
                 <Star className="w-5 h-5 text-warning fill-current" />
                 <span className="font-semibold">{app.rating}</span>
-                <span className="text-muted-foreground">({app.reviewCount.toLocaleString()} reviews)</span>
+                <span className="text-muted-foreground">({app.review_count.toLocaleString()} reviews)</span>
               </div>
               <div className="flex items-center gap-1 text-muted-foreground">
                 <Download className="w-5 h-5" />
@@ -71,7 +69,7 @@ export default function AppDetail() {
                   } downloads
                 </span>
               </div>
-              <Link to={`/categories/${app.category}`}>
+              <Link to={`/categories/${app.category_id}`}>
                 <span className="px-3 py-1 rounded-full bg-muted hover:bg-muted/80 transition-colors">
                   {category?.icon} {category?.name}
                 </span>
@@ -83,18 +81,13 @@ export default function AppDetail() {
                 <Download className="w-5 h-5 mr-2" />
                 Install
               </Button>
-              <Button variant="outline">
-                <Share2 className="w-5 h-5" />
-              </Button>
-              <Button variant="outline">
-                <Flag className="w-5 h-5" />
-              </Button>
+              <Button variant="outline"><Share2 className="w-5 h-5" /></Button>
+              <Button variant="outline"><Flag className="w-5 h-5" /></Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* App Info */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="glass-card p-4 text-center">
           <p className="text-2xl font-bold gradient-text">{app.size}</p>
@@ -110,15 +103,13 @@ export default function AppDetail() {
         </div>
       </div>
 
-      {/* Description */}
       <div className="glass-card p-6 space-y-4">
         <h2 className="text-xl font-semibold">About this app</h2>
         <p className="text-muted-foreground leading-relaxed">
-          {app.description || app.shortDescription}
+          {app.description || app.short_description}
         </p>
       </div>
 
-      {/* Safety */}
       <div className="glass-card p-6 space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <Shield className="w-5 h-5 text-success" />
@@ -136,12 +127,11 @@ export default function AppDetail() {
         </div>
       </div>
 
-      {/* Developer Info */}
       <div className="glass-card p-6 space-y-4">
         <h2 className="text-xl font-semibold">Developer contact</h2>
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            <p className="font-medium">{app.developerName}</p>
+            <p className="font-medium">{app.developer_name}</p>
             <p className="text-sm text-muted-foreground">Developer</p>
           </div>
           <Button variant="outline" size="sm">

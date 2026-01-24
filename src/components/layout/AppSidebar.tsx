@@ -33,6 +33,9 @@ export function AppSidebar() {
   const { user, isAuthenticated, isAdmin, isDeveloperApproved, developerProfile, logout } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  // Get display name from user metadata or email
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+
   const navItems: NavItem[] = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Apps', path: '/apps', icon: Grid3X3 },
@@ -61,6 +64,15 @@ export function AppSidebar() {
   };
 
   const closeMobile = () => setIsMobileOpen(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      closeMobile();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <>
@@ -185,7 +197,7 @@ export function AppSidebar() {
                   <User className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{user?.name}</p>
+                  <p className="font-medium truncate">{displayName}</p>
                   <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   {developerProfile && (
                     <span className={cn(
@@ -204,10 +216,7 @@ export function AppSidebar() {
               <Button 
                 variant="outline" 
                 className="w-full justify-start gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
-                onClick={() => {
-                  logout();
-                  closeMobile();
-                }}
+                onClick={handleLogout}
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
