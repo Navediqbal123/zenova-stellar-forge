@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -12,7 +12,10 @@ import {
   Star,
   Eye,
   Plus,
-  Search
+  Search,
+  ShieldCheck,
+  Activity,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { AdminLayout, AdminTab } from '@/components/layout/AdminLayout';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { adminAPI } from '@/lib/axios';
 
 // Animation variants
 const staggerContainer = {
@@ -46,6 +50,16 @@ const listItem = {
   show: { opacity: 1, x: 0 }
 };
 
+// Backend stats interface
+interface BackendStats {
+  totalDevelopers: number;
+  pendingDevelopers: number;
+  totalApps: number;
+  pendingApps: number;
+  totalDownloads: number;
+  avgRating: string;
+}
+
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
 
@@ -64,8 +78,29 @@ export default function AdminPanel() {
 function AdminDashboard() {
   const { developers, isLoading } = useDevelopers();
   const { apps } = useApps();
+  const { toast } = useToast();
+  const [backendStats, setBackendStats] = useState<BackendStats | null>(null);
+  const [isLoadingBackend, setIsLoadingBackend] = useState(true);
 
-  const stats = {
+  // Fetch stats from backend
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await adminAPI.getStatsSummary();
+        if (response.data) {
+          setBackendStats(response.data);
+        }
+      } catch (error) {
+        console.log('Backend stats not available, using local data');
+      } finally {
+        setIsLoadingBackend(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  // Use backend stats if available, otherwise fallback to local
+  const stats = backendStats || {
     totalDevelopers: developers.length,
     pendingDevelopers: developers.filter(d => d.status === 'pending').length,
     totalApps: apps.length,
@@ -82,38 +117,63 @@ function AdminDashboard() {
       value: stats.totalDevelopers, 
       pending: stats.pendingDevelopers,
       icon: Users, 
-      color: 'primary' 
+      color: 'primary',
+      trend: '+12%'
     },
     { 
       label: 'Total Apps', 
       value: stats.totalApps, 
       pending: stats.pendingApps,
       icon: Package, 
-      color: 'secondary' 
+      color: 'secondary',
+      trend: '+8%'
     },
     { 
       label: 'Downloads', 
-      value: stats.totalDownloads >= 1000000 
-        ? `${(stats.totalDownloads / 1000000).toFixed(1)}M`
-        : `${Math.floor(stats.totalDownloads / 1000)}K`, 
+      value: typeof stats.totalDownloads === 'number' 
+        ? (stats.totalDownloads >= 1000000 
+          ? `${(stats.totalDownloads / 1000000).toFixed(1)}M`
+          : `${Math.floor(stats.totalDownloads / 1000)}K`)
+        : stats.totalDownloads, 
       icon: Download, 
-      color: 'success' 
+      color: 'success',
+      trend: '+24%'
     },
     { 
       label: 'Avg Rating', 
       value: stats.avgRating, 
       icon: Star, 
-      color: 'warning' 
+      color: 'warning',
+      trend: '+0.3'
     },
   ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold mb-1">Dashboard Overview</h1>
-        <p className="text-muted-foreground">Welcome back, Admin</p>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-2xl font-bold mb-1 flex items-center gap-2">
+            Dashboard Overview
+            <Zap className="w-5 h-5 text-warning" />
+          </h1>
+          <p className="text-muted-foreground">Welcome back, <span className="text-primary">Naved</span></p>
+        </div>
+        <div className="flex items-center gap-2">
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="px-3 py-1.5 rounded-full bg-success/20 border border-success/30 flex items-center gap-2"
+          >
+            <Activity className="w-3.5 h-3.5 text-success" />
+            <span className="text-xs font-medium text-success">System Online</span>
+          </motion.div>
+        </div>
+      </motion.div>
 
       {/* Stats Grid */}
       <motion.div 
@@ -126,34 +186,56 @@ function AdminDashboard() {
           <motion.div
             key={stat.label}
             variants={staggerItem}
-            whileHover={{ scale: 1.02, y: -2 }}
-            className="admin-glass-card p-5"
+            whileHover={{ scale: 1.02, y: -4 }}
+            className="admin-glass-card p-5 relative overflow-hidden group"
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className={cn(
-                "p-2 rounded-xl",
-                stat.color === 'primary' && "bg-primary/15",
-                stat.color === 'secondary' && "bg-secondary/15",
-                stat.color === 'success' && "bg-success/15",
-                stat.color === 'warning' && "bg-warning/15"
-              )}>
-                <stat.icon className={cn(
-                  "w-5 h-5",
-                  stat.color === 'primary' && "text-primary",
-                  stat.color === 'secondary' && "text-secondary",
-                  stat.color === 'success' && "text-success",
-                  stat.color === 'warning' && "text-warning"
-                )} />
+            {/* Decorative gradient on hover */}
+            <div className={cn(
+              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+              stat.color === 'primary' && "bg-gradient-to-br from-primary/5 to-transparent",
+              stat.color === 'secondary' && "bg-gradient-to-br from-secondary/5 to-transparent",
+              stat.color === 'success' && "bg-gradient-to-br from-success/5 to-transparent",
+              stat.color === 'warning' && "bg-gradient-to-br from-warning/5 to-transparent"
+            )} />
+            
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <div className={cn(
+                  "p-2.5 rounded-xl",
+                  stat.color === 'primary' && "bg-primary/15",
+                  stat.color === 'secondary' && "bg-secondary/15",
+                  stat.color === 'success' && "bg-success/15",
+                  stat.color === 'warning' && "bg-warning/15"
+                )}>
+                  <stat.icon className={cn(
+                    "w-5 h-5",
+                    stat.color === 'primary' && "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]",
+                    stat.color === 'secondary' && "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary))]",
+                    stat.color === 'success' && "text-success drop-shadow-[0_0_8px_hsl(var(--success))]",
+                    stat.color === 'warning' && "text-warning drop-shadow-[0_0_8px_hsl(var(--warning))]"
+                  )} />
+                </div>
+                {stat.trend && (
+                  <span className={cn(
+                    "text-xs font-semibold px-2 py-0.5 rounded-full",
+                    stat.color === 'primary' && "bg-primary/20 text-primary",
+                    stat.color === 'secondary' && "bg-secondary/20 text-secondary",
+                    stat.color === 'success' && "bg-success/20 text-success",
+                    stat.color === 'warning' && "bg-warning/20 text-warning"
+                  )}>
+                    {stat.trend}
+                  </span>
+                )}
               </div>
-              <span className="text-sm text-muted-foreground">{stat.label}</span>
+              <span className="text-sm text-muted-foreground block mb-1">{stat.label}</span>
+              <p className="text-3xl font-bold">{stat.value}</p>
+              {stat.pending !== undefined && stat.pending > 0 && (
+                <p className="text-sm text-warning mt-2 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  {stat.pending} pending review
+                </p>
+              )}
             </div>
-            <p className="text-3xl font-bold">{stat.value}</p>
-            {stat.pending !== undefined && stat.pending > 0 && (
-              <p className="text-sm text-warning mt-1 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {stat.pending} pending
-              </p>
-            )}
           </motion.div>
         ))}
       </motion.div>
