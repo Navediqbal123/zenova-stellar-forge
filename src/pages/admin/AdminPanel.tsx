@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, 
   Package, 
@@ -15,11 +15,14 @@ import {
   Search,
   ShieldCheck,
   Activity,
-  Zap
+  Zap,
+  RotateCw,
+  PartyPopper,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth, useDevelopers, Developer } from '@/contexts/AuthContext';
+import { useAuth, Developer } from '@/contexts/AuthContext';
 import { useApps, App } from '@/contexts/AppsContext';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -28,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AdminLayout, AdminTab } from '@/components/layout/AdminLayout';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { adminAPI } from '@/lib/axios';
+import { useDevelopersQuery } from '@/hooks/useDevelopersQuery';
 
 // Animation variants
 const staggerContainer = {
@@ -76,7 +80,7 @@ export default function AdminPanel() {
 
 // Dashboard Tab
 function AdminDashboard() {
-  const { developers, isLoading } = useDevelopers();
+  const { developers, isLoading } = useDevelopersQuery();
   const { apps } = useApps();
   const { toast } = useToast();
   const [backendStats, setBackendStats] = useState<BackendStats | null>(null);
@@ -323,8 +327,7 @@ function AdminDashboard() {
 
 // Developers Tab
 function AdminDevelopers() {
-  const { developers, isLoading } = useDevelopers();
-  const { updateDeveloperStatus } = useAuth();
+  const { developers, isLoading, isRefreshing, refresh, updateStatus } = useDevelopersQuery();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [rejectDialog, setRejectDialog] = useState<{ open: boolean; developer: Developer | null }>({
@@ -333,6 +336,7 @@ function AdminDevelopers() {
   });
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const filteredDevelopers = developers.filter(dev => 
     dev.developer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -342,9 +346,14 @@ function AdminDevelopers() {
   const handleApprove = async (developer: Developer) => {
     setIsProcessing(true);
     try {
-      await updateDeveloperStatus(developer.id, 'approved');
+      await updateStatus(developer.id, 'approved');
+      
+      // Show confetti animation
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+      
       toast({
-        title: "✅ Developer Approved",
+        title: "🎉 Developer Approved!",
         description: `${developer.developer_name} has been approved and can now access their dashboard.`
       });
     } catch (error: any) {
@@ -364,7 +373,7 @@ function AdminDevelopers() {
     
     setIsProcessing(true);
     try {
-      await updateDeveloperStatus(rejectDialog.developer.id, 'rejected', rejectReason || undefined);
+      await updateStatus(rejectDialog.developer.id, 'rejected', rejectReason || undefined);
       toast({
         title: "Developer Rejected",
         description: `${rejectDialog.developer.developer_name} has been rejected.`
@@ -385,20 +394,57 @@ function AdminDevelopers() {
 
   return (
     <div className="space-y-6">
+      {/* Confetti Effect */}
+      <AnimatePresence>
+        {showConfetti && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: [0, 1.2, 1] }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-success/20 border border-success/30 backdrop-blur-xl"
+            >
+              <PartyPopper className="w-8 h-8 text-success" />
+              <span className="text-xl font-bold text-success">Developer Approved!</span>
+              <Sparkles className="w-6 h-6 text-warning animate-pulse" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold mb-1">Developers</h1>
           <p className="text-muted-foreground">{developers.length} registered developers</p>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search developers..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 w-full sm:w-64 bg-white/5 border-white/10"
-          />
+        <div className="flex items-center gap-3">
+          {/* Refresh Button */}
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={refresh}
+              disabled={isRefreshing}
+              className="bg-white/5 border-white/10 hover:bg-white/10"
+            >
+              <RotateCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+            </Button>
+          </motion.div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search developers..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-full sm:w-64 bg-white/5 border-white/10"
+            />
+          </div>
         </div>
       </div>
 
@@ -762,7 +808,7 @@ function AdminCategories() {
 // Stats Tab
 function AdminStats() {
   const { apps } = useApps();
-  const { developers } = useDevelopers();
+  const { developers } = useDevelopersQuery();
 
   const topApps = apps
     .filter(a => a.status === 'approved')

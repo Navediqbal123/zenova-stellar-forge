@@ -19,13 +19,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApps } from '@/contexts/AppsContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { AppUploadModal } from '@/components/developer/AppUploadModal';
 
 // Animation variants
 const staggerContainer = {
@@ -46,20 +42,10 @@ const staggerItem = {
 export default function DeveloperDashboard() {
   const navigate = useNavigate();
   const { user, isAuthenticated, developerProfile, isDeveloperApproved } = useAuth();
-  const { apps, categories, addApp, getAppsByDeveloper } = useApps();
+  const { apps, categories, getAppsByDeveloper } = useApps();
   const { toast } = useToast();
   
-  const [isAddingApp, setIsAddingApp] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newApp, setNewApp] = useState({
-    name: '',
-    short_description: '',
-    description: '',
-    category_id: '',
-    version: '1.0.0',
-    size: '50 MB',
-    icon_url: '📱',
-  });
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Not authenticated
   if (!isAuthenticated) {
@@ -235,59 +221,6 @@ export default function DeveloperDashboard() {
 
   const myApps = getAppsByDeveloper(developerProfile.id);
 
-  const handleAddApp = async () => {
-    if (!newApp.name || !newApp.category_id || !newApp.short_description) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await addApp({
-        name: newApp.name,
-        description: newApp.description,
-        short_description: newApp.short_description,
-        category_id: newApp.category_id,
-        version: newApp.version,
-        size: newApp.size,
-        icon_url: newApp.icon_url,
-        developer_id: developerProfile.id,
-        screenshots: [],
-        featured: false,
-        trending: false,
-      });
-
-      toast({
-        title: "✅ App Submitted!",
-        description: "Your app has been submitted for review"
-      });
-
-      setNewApp({
-        name: '',
-        short_description: '',
-        description: '',
-        category_id: '',
-        version: '1.0.0',
-        size: '50 MB',
-        icon_url: '📱',
-      });
-      setIsAddingApp(false);
-    } catch (error: any) {
-      console.error('App submission error:', error);
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to submit app. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const stats = {
     totalApps: myApps.length,
     pendingApps: myApps.filter(a => a.status === 'pending').length,
@@ -327,118 +260,19 @@ export default function DeveloperDashboard() {
           </p>
         </div>
 
-        <Dialog open={isAddingApp} onOpenChange={setIsAddingApp}>
-          <DialogTrigger asChild>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="w-5 h-5 mr-2" />
-                Upload New App
-              </Button>
-            </motion.div>
-          </DialogTrigger>
-          <DialogContent className="admin-glass-card border-white/10 max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Upload New App</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label>Icon</Label>
-                  <Input
-                    value={newApp.icon_url}
-                    onChange={(e) => setNewApp(prev => ({ ...prev, icon_url: e.target.value }))}
-                    className="text-center text-2xl bg-white/5 border-white/10"
-                    placeholder="📱"
-                  />
-                </div>
-                <div className="space-y-2 col-span-3">
-                  <Label>App Name *</Label>
-                  <Input
-                    value={newApp.name}
-                    onChange={(e) => setNewApp(prev => ({ ...prev, name: e.target.value }))}
-                    className="bg-white/5 border-white/10"
-                    placeholder="My Awesome App"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Category *</Label>
-                <Select
-                  value={newApp.category_id}
-                  onValueChange={(value) => setNewApp(prev => ({ ...prev, category_id: value }))}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.icon} {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Short Description *</Label>
-                <Input
-                  value={newApp.short_description}
-                  onChange={(e) => setNewApp(prev => ({ ...prev, short_description: e.target.value }))}
-                  className="bg-white/5 border-white/10"
-                  placeholder="A brief description"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Full Description</Label>
-                <Textarea
-                  value={newApp.description}
-                  onChange={(e) => setNewApp(prev => ({ ...prev, description: e.target.value }))}
-                  className="bg-white/5 border-white/10"
-                  placeholder="Detailed description of your app..."
-                  rows={4}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Version</Label>
-                  <Input
-                    value={newApp.version}
-                    onChange={(e) => setNewApp(prev => ({ ...prev, version: e.target.value }))}
-                    className="bg-white/5 border-white/10"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Size</Label>
-                  <Input
-                    value={newApp.size}
-                    onChange={(e) => setNewApp(prev => ({ ...prev, size: e.target.value }))}
-                    className="bg-white/5 border-white/10"
-                  />
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleAddApp} 
-                disabled={isSubmitting}
-                className="w-full bg-primary hover:bg-primary/90"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  'Submit App for Review'
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button className="bg-primary hover:bg-primary/90" onClick={() => setIsUploadModalOpen(true)}>
+            <Plus className="w-5 h-5 mr-2" />
+            Upload New App
+          </Button>
+        </motion.div>
       </div>
+
+      {/* Upload Modal */}
+      <AppUploadModal 
+        isOpen={isUploadModalOpen} 
+        onClose={() => setIsUploadModalOpen(false)} 
+      />
 
       {/* Stats Grid */}
       <motion.div 
@@ -490,7 +324,7 @@ export default function DeveloperDashboard() {
               Upload your first app to get started
             </p>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button onClick={() => setIsAddingApp(true)} className="bg-primary hover:bg-primary/90">
+              <Button onClick={() => setIsUploadModalOpen(true)} className="bg-primary hover:bg-primary/90">
                 <Plus className="w-5 h-5 mr-2" />
                 Upload App
               </Button>
