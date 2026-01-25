@@ -1,18 +1,10 @@
 import { ReactNode, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Shield,
-  LayoutDashboard, 
-  Users, 
-  Package, 
-  Layers, 
-  BarChart3,
-  ChevronRight,
-  Sparkles
-} from 'lucide-react';
+import { Shield, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { cn } from '@/lib/utils';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { ChatbotSupport, ChatbotTrigger } from '@/components/admin/ChatbotSupport';
 
 export type AdminTab = 'dashboard' | 'developers' | 'apps' | 'categories' | 'stats';
 
@@ -22,18 +14,10 @@ interface AdminLayoutProps {
   onTabChange: (tab: AdminTab) => void;
 }
 
-const adminTabs: { id: AdminTab; label: string; icon: React.ElementType; description: string }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Overview & metrics' },
-  { id: 'developers', label: 'Developers', icon: Users, description: 'Manage developers' },
-  { id: 'apps', label: 'Apps', icon: Package, description: 'App submissions' },
-  { id: 'categories', label: 'Categories', icon: Layers, description: 'Store categories' },
-  { id: 'stats', label: 'Stats', icon: BarChart3, description: 'Analytics & reports' },
-];
-
 export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutProps) {
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin } = useAuth();
-  const [hoveredTab, setHoveredTab] = useState<AdminTab | null>(null);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   // Access control - only admin can access
   if (!isAuthenticated || !isAdmin) {
@@ -72,141 +56,18 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-[1600px] mx-auto"
+      className="max-w-[1800px] mx-auto"
     >
       <div className="flex gap-6">
-        {/* Admin Sidebar - Nested */}
-        <motion.aside
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="hidden lg:block w-64 shrink-0 sticky top-8 self-start"
-        >
-          <div className="admin-glass-card overflow-hidden">
-            {/* Sidebar Header */}
-            <div className="p-5 border-b border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20">
-                    <Shield className="w-6 h-6 text-primary" />
-                  </div>
-                  <motion.div
-                    className="absolute -top-1 -right-1"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-warning" />
-                  </motion.div>
-                </div>
-                <div>
-                  <h2 className="font-bold text-lg">Admin Panel</h2>
-                  <p className="text-xs text-muted-foreground">Zenova Store</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation */}
-            <nav className="p-3 space-y-1">
-              {adminTabs.map((tab, index) => {
-                const isActive = activeTab === tab.id;
-                const isHovered = hoveredTab === tab.id;
-
-                return (
-                  <motion.button
-                    key={tab.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => onTabChange(tab.id)}
-                    onMouseEnter={() => setHoveredTab(tab.id)}
-                    onMouseLeave={() => setHoveredTab(null)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 relative group",
-                      isActive
-                        ? "bg-gradient-to-r from-primary/20 to-secondary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    {/* Active indicator */}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeAdminTab"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-primary"
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    )}
-
-                    {/* Icon with glow effect */}
-                    <div className={cn(
-                      "relative p-1.5 rounded-lg transition-all duration-200",
-                      isActive ? "bg-primary/20" : "group-hover:bg-muted"
-                    )}>
-                      <tab.icon className={cn(
-                        "w-4 h-4 transition-all duration-200",
-                        isActive && "drop-shadow-[0_0_8px_hsl(var(--primary))]"
-                      )} />
-                    </div>
-
-                    {/* Label */}
-                    <div className="flex-1 text-left">
-                      <span className="font-medium text-sm">{tab.label}</span>
-                    </div>
-
-                    {/* Arrow indicator */}
-                    <motion.div
-                      animate={{ x: isActive || isHovered ? 0 : -5, opacity: isActive || isHovered ? 1 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </motion.div>
-                  </motion.button>
-                );
-              })}
-            </nav>
-
-            {/* Footer */}
-            <div className="p-4 mt-4 border-t border-white/5">
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">
-                  Super Admin Access
-                </p>
-                <p className="text-xs text-primary/70 mt-1">
-                  navedahmad9012@gmail.com
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.aside>
+        {/* Premium Admin Sidebar */}
+        <AdminSidebar
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          onOpenChatbot={() => setIsChatbotOpen(true)}
+        />
 
         {/* Mobile Tab Bar */}
-        <div className="lg:hidden fixed bottom-4 left-4 right-4 z-50">
-          <div className="admin-glass-card p-2 flex justify-around">
-            {adminTabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <motion.button
-                  key={tab.id}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => onTabChange(tab.id)}
-                  className={cn(
-                    "p-3 rounded-xl transition-all relative",
-                    isActive 
-                      ? "bg-primary/20 text-primary" 
-                      : "text-muted-foreground"
-                  )}
-                >
-                  <tab.icon className="w-5 h-5" />
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeMobileAdminTab"
-                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
-                    />
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
+        <MobileTabBar activeTab={activeTab} onTabChange={onTabChange} />
 
         {/* Main Content Area */}
         <main className="flex-1 min-w-0 pb-24 lg:pb-0">
@@ -223,6 +84,77 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
           </AnimatePresence>
         </main>
       </div>
+
+      {/* Floating Chatbot */}
+      <ChatbotTrigger onClick={() => setIsChatbotOpen(true)} />
+      <ChatbotSupport 
+        isOpen={isChatbotOpen} 
+        onClose={() => setIsChatbotOpen(false)} 
+      />
     </motion.div>
+  );
+}
+
+// Mobile Tab Bar Component
+import { 
+  LayoutDashboard, 
+  Users, 
+  Package, 
+  Layers, 
+  BarChart3 
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const mobileTabConfig: { id: AdminTab; icon: React.ElementType }[] = [
+  { id: 'dashboard', icon: LayoutDashboard },
+  { id: 'developers', icon: Users },
+  { id: 'apps', icon: Package },
+  { id: 'categories', icon: Layers },
+  { id: 'stats', icon: BarChart3 },
+];
+
+function MobileTabBar({ activeTab, onTabChange }: { activeTab: AdminTab; onTabChange: (tab: AdminTab) => void }) {
+  return (
+    <div className="lg:hidden fixed bottom-4 left-4 right-4 z-50">
+      <motion.div 
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="admin-glass-card p-2 flex justify-around backdrop-blur-xl"
+        style={{
+          background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.98) 100%)',
+        }}
+      >
+        {mobileTabConfig.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <motion.button
+              key={tab.id}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onTabChange(tab.id)}
+              className={cn(
+                "p-3 rounded-xl transition-all relative",
+                isActive 
+                  ? "bg-blue-600/20 text-blue-400" 
+                  : "text-slate-500 hover:text-slate-300"
+              )}
+            >
+              <tab.icon className={cn(
+                "w-5 h-5",
+                isActive && "drop-shadow-[0_0_8px_hsl(217_91%_60%)]"
+              )} />
+              {isActive && (
+                <motion.div
+                  layoutId="activeMobileTab"
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500"
+                  style={{
+                    boxShadow: '0 0 8px hsl(217 91% 60% / 0.8)'
+                  }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
+      </motion.div>
+    </div>
   );
 }
