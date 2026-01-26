@@ -19,6 +19,7 @@ import {
   RotateCw,
   PartyPopper,
   Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,8 @@ import { AdminLayout, AdminTab } from '@/components/layout/AdminLayout';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { adminAPI } from '@/lib/axios';
 import { useDevelopersQuery } from '@/hooks/useDevelopersQuery';
+import { useAppsQuery } from '@/hooks/useAppsQuery';
+import { StatsChart, TrendIndicator, MiniChart } from '@/components/admin/AdminStatsChart';
 
 // Animation variants
 const staggerContainer = {
@@ -78,9 +81,10 @@ export default function AdminPanel() {
   );
 }
 
-// Dashboard Tab
+// Dashboard Tab with Charts and Trends
 function AdminDashboard() {
-  const { developers, isLoading } = useDevelopersQuery();
+  const { developers, isLoading, refresh: refreshDevelopers, isRefreshing: isRefreshingDev } = useDevelopersQuery();
+  const { pendingApps, refresh: refreshApps, isRefreshing: isRefreshingApps } = useAppsQuery();
   const { apps } = useApps();
   const { toast } = useToast();
   const [backendStats, setBackendStats] = useState<BackendStats | null>(null);
@@ -103,12 +107,20 @@ function AdminDashboard() {
     fetchStats();
   }, []);
 
+  const handleRefreshAll = async () => {
+    await Promise.all([refreshDevelopers(), refreshApps()]);
+    toast({
+      title: "✓ Data Refreshed",
+      description: "All statistics have been updated.",
+    });
+  };
+
   // Use backend stats if available, otherwise fallback to local
   const stats = backendStats || {
     totalDevelopers: developers.length,
     pendingDevelopers: developers.filter(d => d.status === 'pending').length,
     totalApps: apps.length,
-    pendingApps: apps.filter(a => a.status === 'pending').length,
+    pendingApps: pendingApps.length,
     totalDownloads: apps.reduce((sum, a) => sum + a.downloads, 0),
     avgRating: apps.length > 0 
       ? (apps.reduce((sum, a) => sum + a.rating, 0) / apps.length).toFixed(1)
@@ -122,7 +134,8 @@ function AdminDashboard() {
       pending: stats.pendingDevelopers,
       icon: Users, 
       color: 'primary',
-      trend: '+12%'
+      trend: '+12%',
+      trendPositive: true,
     },
     { 
       label: 'Total Apps', 
@@ -130,7 +143,8 @@ function AdminDashboard() {
       pending: stats.pendingApps,
       icon: Package, 
       color: 'secondary',
-      trend: '+8%'
+      trend: '+8%',
+      trendPositive: true,
     },
     { 
       label: 'Downloads', 
@@ -141,16 +155,20 @@ function AdminDashboard() {
         : stats.totalDownloads, 
       icon: Download, 
       color: 'success',
-      trend: '+24%'
+      trend: '+24%',
+      trendPositive: true,
     },
     { 
       label: 'Avg Rating', 
       value: stats.avgRating, 
       icon: Star, 
       color: 'warning',
-      trend: '+0.3'
+      trend: '+0.3',
+      trendPositive: true,
     },
   ];
+
+  const isRefreshing = isRefreshingDev || isRefreshingApps;
 
   return (
     <div className="space-y-6">
@@ -167,7 +185,20 @@ function AdminDashboard() {
           </h1>
           <p className="text-muted-foreground">Welcome back, <span className="text-primary">Naved</span></p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {/* Refresh Button */}
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshAll}
+              disabled={isRefreshing}
+              className="bg-white/5 border-white/10 hover:bg-white/10"
+            >
+              <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
+              Refresh
+            </Button>
+          </motion.div>
           <motion.div
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -179,7 +210,7 @@ function AdminDashboard() {
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid with Trends */}
       <motion.div 
         variants={staggerContainer}
         initial="hidden"
@@ -220,19 +251,14 @@ function AdminDashboard() {
                   )} />
                 </div>
                 {stat.trend && (
-                  <span className={cn(
-                    "text-xs font-semibold px-2 py-0.5 rounded-full",
-                    stat.color === 'primary' && "bg-primary/20 text-primary",
-                    stat.color === 'secondary' && "bg-secondary/20 text-secondary",
-                    stat.color === 'success' && "bg-success/20 text-success",
-                    stat.color === 'warning' && "bg-warning/20 text-warning"
-                  )}>
-                    {stat.trend}
-                  </span>
+                  <TrendIndicator value={stat.trend} isPositive={stat.trendPositive} />
                 )}
               </div>
               <span className="text-sm text-muted-foreground block mb-1">{stat.label}</span>
-              <p className="text-3xl font-bold">{stat.value}</p>
+              <div className="flex items-end justify-between">
+                <p className="text-3xl font-bold">{stat.value}</p>
+                <MiniChart color={stat.color as any} />
+              </div>
               {stat.pending !== undefined && stat.pending > 0 && (
                 <p className="text-sm text-warning mt-2 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
@@ -242,6 +268,26 @@ function AdminDashboard() {
             </div>
           </motion.div>
         ))}
+      </motion.div>
+
+      {/* Analytics Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="admin-glass-card p-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Platform Growth
+          </h3>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="w-3 h-3 rounded-full bg-primary"></span>
+            Downloads over time
+          </div>
+        </div>
+        <StatsChart type="downloads" height={220} />
       </motion.div>
 
       {/* Recent Activity */}
@@ -292,7 +338,7 @@ function AdminDashboard() {
             <Clock className="w-5 h-5 text-warning" />
             Pending Apps
           </h3>
-          {apps.filter(a => a.status === 'pending').length === 0 ? (
+          {pendingApps.length === 0 ? (
             <p className="text-muted-foreground text-sm">No pending apps</p>
           ) : (
             <motion.div 
@@ -301,7 +347,7 @@ function AdminDashboard() {
               animate="show"
               className="space-y-3"
             >
-              {apps.filter(a => a.status === 'pending').slice(0, 3).map((app) => (
+              {pendingApps.slice(0, 3).map((app) => (
                 <motion.div 
                   key={app.id} 
                   variants={listItem}
@@ -590,24 +636,30 @@ function AdminDevelopers() {
   );
 }
 
-// Apps Tab
+// Apps Tab with Pending Apps Section and Confetti
 function AdminApps() {
-  const { apps, updateAppStatus } = useApps();
+  const { apps, pendingApps, updateStatus, refresh, isRefreshing } = useAppsQuery();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const filteredApps = apps.filter(app => 
     app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     app.developer_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleApprove = async (app: App) => {
+  const handleApprove = async (app: any) => {
     setIsProcessing(true);
     try {
-      await updateAppStatus(app.id, 'approved');
+      await updateStatus(app.id, 'approved');
+      
+      // Show confetti animation
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+      
       toast({
-        title: "✅ App Approved",
+        title: "🎉 App Approved!",
         description: `${app.name} has been approved and is now visible in the store.`
       });
     } catch (error: any) {
@@ -622,10 +674,10 @@ function AdminApps() {
     }
   };
 
-  const handleReject = async (app: App) => {
+  const handleReject = async (app: any) => {
     setIsProcessing(true);
     try {
-      await updateAppStatus(app.id, 'rejected');
+      await updateStatus(app.id, 'rejected');
       toast({
         title: "App Rejected",
         description: `${app.name} has been rejected.`
@@ -644,24 +696,130 @@ function AdminApps() {
 
   return (
     <div className="space-y-6">
+      {/* Confetti Effect */}
+      <AnimatePresence>
+        {showConfetti && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: [0, 1.2, 1] }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-success/20 border border-success/30 backdrop-blur-xl"
+            >
+              <PartyPopper className="w-8 h-8 text-success" />
+              <span className="text-xl font-bold text-success">App Approved!</span>
+              <Sparkles className="w-6 h-6 text-warning animate-pulse" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold mb-1">Apps</h1>
           <p className="text-muted-foreground">{apps.length} total apps</p>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search apps..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 w-full sm:w-64 bg-white/5 border-white/10"
-          />
+        <div className="flex items-center gap-3">
+          {/* Refresh Button */}
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={refresh}
+              disabled={isRefreshing}
+              className="bg-white/5 border-white/10 hover:bg-white/10"
+            >
+              <RotateCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+            </Button>
+          </motion.div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search apps..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-full sm:w-64 bg-white/5 border-white/10"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Apps List */}
+      {/* Pending Apps Section */}
+      {pendingApps.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="admin-glass-card p-6 border-warning/30"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-5 h-5 text-warning" />
+            <h2 className="text-lg font-semibold">Pending Approval</h2>
+            <span className="ml-2 px-2 py-0.5 rounded-full bg-warning/20 text-warning text-sm font-medium">
+              {pendingApps.length}
+            </span>
+          </div>
+          
+          <motion.div 
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+            className="space-y-3"
+          >
+            {pendingApps.map((app) => (
+              <motion.div
+                key={app.id}
+                variants={staggerItem}
+                whileHover={{ scale: 1.01 }}
+                className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5"
+              >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
+                  {app.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold">{app.name}</h3>
+                    <StatusBadge status="pending" size="sm" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      size="sm"
+                      disabled={isProcessing}
+                      className="bg-success/20 text-success border border-success/30 hover:bg-success/30"
+                      onClick={() => handleApprove(app)}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Approve
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      size="sm"
+                      disabled={isProcessing}
+                      variant="outline"
+                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                      onClick={() => handleReject(app)}
+                    >
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Reject
+                    </Button>
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* All Apps List */}
       {filteredApps.length === 0 ? (
         <div className="admin-glass-card p-12 text-center">
           <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
@@ -676,7 +834,7 @@ function AdminApps() {
           animate="show"
           className="space-y-3"
         >
-          {filteredApps.map((app) => (
+          {filteredApps.filter(a => a.status !== 'pending').map((app) => (
             <motion.div
               key={app.id}
               variants={staggerItem}
@@ -707,37 +865,9 @@ function AdminApps() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {app.status === 'pending' ? (
-                    <>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          size="sm"
-                          disabled={isProcessing}
-                          className="bg-success/20 text-success border border-success/30 hover:bg-success/30"
-                          onClick={() => handleApprove(app)}
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </Button>
-                      </motion.div>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          size="sm"
-                          disabled={isProcessing}
-                          variant="outline"
-                          className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                          onClick={() => handleReject(app)}
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </Button>
-                      </motion.div>
-                    </>
-                  ) : (
-                    <Button size="sm" variant="outline" className="border-white/10">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+                <Button size="sm" variant="outline" className="border-white/10">
+                  <Eye className="w-4 h-4" />
+                </Button>
               </div>
             </motion.div>
           ))}
@@ -805,7 +935,7 @@ function AdminCategories() {
   );
 }
 
-// Stats Tab
+// Stats Tab with Enhanced Charts
 function AdminStats() {
   const { apps } = useApps();
   const { developers } = useDevelopersQuery();
@@ -823,10 +953,39 @@ function AdminStats() {
         <p className="text-muted-foreground">Platform analytics and reports</p>
       </div>
 
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="admin-glass-card p-6"
+        >
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Download className="w-5 h-5 text-primary" />
+            Downloads Trend
+          </h3>
+          <StatsChart type="downloads" height={180} />
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="admin-glass-card p-6"
+        >
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-secondary" />
+            Developer Growth
+          </h3>
+          <StatsChart type="developers" height={180} />
+        </motion.div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
           className="admin-glass-card p-6"
         >
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -836,11 +995,17 @@ function AdminStats() {
           <div className="space-y-4">
             <div className="flex justify-between items-center p-3 rounded-xl bg-white/[0.03]">
               <span className="text-muted-foreground">Total Apps</span>
-              <span className="font-bold text-xl">{apps.length}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-xl">{apps.length}</span>
+                <TrendIndicator value="+8%" isPositive />
+              </div>
             </div>
             <div className="flex justify-between items-center p-3 rounded-xl bg-white/[0.03]">
               <span className="text-muted-foreground">Total Developers</span>
-              <span className="font-bold text-xl">{developers.length}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-xl">{developers.length}</span>
+                <TrendIndicator value="+12%" isPositive />
+              </div>
             </div>
             <div className="flex justify-between items-center p-3 rounded-xl bg-white/[0.03]">
               <span className="text-muted-foreground">Approved Developers</span>
@@ -854,7 +1019,7 @@ function AdminStats() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="admin-glass-card p-6"
         >
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -864,12 +1029,15 @@ function AdminStats() {
           <div className="space-y-4">
             <div className="flex justify-between items-center p-3 rounded-xl bg-white/[0.03]">
               <span className="text-muted-foreground">Total Downloads</span>
-              <span className="font-bold text-xl">
-                {apps.reduce((sum, a) => sum + a.downloads, 0) >= 1000000
-                  ? `${(apps.reduce((sum, a) => sum + a.downloads, 0) / 1000000).toFixed(1)}M`
-                  : `${Math.floor(apps.reduce((sum, a) => sum + a.downloads, 0) / 1000)}K`
-                }
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-xl">
+                  {apps.reduce((sum, a) => sum + a.downloads, 0) >= 1000000
+                    ? `${(apps.reduce((sum, a) => sum + a.downloads, 0) / 1000000).toFixed(1)}M`
+                    : `${Math.floor(apps.reduce((sum, a) => sum + a.downloads, 0) / 1000)}K`
+                  }
+                </span>
+                <TrendIndicator value="+24%" isPositive />
+              </div>
             </div>
             <div className="flex justify-between items-center p-3 rounded-xl bg-white/[0.03]">
               <span className="text-muted-foreground">Avg per App</span>
@@ -888,7 +1056,7 @@ function AdminStats() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.25 }}
         className="admin-glass-card p-6"
       >
         <h3 className="text-lg font-semibold mb-4">Top Apps by Downloads</h3>

@@ -11,6 +11,8 @@ import {
   Wand2,
   AlertCircle,
   CheckCircle2,
+  ArrowLeft,
+  UploadCloud,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,12 +21,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminAPI } from '@/lib/axios';
 import { cn } from '@/lib/utils';
+import { UploadModeSelector } from './UploadModeSelector';
 
 interface AppUploadModalProps {
   isOpen: boolean;
@@ -54,7 +56,7 @@ const initialFormData: UploadFormData = {
 };
 
 export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
-  const [activeTab, setActiveTab] = useState<'manual' | 'ai'>('ai');
+  const [uploadMode, setUploadMode] = useState<'select' | 'manual' | 'ai'>('select');
   const [formData, setFormData] = useState<UploadFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -209,9 +211,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
 
       // Reset and close
       setTimeout(() => {
-        setFormData(initialFormData);
-        setUploadProgress(0);
-        setAiGenerated(false);
+        resetForm();
         refreshApps();
         onClose();
       }, 500);
@@ -231,117 +231,155 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
     setFormData(initialFormData);
     setAiGenerated(false);
     setUploadProgress(0);
+    setUploadMode('select');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleModeSelect = (mode: 'manual' | 'ai') => {
+    setUploadMode(mode);
+  };
+
+  const handleBack = () => {
+    setUploadMode('select');
+    setFormData(initialFormData);
+    setAiGenerated(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // File upload section shared between modes
+  const FileUploadSection = () => (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-4"
+    >
+      <Label className="text-sm font-medium mb-2 block">App File (APK/AAB)</Label>
+      <div
+        onClick={() => fileInputRef.current?.click()}
+        className={cn(
+          "border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all",
+          "hover:border-primary/50 hover:bg-primary/5",
+          formData.file 
+            ? "border-success/50 bg-success/5" 
+            : "border-white/20"
+        )}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".apk,.aab"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+        <AnimatePresence mode="wait">
+          {formData.file ? (
+            <motion.div
+              key="file-selected"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="flex items-center justify-center gap-3"
+            >
+              <div className="p-2 rounded-lg bg-success/20">
+                <CheckCircle2 className="w-5 h-5 text-success" />
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-sm">{formData.file.name}</p>
+                <p className="text-xs text-muted-foreground">{formData.size}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFormData(prev => ({ ...prev, file: null, size: '' }));
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="no-file"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              <FileUp className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Click to upload <span className="text-primary">.apk</span> or{' '}
+                <span className="text-primary">.aab</span>
+              </p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Max 500 MB</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="admin-glass-card border-white/10 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
+            {uploadMode !== 'select' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="mr-2 -ml-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
             <Upload className="w-5 h-5 text-primary" />
             Upload New App
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'manual' | 'ai')} className="mt-4">
-          <TabsList className="grid grid-cols-2 bg-white/5">
-            <TabsTrigger 
-              value="ai" 
-              className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI-Assisted
-            </TabsTrigger>
-            <TabsTrigger 
-              value="manual"
-              className="data-[state=active]:bg-white/10"
-            >
-              <FileCode className="w-4 h-4 mr-2" />
-              Manual Entry
-            </TabsTrigger>
-          </TabsList>
-
-          {/* File Upload Section - Shared */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6"
-          >
-            <Label className="text-sm font-medium mb-2 block">App File (APK/AAB)</Label>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className={cn(
-                "border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all",
-                "hover:border-primary/50 hover:bg-primary/5",
-                formData.file 
-                  ? "border-success/50 bg-success/5" 
-                  : "border-white/20"
-              )}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".apk,.aab"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <AnimatePresence mode="wait">
-                {formData.file ? (
-                  <motion.div
-                    key="file-selected"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="flex items-center justify-center gap-3"
-                  >
-                    <div className="p-2 rounded-lg bg-success/20">
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium text-sm">{formData.file.name}</p>
-                      <p className="text-xs text-muted-foreground">{formData.size}</p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFormData(prev => ({ ...prev, file: null, size: '' }));
-                        if (fileInputRef.current) fileInputRef.current.value = '';
-                      }}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="no-file"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                  >
-                    <FileUp className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      Click to upload <span className="text-primary">.apk</span> or{' '}
-                      <span className="text-primary">.aab</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">Max 500 MB</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-
-          {/* AI-Assisted Tab */}
-          <TabsContent value="ai" className="space-y-4 mt-4">
+        <AnimatePresence mode="wait">
+          {/* Mode Selection */}
+          {uploadMode === 'select' && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-4"
+              key="select"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="py-4"
             >
+              <UploadModeSelector onSelectMode={handleModeSelect} />
+            </motion.div>
+          )}
+
+          {/* AI-Assisted Upload */}
+          {uploadMode === 'ai' && (
+            <motion.div
+              key="ai"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 py-4"
+            >
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/10 border border-primary/20">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium text-primary">AI-Assisted Mode</span>
+              </div>
+
+              <FileUploadSection />
+
               {/* App Name */}
               <div className="space-y-2">
                 <Label>App Name *</Label>
@@ -396,7 +434,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
                   ) : (
                     <>
                       <Wand2 className="w-5 h-5 mr-2" />
-                      {aiGenerated ? 'Regenerate with AI' : 'Generate with AI'}
+                      {aiGenerated ? 'Regenerate with AI' : 'Magic Generate'}
                       <Sparkles className="w-4 h-4 ml-2" />
                     </>
                   )}
@@ -460,16 +498,61 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
-          </TabsContent>
 
-          {/* Manual Entry Tab */}
-          <TabsContent value="manual" className="space-y-4 mt-4">
+              {/* Submit Button */}
+              {(aiGenerated || formData.description) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-3 pt-2"
+                >
+                  {uploadProgress > 0 && (
+                    <div className="space-y-1">
+                      <Progress value={uploadProgress} className="h-2" />
+                      <p className="text-xs text-muted-foreground text-center">
+                        {uploadProgress < 100 ? 'Uploading...' : 'Complete!'}
+                      </p>
+                    </div>
+                  )}
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !formData.name || !formData.category_id}
+                    className="w-full bg-success hover:bg-success/90"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-4 h-4 mr-2" />
+                        Publish App
+                      </>
+                    )}
+                  </Button>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Manual Upload */}
+          {uploadMode === 'manual' && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-4"
+              key="manual"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 py-4"
             >
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-secondary/10 border border-secondary/20">
+                <FileCode className="w-5 h-5 text-secondary" />
+                <span className="text-sm font-medium text-secondary">Manual Entry Mode</span>
+              </div>
+
+              <FileUploadSection />
+
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-3 space-y-2">
                   <Label>App Name *</Label>
@@ -518,12 +601,13 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
                     onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value }))}
                     placeholder="50 MB"
                     className="bg-white/5 border-white/10"
+                    disabled={!!formData.file}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Short Description *</Label>
+                <Label>Short Description</Label>
                 <Input
                   value={formData.short_description}
                   onChange={(e) => setFormData(prev => ({ ...prev, short_description: e.target.value }))}
@@ -533,61 +617,47 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Full Description</Label>
+                <Label>Full Description *</Label>
                 <Textarea
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Detailed description of your app features..."
-                  className="bg-white/5 border-white/10 min-h-[120px]"
+                  placeholder="Describe your app in detail..."
+                  rows={4}
+                  className="bg-white/5 border-white/10"
                 />
               </div>
-            </motion.div>
-          </TabsContent>
-        </Tabs>
 
-        {/* Upload Progress */}
-        <AnimatePresence>
-          {isSubmitting && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4 space-y-2"
-            >
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Uploading...</span>
-                <span className="font-medium">{Math.round(uploadProgress)}%</span>
+              {/* Submit Button */}
+              <div className="space-y-3 pt-2">
+                {uploadProgress > 0 && (
+                  <div className="space-y-1">
+                    <Progress value={uploadProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground text-center">
+                      {uploadProgress < 100 ? 'Uploading...' : 'Complete!'}
+                    </p>
+                  </div>
+                )}
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !formData.name || !formData.category_id}
+                  className="w-full bg-success hover:bg-success/90"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="w-4 h-4 mr-2" />
+                      Submit for Review
+                    </>
+                  )}
+                </Button>
               </div>
-              <Progress value={uploadProgress} className="h-2" />
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          <Button variant="outline" onClick={resetForm} className="flex-1">
-            Reset
-          </Button>
-          <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || !formData.name || !formData.category_id}
-              className="w-full bg-primary hover:bg-primary/90"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Publishing...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Publish App
-                </>
-              )}
-            </Button>
-          </motion.div>
-        </div>
       </DialogContent>
     </Dialog>
   );
