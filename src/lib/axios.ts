@@ -67,6 +67,9 @@ export const adminAPI = {
   
   // Apps
   getAllApps: () => apiClient.get('/api/apps/all'),
+  getPendingApps: () => apiClient.get('/api/apps/admin/pending'),
+  updateAppStatus: (appId: string, status: string) =>
+    apiClient.post('/api/apps/update-status', { appId, status }),
   uploadApp: (formData: FormData) => 
     apiClient.post('/api/apps/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
