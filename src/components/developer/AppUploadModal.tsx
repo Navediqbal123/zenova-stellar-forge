@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   ArrowLeft,
   UploadCloud,
+  Image,
+  Camera,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -28,6 +30,7 @@ import { adminAPI } from '@/lib/axios';
 import { cn } from '@/lib/utils';
 import { UploadModeSelector } from './UploadModeSelector';
 import { triggerConfetti, triggerSuccessConfetti } from '@/lib/confetti';
+import { AIThinkingAnimation } from './AIThinkingAnimation';
 
 interface AppUploadModalProps {
   isOpen: boolean;
@@ -427,42 +430,41 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
                 </Select>
               </div>
 
-              {/* AI Generate Button */}
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  onClick={handleAIGenerate}
-                  disabled={isGeneratingAI || !formData.name}
-                  className={cn(
-                    "w-full h-12 relative overflow-hidden",
-                    "bg-gradient-to-r from-purple-600 to-primary hover:from-purple-700 hover:to-primary/90"
-                  )}
-                >
-                  {isGeneratingAI ? (
-                    <motion.div
-                      className="flex items-center gap-2"
-                      animate={{ opacity: [1, 0.5, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
+              {/* AI Generate Button or Animation */}
+              <AnimatePresence mode="wait">
+                {isGeneratingAI ? (
+                  <AIThinkingAnimation stage="analyzing" />
+                ) : (
+                  <motion.div 
+                    key="button"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    whileHover={{ scale: 1.02 }} 
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      onClick={handleAIGenerate}
+                      disabled={isGeneratingAI || !formData.name}
+                      className={cn(
+                        "w-full h-14 relative overflow-hidden text-lg",
+                        "bg-gradient-to-r from-purple-600 to-primary hover:from-purple-700 hover:to-primary/90"
+                      )}
                     >
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>AI is thinking...</span>
-                      <Sparkles className="w-4 h-4 animate-pulse" />
-                    </motion.div>
-                  ) : (
-                    <>
                       <Wand2 className="w-5 h-5 mr-2" />
                       {aiGenerated ? 'Regenerate with AI' : 'Magic Generate'}
                       <Sparkles className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                  
-                  {/* Shimmer effect */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                    animate={{ x: ['-100%', '100%'] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  />
-                </Button>
-              </motion.div>
+                      
+                      {/* Shimmer effect */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                        animate={{ x: ['-100%', '100%'] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                      />
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* AI Generated Fields */}
               <AnimatePresence>
