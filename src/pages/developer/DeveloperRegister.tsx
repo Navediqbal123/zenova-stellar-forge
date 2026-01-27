@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -10,13 +10,17 @@ import {
   FileText, 
   Loader2,
   CheckCircle,
-  Clock
+  Clock,
+  Upload,
+  CreditCard,
+  X
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -26,6 +30,8 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { adminAPI } from '@/lib/axios';
+import { triggerConfetti } from '@/lib/confetti';
 
 const countries = [
   "United States", "United Kingdom", "Canada", "Germany", "France", 
@@ -36,8 +42,11 @@ export default function DeveloperRegister() {
   const navigate = useNavigate();
   const { user, isAuthenticated, developerProfile, registerDeveloper, isLoading } = useAuth();
   const { toast } = useToast();
+  const idFileRef = useRef<HTMLInputElement>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [idFile, setIdFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     full_name: user?.user_metadata?.full_name || '',
     developer_type: 'individual' as 'individual' | 'company',
@@ -136,6 +145,32 @@ export default function DeveloperRegister() {
     );
   }
 
+  const handleIdFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a JPG, PNG, or PDF file",
+          variant: "destructive"
+        });
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Maximum file size is 5MB",
+          variant: "destructive"
+        });
+        return;
+      }
+      setIdFile(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -148,30 +183,78 @@ export default function DeveloperRegister() {
       return;
     }
 
+    if (!idFile) {
+      toast({
+        title: "ID Required",
+        description: "Please upload a government-issued ID",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
+    setUploadProgress(0);
 
     try {
-      await registerDeveloper({
-        full_name: formData.full_name,
-        developer_type: formData.developer_type,
-        developer_name: formData.developer_name,
-        country: formData.country,
-        phone: formData.phone,
-        website: formData.website,
-        bio: formData.bio,
-      });
+      // Create FormData for multipart upload
+      const submitData = new FormData();
+      submitData.append('developer_name', formData.developer_name);
+      submitData.append('full_name', formData.full_name);
+      submitData.append('developer_type', formData.developer_type);
+      submitData.append('country', formData.country);
+      submitData.append('phone', formData.phone);
+      submitData.append('email', user?.email || '');
+      if (formData.website) submitData.append('website', formData.website);
+      if (formData.bio) submitData.append('bio', formData.bio);
+      submitData.append('id_file', idFile);
+
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+
+      // Try backend API first
+      try {
+        await adminAPI.registerDeveloper(submitData);
+      } catch {
+        // Fallback to local registration (without ID file)
+        await registerDeveloper({
+          full_name: formData.full_name,
+          developer_type: formData.developer_type,
+          developer_name: formData.developer_name,
+          country: formData.country,
+          phone: formData.phone,
+          website: formData.website,
+          bio: formData.bio,
+        });
+      }
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      // Trigger success confetti
+      triggerConfetti();
+
       toast({
-        title: "Application Submitted!",
+        title: "🎉 Application Submitted!",
         description: "Your developer application is under review"
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      // Send error to chatbot
+      try {
+        await adminAPI.getChatbotHelp(`Developer registration failed: ${error.message || 'Unknown error'}`);
+      } catch {}
+
       toast({
         title: "Error",
-        description: "Failed to submit application. Please try again.",
+        description: error.message || "Failed to submit application. Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -330,6 +413,84 @@ export default function DeveloperRegister() {
               />
             </div>
           </div>
+
+          {/* Government ID Upload */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              Government-Issued ID *
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Upload a clear photo or scan of your ID (Passport, Driver's License, or National ID)
+            </p>
+            
+            <input
+              ref={idFileRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf"
+              onChange={handleIdFileChange}
+              className="hidden"
+            />
+
+            {!idFile ? (
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={() => idFileRef.current?.click()}
+                className="border-2 border-dashed border-muted rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+              >
+                <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mb-1">
+                  Click to upload your ID
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG, or PDF (max 5MB)
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="relative p-4 rounded-xl bg-primary/10 border border-primary/30"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/20">
+                    <CreditCard className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{idFile.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(idFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIdFile(null)}
+                    className="shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Upload Progress */}
+          {isSubmitting && uploadProgress > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-2"
+            >
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Uploading...</span>
+                <span className="text-primary font-medium">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </motion.div>
+          )}
 
           {/* Submit */}
           <Button 

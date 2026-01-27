@@ -27,6 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { adminAPI } from '@/lib/axios';
 import { cn } from '@/lib/utils';
 import { UploadModeSelector } from './UploadModeSelector';
+import { triggerConfetti, triggerSuccessConfetti } from '@/lib/confetti';
 
 interface AppUploadModalProps {
   isOpen: boolean;
@@ -160,18 +161,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
     setUploadProgress(0);
 
     try {
-      // Simulate progress for UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + Math.random() * 15;
-        });
-      }, 200);
-
-      // If we have a file, use backend API
+      // If we have a file, use backend API with progress tracking
       if (formData.file) {
         const uploadFormData = new FormData();
         uploadFormData.append('file', formData.file);
@@ -183,8 +173,21 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
         uploadFormData.append('size', formData.size);
         uploadFormData.append('developer_id', developerProfile.id);
         
-        await adminAPI.uploadApp(uploadFormData);
+        await adminAPI.uploadApp(uploadFormData, (progress) => {
+          setUploadProgress(progress);
+        });
       } else {
+        // Simulate progress for local uploads
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => {
+            if (prev >= 90) {
+              clearInterval(progressInterval);
+              return 90;
+            }
+            return prev + Math.random() * 15;
+          });
+        }, 200);
+
         // Use local Supabase for non-file submissions
         await addApp({
           name: formData.name,
@@ -199,10 +202,14 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
           featured: false,
           trending: false,
         });
+
+        clearInterval(progressInterval);
       }
 
-      clearInterval(progressInterval);
       setUploadProgress(100);
+
+      // Trigger success confetti animation
+      triggerConfetti();
 
       toast({
         title: "🎉 App Submitted!",
@@ -217,6 +224,15 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
       }, 500);
     } catch (error: any) {
       console.error('Upload error:', error);
+      
+      // Send error to chatbot for assistance
+      try {
+        await adminAPI.getChatbotHelpWithContext(
+          error?.message || 'App upload failed',
+          'Developer Dashboard - App Upload'
+        );
+      } catch {}
+
       toast({
         title: "Upload Failed",
         description: error?.message || "Failed to upload app. Please try again.",
