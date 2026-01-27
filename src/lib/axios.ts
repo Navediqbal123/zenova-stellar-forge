@@ -64,15 +64,25 @@ export const adminAPI = {
   getAllDevelopers: () => apiClient.get('/api/developers/all'),
   updateDeveloperStatus: (developerId: string, status: string, reason?: string) => 
     apiClient.post('/api/developers/update-status', { developerId, status, reason }),
+  registerDeveloper: (formData: FormData) =>
+    apiClient.post('/api/developers/register', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
   
   // Apps
   getAllApps: () => apiClient.get('/api/apps/all'),
   getPendingApps: () => apiClient.get('/api/apps/admin/pending'),
   updateAppStatus: (appId: string, status: string) =>
     apiClient.post('/api/apps/update-status', { appId, status }),
-  uploadApp: (formData: FormData) => 
+  uploadApp: (formData: FormData, onUploadProgress?: (progress: number) => void) => 
     apiClient.post('/api/apps/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onUploadProgress) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onUploadProgress(progress);
+        }
+      }
     }),
   
   // AI Upload
@@ -90,6 +100,13 @@ export const adminAPI = {
   // Chatbot Help
   getChatbotHelp: (message: string) => 
     apiClient.post('/api/chatbot/chatbot-help', { message }),
+
+  // Chatbot with context (for errors)
+  getChatbotHelpWithContext: (errorMessage: string, context: string) =>
+    apiClient.post('/api/chatbot/chatbot-help', { 
+      message: errorMessage, 
+      context 
+    }),
 };
 
 export default apiClient;

@@ -35,6 +35,7 @@ import { adminAPI } from '@/lib/axios';
 import { useDevelopersQuery } from '@/hooks/useDevelopersQuery';
 import { useAppsQuery } from '@/hooks/useAppsQuery';
 import { StatsChart, TrendIndicator, MiniChart } from '@/components/admin/AdminStatsChart';
+import { triggerConfetti, triggerCelebrationConfetti } from '@/lib/confetti';
 
 // Animation variants
 const staggerContainer = {
@@ -394,7 +395,10 @@ function AdminDevelopers() {
     try {
       await updateStatus(developer.id, 'approved');
       
-      // Show confetti animation
+      // Trigger real confetti animation
+      triggerCelebrationConfetti();
+      
+      // Show confetti UI indicator
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
       
@@ -404,6 +408,15 @@ function AdminDevelopers() {
       });
     } catch (error: any) {
       console.error('Approval error:', error);
+      
+      // Send error to chatbot for support
+      try {
+        await adminAPI.getChatbotHelpWithContext(
+          error?.message || 'Developer approval failed',
+          'Admin Panel - Developer Approvals'
+        );
+      } catch {}
+
       toast({
         title: "Failed to approve",
         description: error?.message || "An error occurred. Please check RLS policies and try again.",
@@ -654,7 +667,10 @@ function AdminApps() {
     try {
       await updateStatus(app.id, 'approved');
       
-      // Show confetti animation
+      // Trigger real confetti animation
+      triggerConfetti();
+      
+      // Show confetti UI indicator
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
       
@@ -664,6 +680,15 @@ function AdminApps() {
       });
     } catch (error: any) {
       console.error('App approval error:', error);
+      
+      // Send error to chatbot for support
+      try {
+        await adminAPI.getChatbotHelpWithContext(
+          error?.message || 'App approval failed',
+          'Admin Panel - App Management'
+        );
+      } catch {}
+
       toast({
         title: "Failed to approve app",
         description: error?.message || "An error occurred. Please check RLS policies.",
