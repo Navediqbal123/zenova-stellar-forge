@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { adminAPI } from '@/lib/axios';
 import { supabase } from '@/lib/supabase';
 
@@ -28,6 +28,10 @@ export interface AppData {
   updated_at: string;
 }
 
+interface UseAppsQueryOptions {
+  pollingInterval?: number; // in ms, set to 0 to disable
+}
+
 interface UseAppsQueryResult {
   apps: AppData[];
   pendingApps: AppData[];
@@ -38,7 +42,9 @@ interface UseAppsQueryResult {
   updateStatus: (appId: string, status: AppStatus) => Promise<void>;
 }
 
-export function useAppsQuery(): UseAppsQueryResult {
+export function useAppsQuery(options: UseAppsQueryOptions = {}): UseAppsQueryResult {
+  const { pollingInterval = 60000 } = options; // Default: poll every 60 seconds
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const [apps, setApps] = useState<AppData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -142,10 +148,20 @@ export function useAppsQuery(): UseAppsQueryResult {
       )
       .subscribe();
 
+    // Polling for status updates (useful for developer dashboard)
+    if (pollingInterval > 0) {
+      pollingRef.current = setInterval(() => {
+        refresh();
+      }, pollingInterval);
+    }
+
     return () => {
       supabase.removeChannel(channel);
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
     };
-  }, [loadApps, refresh]);
+  }, [loadApps, refresh, pollingInterval]);
 
   const pendingApps = apps.filter(app => app.status === 'pending');
 

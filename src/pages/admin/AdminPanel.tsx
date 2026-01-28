@@ -20,6 +20,8 @@ import {
   PartyPopper,
   Sparkles,
   RefreshCw,
+  FileDown,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,8 +36,10 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { adminAPI } from '@/lib/axios';
 import { useDevelopersQuery } from '@/hooks/useDevelopersQuery';
 import { useAppsQuery } from '@/hooks/useAppsQuery';
+import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { StatsChart, TrendIndicator, MiniChart } from '@/components/admin/AdminStatsChart';
 import { triggerConfetti, triggerCelebrationConfetti } from '@/lib/confetti';
+import { LiveIndicator, DataFreshIndicator } from '@/components/ui/LiveIndicator';
 
 // Animation variants
 const staggerContainer = {
@@ -84,48 +88,24 @@ export default function AdminPanel() {
 
 // Dashboard Tab with Charts and Trends
 function AdminDashboard() {
-  const { developers, isLoading, refresh: refreshDevelopers, isRefreshing: isRefreshingDev } = useDevelopersQuery();
+  const { developers, refresh: refreshDevelopers, isRefreshing: isRefreshingDev } = useDevelopersQuery();
   const { pendingApps, refresh: refreshApps, isRefreshing: isRefreshingApps } = useAppsQuery();
-  const { apps } = useApps();
+  const { stats, isLive, lastUpdated, refresh: refreshStats } = useRealTimeStats(30000); // Auto-refresh every 30s
   const { toast } = useToast();
-  const [backendStats, setBackendStats] = useState<BackendStats | null>(null);
-  const [isLoadingBackend, setIsLoadingBackend] = useState(true);
-
-  // Fetch stats from backend
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await adminAPI.getStatsSummary();
-        if (response.data) {
-          setBackendStats(response.data);
-        }
-      } catch (error) {
-        console.log('Backend stats not available, using local data');
-      } finally {
-        setIsLoadingBackend(false);
-      }
-    };
-    fetchStats();
-  }, []);
 
   const handleRefreshAll = async () => {
-    await Promise.all([refreshDevelopers(), refreshApps()]);
+    await Promise.all([refreshDevelopers(), refreshApps(), refreshStats()]);
     toast({
       title: "✓ Data Refreshed",
-      description: "All statistics have been updated.",
+      description: "All statistics have been updated from the server.",
     });
   };
 
-  // Use backend stats if available, otherwise fallback to local
-  const stats = backendStats || {
-    totalDevelopers: developers.length,
-    pendingDevelopers: developers.filter(d => d.status === 'pending').length,
-    totalApps: apps.length,
-    pendingApps: pendingApps.length,
-    totalDownloads: apps.reduce((sum, a) => sum + a.downloads, 0),
-    avgRating: apps.length > 0 
-      ? (apps.reduce((sum, a) => sum + a.rating, 0) / apps.length).toFixed(1)
-      : '0.0',
+  // Format download number nicely
+  const formatDownloads = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${Math.floor(num / 1000)}K`;
+    return num.toString();
   };
 
   const statCards = [
@@ -135,7 +115,7 @@ function AdminDashboard() {
       pending: stats.pendingDevelopers,
       icon: Users, 
       color: 'primary',
-      trend: '+12%',
+      trend: stats.totalDevelopers > 0 ? '+12%' : undefined,
       trendPositive: true,
     },
     { 
@@ -144,27 +124,23 @@ function AdminDashboard() {
       pending: stats.pendingApps,
       icon: Package, 
       color: 'secondary',
-      trend: '+8%',
+      trend: stats.totalApps > 0 ? '+8%' : undefined,
       trendPositive: true,
     },
     { 
       label: 'Downloads', 
-      value: typeof stats.totalDownloads === 'number' 
-        ? (stats.totalDownloads >= 1000000 
-          ? `${(stats.totalDownloads / 1000000).toFixed(1)}M`
-          : `${Math.floor(stats.totalDownloads / 1000)}K`)
-        : stats.totalDownloads, 
+      value: formatDownloads(stats.totalDownloads), 
       icon: Download, 
       color: 'success',
-      trend: '+24%',
+      trend: stats.totalDownloads > 0 ? '+24%' : undefined,
       trendPositive: true,
     },
     { 
       label: 'Avg Rating', 
-      value: stats.avgRating, 
+      value: stats.avgRating.toFixed(1), 
       icon: Star, 
       color: 'warning',
-      trend: '+0.3',
+      trend: stats.avgRating > 0 ? '+0.3' : undefined,
       trendPositive: true,
     },
   ];
@@ -187,6 +163,9 @@ function AdminDashboard() {
           <p className="text-muted-foreground">Welcome back, <span className="text-primary">Naved</span></p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Last updated indicator */}
+          <DataFreshIndicator lastUpdated={lastUpdated} />
+          
           {/* Refresh Button */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
@@ -200,14 +179,9 @@ function AdminDashboard() {
               Refresh
             </Button>
           </motion.div>
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="px-3 py-1.5 rounded-full bg-success/20 border border-success/30 flex items-center gap-2"
-          >
-            <Activity className="w-3.5 h-3.5 text-success" />
-            <span className="text-xs font-medium text-success">System Online</span>
-          </motion.div>
+          
+          {/* Live Indicator with green pulse */}
+          {isLive && <LiveIndicator label="Live Data" />}
         </div>
       </motion.div>
 
@@ -812,8 +786,26 @@ function AdminApps() {
                     <StatusBadge status="pending" size="sm" />
                   </div>
                   <p className="text-sm text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p>
+                  {app.version && (
+                    <p className="text-xs text-muted-foreground/70 mt-0.5">v{app.version} • {app.size}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
+                  {/* Download APK for Testing */}
+                  {app.apk_url && (
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-primary/30 text-primary hover:bg-primary/10"
+                        onClick={() => window.open(app.apk_url, '_blank')}
+                        title="Download APK for testing"
+                      >
+                        <FileDown className="w-4 h-4 mr-1" />
+                        Test APK
+                      </Button>
+                    </motion.div>
+                  )}
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button
                       size="sm"
