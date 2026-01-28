@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, 
   Plus, 
@@ -17,14 +17,18 @@ import {
   UploadCloud,
   Wand2,
   ArrowRight,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApps } from '@/contexts/AppsContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StatusPipeline } from '@/components/developer/StatusPipeline';
 import { AppUploadModal } from '@/components/developer/AppUploadModal';
 import { DeveloperSidebar } from '@/components/developer/DeveloperSidebar';
 import { cn } from '@/lib/utils';
+import { triggerCelebrationConfetti } from '@/lib/confetti';
 
 // Animation variants
 const staggerContainer = {
@@ -58,6 +62,11 @@ export default function DeveloperDashboard() {
   
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [showUploadChoice, setShowUploadChoice] = useState(false);
+  const [expandedAppId, setExpandedAppId] = useState<string | null>(null);
+  const [previousStatuses, setPreviousStatuses] = useState<Record<string, string>>({});
+
+  // Track previous app statuses for confetti on approval
+  const prevStatusesRef = useRef<Record<string, string>>({});
 
   // Not authenticated
   if (!isAuthenticated) {
@@ -229,6 +238,18 @@ export default function DeveloperDashboard() {
   }
 
   const myApps = getAppsByDeveloper(developerProfile.id);
+
+  // Check for status changes to trigger confetti
+  useEffect(() => {
+    myApps.forEach(app => {
+      const prevStatus = prevStatusesRef.current[app.id];
+      if (prevStatus && prevStatus !== 'approved' && app.status === 'approved') {
+        // App was just approved! Trigger celebration
+        triggerCelebrationConfetti();
+      }
+      prevStatusesRef.current[app.id] = app.status;
+    });
+  }, [myApps]);
 
   const stats = {
     totalApps: myApps.length,
@@ -524,47 +545,106 @@ export default function DeveloperDashboard() {
                 variants={staggerContainer}
                 initial="hidden"
                 animate="show"
-                className="space-y-3"
+                className="space-y-4"
               >
-                {myApps.map((app) => (
-                  <motion.div
-                    key={app.id}
-                    variants={staggerItem}
-                    whileHover={{ scale: 1.01 }}
-                    className="admin-glass-card p-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
-                        {app.icon || app.icon_url || '📱'}
-                      </div>
-                      <div className="flex-1 min-w-0">
+                {myApps.map((app) => {
+                  const isExpanded = expandedAppId === app.id;
+                  
+                  return (
+                    <motion.div
+                      key={app.id}
+                      variants={staggerItem}
+                      layout
+                      className="admin-glass-card overflow-hidden"
+                    >
+                      {/* App Header Row */}
+                      <motion.button
+                        whileHover={{ scale: 1.005 }}
+                        onClick={() => setExpandedAppId(isExpanded ? null : app.id)}
+                        className="w-full p-4 flex items-center gap-4 text-left"
+                      >
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
+                          {app.icon || app.icon_url || '📱'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold truncate">{app.name}</h3>
+                            <StatusBadge status={app.status} size="sm" />
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">{app.short_description}</p>
+                        </div>
+                        <div className="hidden md:flex items-center gap-6 text-sm">
+                          <div className="text-center">
+                            <p className="text-muted-foreground">Downloads</p>
+                            <p className="font-semibold">{app.downloads.toLocaleString()}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-muted-foreground">Rating</p>
+                            <p className="font-semibold flex items-center gap-1">
+                              <Star className="w-4 h-4 text-warning fill-current" />
+                              {app.rating || '-'}
+                            </p>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold truncate">{app.name}</h3>
-                          <StatusBadge status={app.status} size="sm" />
+                          <Button variant="outline" size="sm" className="border-white/10" onClick={(e) => e.stopPropagation()}>
+                            <BarChart3 className="w-4 h-4" />
+                          </Button>
+                          <motion.div
+                            animate={{ rotate: isExpanded ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="p-1"
+                          >
+                            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                          </motion.div>
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">{app.short_description}</p>
-                      </div>
-                      <div className="hidden md:flex items-center gap-6 text-sm">
-                        <div className="text-center">
-                          <p className="text-muted-foreground">Downloads</p>
-                          <p className="font-semibold">{app.downloads.toLocaleString()}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-muted-foreground">Rating</p>
-                          <p className="font-semibold flex items-center gap-1">
-                            <Star className="w-4 h-4 text-warning fill-current" />
-                            {app.rating || '-'}
-                          </p>
-                        </div>
-                      </div>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button variant="outline" size="sm" className="border-white/10">
-                          <BarChart3 className="w-4 h-4" />
-                        </Button>
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                ))}
+                      </motion.button>
+                      
+                      {/* Expanded Status Pipeline */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-5 pt-2 border-t border-white/5">
+                              <h4 className="text-sm font-medium mb-4 text-muted-foreground">Review Status Pipeline</h4>
+                              <StatusPipeline 
+                                status={app.status} 
+                                lastUpdated={app.updated_at} 
+                              />
+                              
+                              {/* Additional App Details */}
+                              <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Version</p>
+                                  <p className="text-sm font-medium">{app.version || '1.0.0'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Size</p>
+                                  <p className="text-sm font-medium">{app.size || 'N/A'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Category</p>
+                                  <p className="text-sm font-medium">{app.category_id || 'General'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Submitted</p>
+                                  <p className="text-sm font-medium">
+                                    {app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
               </motion.div>
             )}
           </div>
