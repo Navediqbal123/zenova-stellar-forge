@@ -208,16 +208,40 @@ export default function DeveloperRegister() {
       if (formData.bio) submitData.append('bio', formData.bio);
       submitData.append('id_file', idFile);
 
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
-      }, 200);
+      // Use real upload progress tracking via axios
+      const response = await adminAPI.registerDeveloper(submitData, (progress) => {
+        // Scale progress: 0-90% for upload, 90-100% for server processing
+        setUploadProgress(Math.min(progress * 0.9, 90));
+      });
 
-      // Try backend API first
+      // Upload complete, now processing
+      setUploadProgress(95);
+
+      // If backend succeeds, we're done
+      if (response.data) {
+        setUploadProgress(100);
+        
+        // Trigger success confetti
+        triggerConfetti();
+
+        toast({
+          title: "🎉 Application Submitted!",
+          description: "Your developer application is under review"
+        });
+        
+        // Small delay to show 100% then redirect
+        setTimeout(() => {
+          navigate('/developer/dashboard');
+        }, 1500);
+        return;
+      }
+    } catch (backendError: any) {
+      console.warn('Backend registration failed, trying local fallback:', backendError);
+      
+      // Fallback to local Supabase registration
       try {
-        await adminAPI.registerDeveloper(submitData);
-      } catch {
-        // Fallback to local registration (without ID file)
+        setUploadProgress(50);
+        
         await registerDeveloper({
           full_name: formData.full_name,
           developer_type: formData.developer_type,
@@ -227,31 +251,30 @@ export default function DeveloperRegister() {
           website: formData.website,
           bio: formData.bio,
         });
+
+        setUploadProgress(100);
+        triggerConfetti();
+
+        toast({
+          title: "🎉 Application Submitted!",
+          description: "Your developer application is under review"
+        });
+        
+        return;
+      } catch (localError: any) {
+        console.error('Local registration also failed:', localError);
+        
+        // Send error to chatbot for help
+        try {
+          await adminAPI.getChatbotHelp(`Developer registration failed: ${localError.message || backendError.message || 'Unknown error'}`);
+        } catch {}
+
+        toast({
+          title: "Registration Failed",
+          description: localError.message || backendError.message || "Failed to submit application. Please try again.",
+          variant: "destructive"
+        });
       }
-
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
-      // Trigger success confetti
-      triggerConfetti();
-
-      toast({
-        title: "🎉 Application Submitted!",
-        description: "Your developer application is under review"
-      });
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      
-      // Send error to chatbot
-      try {
-        await adminAPI.getChatbotHelp(`Developer registration failed: ${error.message || 'Unknown error'}`);
-      } catch {}
-
-      toast({
-        title: "Error",
-        description: error.message || "Failed to submit application. Please try again.",
-        variant: "destructive"
-      });
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);
