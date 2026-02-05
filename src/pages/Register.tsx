@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register, isLoading } = useAuth();
+  const { register, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
   
   const [name, setName] = useState('');
@@ -18,6 +18,13 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,37 +60,75 @@ export default function Register() {
       await register(email, password, name);
       toast({
         title: "Account created!",
-        description: "Welcome to Zenova Store"
+        description: "Welcome to Zenova Store - you're now signed in!"
       });
-      navigate('/');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive"
-      });
+      // Auto-login happens via Supabase session, useEffect will redirect
+    } catch (error: any) {
+      const errorMessage = error?.message?.toLowerCase() || '';
+      
+      if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
+        toast({
+          title: "Account Exists",
+          description: "This email is already registered. Please sign in instead.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Registration Failed",
+          description: error?.message || "Something went wrong. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
+
+  // Don't show register form if already authenticated (will redirect)
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Redirecting...</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
         className="w-full max-w-md"
       >
         <div className="glass-card p-8">
           {/* Header */}
-          <div className="text-center mb-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-center mb-8"
+          >
             <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
               <span className="text-3xl">⚡</span>
             </div>
             <h1 className="text-2xl font-bold mb-2">Create Account</h1>
             <p className="text-muted-foreground">Join Zenova Store today</p>
-          </div>
+          </motion.div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <motion.form 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            onSubmit={handleSubmit} 
+            className="space-y-5"
+          >
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <div className="relative">
@@ -165,17 +210,22 @@ export default function Register() {
                 'Create Account'
               )}
             </Button>
-          </form>
+          </motion.form>
 
           {/* Footer */}
-          <div className="mt-6 text-center">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 text-center"
+          >
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link to="/login" className="text-primary hover:underline font-medium">
                 Sign in
               </Link>
             </p>
-          </div>
+          </motion.div>
         </div>
       </motion.div>
     </div>

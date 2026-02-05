@@ -64,9 +64,15 @@ export const adminAPI = {
   getAllDevelopers: () => apiClient.get('/api/developers/all'),
   updateDeveloperStatus: (developerId: string, status: string, reason?: string) => 
     apiClient.post('/api/developers/update-status', { developerId, status, reason }),
-  registerDeveloper: (formData: FormData) =>
+  registerDeveloper: (formData: FormData, onUploadProgress?: (progress: number) => void) =>
     apiClient.post('/api/developers/register', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onUploadProgress) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onUploadProgress(progress);
+        }
+      }
     }),
   
   // Apps
