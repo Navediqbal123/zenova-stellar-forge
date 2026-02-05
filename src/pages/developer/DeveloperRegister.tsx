@@ -146,28 +146,37 @@ export default function DeveloperRegister() {
   }
 
   const handleIdFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-      if (!validTypes.includes(file.type)) {
-        toast({
-          title: "Invalid File Type",
-          description: "Please upload a JPG, PNG, or PDF file",
-          variant: "destructive"
-        });
-        return;
+    try {
+      const file = e.target.files?.[0];
+      if (file) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+        if (!validTypes.includes(file.type)) {
+          toast({
+            title: "Invalid File Type",
+            description: "Please upload a JPG, PNG, or PDF file",
+            variant: "destructive"
+          });
+          return;
+        }
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: "File Too Large",
+            description: "Maximum file size is 5MB",
+            variant: "destructive"
+          });
+          return;
+        }
+        setIdFile(file);
       }
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File Too Large",
-          description: "Maximum file size is 5MB",
-          variant: "destructive"
-        });
-        return;
-      }
-      setIdFile(file);
+    } catch (error: any) {
+      console.error('File selection error:', error);
+      toast({
+        title: "File Error",
+        description: error.message || "Failed to process file. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -195,6 +204,11 @@ export default function DeveloperRegister() {
     setIsSubmitting(true);
     setUploadProgress(0);
 
+    // Create a timeout promise for upload (60 seconds)
+    const uploadTimeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Upload timed out. Please try again.')), 60000);
+    });
+
     try {
       // Create FormData for multipart upload
       const submitData = new FormData();
@@ -208,11 +222,13 @@ export default function DeveloperRegister() {
       if (formData.bio) submitData.append('bio', formData.bio);
       submitData.append('id_file', idFile);
 
-      // Use real upload progress tracking via axios
-      const response = await adminAPI.registerDeveloper(submitData, (progress) => {
+      // Race between upload and timeout
+      const uploadPromise = adminAPI.registerDeveloper(submitData, (progress) => {
         // Scale progress: 0-90% for upload, 90-100% for server processing
         setUploadProgress(Math.min(progress * 0.9, 90));
       });
+
+      const response = await Promise.race([uploadPromise, uploadTimeout]);
 
       // Upload complete, now processing
       setUploadProgress(95);
@@ -231,10 +247,16 @@ export default function DeveloperRegister() {
         
         // Small delay to show 100% then redirect
         setTimeout(() => {
+          setIsSubmitting(false);
+          setUploadProgress(0);
           navigate('/developer/dashboard');
         }, 1500);
         return;
       }
+      
+      // If no data but no error, still proceed
+      throw new Error('No response from server');
+      
     } catch (backendError: any) {
       console.warn('Backend registration failed, trying local fallback:', backendError);
       
@@ -260,7 +282,13 @@ export default function DeveloperRegister() {
           description: "Your developer application is under review"
         });
         
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setUploadProgress(0);
+          navigate('/developer/dashboard');
+        }, 1500);
         return;
+        
       } catch (localError: any) {
         console.error('Local registration also failed:', localError);
         
@@ -269,15 +297,17 @@ export default function DeveloperRegister() {
           await adminAPI.getChatbotHelp(`Developer registration failed: ${localError.message || backendError.message || 'Unknown error'}`);
         } catch {}
 
+        const errorMessage = localError.message || backendError.message || "Failed to submit application. Please try again.";
+        
         toast({
           title: "Registration Failed",
-          description: localError.message || backendError.message || "Failed to submit application. Please try again.",
+          description: errorMessage,
           variant: "destructive"
         });
+        
+        setIsSubmitting(false);
+        setUploadProgress(0);
       }
-    } finally {
-      setIsSubmitting(false);
-      setUploadProgress(0);
     }
   };
 
