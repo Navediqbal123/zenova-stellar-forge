@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AppsProvider } from "./contexts/AppsContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
 import Index from "./pages/Index";
 import Apps from "./pages/Apps";
@@ -64,35 +65,37 @@ function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AppsProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthRedirectHandler>
-              <MainLayout>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/apps" element={<Apps />} />
-                  <Route path="/apps/:appId" element={<AppDetail />} />
-                  <Route path="/categories" element={<Categories />} />
-                  <Route path="/categories/:categoryId" element={<Categories />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/developer/register" element={<DeveloperRegister />} />
-                  <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
-                  <Route path="/admin" element={<AdminPanel />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </MainLayout>
-            </AuthRedirectHandler>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AppsProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ErrorBoundary fallbackTitle="App Error" fallbackMessage="Something went wrong. Please refresh the page.">
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppsProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AuthRedirectHandler>
+                <MainLayout>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/apps" element={<Apps />} />
+                    <Route path="/apps/:appId" element={<AppDetail />} />
+                    <Route path="/categories" element={<Categories />} />
+                    <Route path="/categories/:categoryId" element={<Categories />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/developer/register" element={<DeveloperRegister />} />
+                    <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+                    <Route path="/admin" element={<AdminPanel />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </MainLayout>
+              </AuthRedirectHandler>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AppsProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

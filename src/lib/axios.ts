@@ -27,30 +27,12 @@ apiClient.interceptors.request.use(
 );
 
 // Response interceptor - handle errors globally
+// IMPORTANT: Do NOT call any API inside this interceptor to avoid infinite recursion
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  (error) => {
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    
-    // Log error for debugging
-    console.error('API Error:', errorMessage);
-    
-    // Optionally send error to chatbot help
-    try {
-      await apiClient.post('/api/chatbot/chatbot-help', {
-        message: `Error occurred: ${errorMessage}`,
-        context: {
-          url: error.config?.url,
-          method: error.config?.method,
-          status: error.response?.status,
-        }
-      }).catch(() => {
-        // Silently fail if chatbot help is unavailable
-      });
-    } catch {
-      // Ignore chatbot errors
-    }
-    
+    console.error('[API Error]', error.config?.method?.toUpperCase(), error.config?.url, '-', errorMessage);
     return Promise.reject(error);
   }
 );
