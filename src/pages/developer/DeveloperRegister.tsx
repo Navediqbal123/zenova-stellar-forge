@@ -130,6 +130,16 @@ function DeveloperRegisterForm() {
     e.preventDefault();
     e.stopPropagation();
 
+    console.log('[DeveloperRegister] Submit clicked');
+
+    // --- Client-side validation ---
+    if (!user) {
+      console.error('[DeveloperRegister] No user found');
+      toast({ title: "User Not Found", description: "You must be logged in. Please sign in again.", variant: "destructive" });
+      navigate('/login');
+      return;
+    }
+
     if (!formData.developer_name.trim() || !formData.country || !formData.phone.trim()) {
       toast({ title: "Missing Fields", description: "Please fill in all required fields", variant: "destructive" });
       return;
@@ -140,9 +150,19 @@ function DeveloperRegisterForm() {
       return;
     }
 
-    const isSessionValid = await verifySession();
+    console.log('[DeveloperRegister] Validation passed, verifying session...');
+
+    let isSessionValid = false;
+    try {
+      isSessionValid = await verifySession();
+    } catch (sessionError) {
+      console.error('[DeveloperRegister] Session verification crashed:', sessionError);
+      toast({ title: "Auth Error", description: "Could not verify your session. Please log in again.", variant: "destructive" });
+      return;
+    }
     if (!isSessionValid) return;
 
+    console.log('[DeveloperRegister] Session valid, starting upload...');
     setIsSubmitting(true);
     setUploadProgress(0);
 
@@ -155,11 +175,13 @@ function DeveloperRegisterForm() {
       submitData.append('developer_type', formData.developer_type);
       submitData.append('country', formData.country);
       submitData.append('phone', formData.phone.trim());
-      submitData.append('email', user?.email || '');
+      submitData.append('email', user.email || '');
       if (formData.website.trim()) submitData.append('website', formData.website.trim());
       if (formData.bio.trim()) submitData.append('bio', formData.bio.trim());
       const renamedFile = new File([idFile], uniqueName, { type: idFile.type });
       submitData.append('id_file', renamedFile);
+
+      console.log('[DeveloperRegister] Sending to backend API...');
 
       const uploadTimeout = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('Upload timed out after 60 seconds. Please check your connection and try again.')), UPLOAD_TIMEOUT_MS);
@@ -171,6 +193,7 @@ function DeveloperRegisterForm() {
 
       const response = await Promise.race([uploadPromise, uploadTimeout]);
       setUploadProgress(95);
+      console.log('[DeveloperRegister] Backend response received:', response?.status);
 
       if (response.data) {
         setUploadProgress(100);
@@ -186,9 +209,11 @@ function DeveloperRegisterForm() {
 
       throw new Error('No response from server');
     } catch (backendError: any) {
-      console.warn('[DeveloperRegister] Backend failed, trying local fallback:', backendError?.message);
+      console.warn('[DeveloperRegister] Backend failed:', backendError?.message);
 
+      // Fallback: try local Supabase registration
       try {
+        console.log('[DeveloperRegister] Trying local fallback...');
         setUploadProgress(50);
         await registerDeveloper({
           full_name: formData.full_name.trim(),
@@ -201,6 +226,7 @@ function DeveloperRegisterForm() {
         });
 
         setUploadProgress(100);
+        console.log('[DeveloperRegister] Local fallback succeeded');
         triggerConfetti();
         toast({ title: "🎉 Application Submitted!", description: "Your developer application is under review" });
         setTimeout(() => {
@@ -211,10 +237,6 @@ function DeveloperRegisterForm() {
         return;
       } catch (localError: any) {
         console.error('[DeveloperRegister] Local registration also failed:', localError);
-        try {
-          await adminAPI.getChatbotHelp(`Developer registration failed: ${localError?.message || backendError?.message || 'Unknown error'}`);
-        } catch {}
-
         toast({
           title: "Registration Failed",
           description: localError?.message || backendError?.message || "Failed to submit application. Please try again.",
@@ -222,7 +244,7 @@ function DeveloperRegisterForm() {
         });
       }
     } finally {
-      // ALWAYS reset — prevents infinite spinner
+      // ALWAYS reset to prevent infinite spinner
       setIsSubmitting(false);
       setUploadProgress(0);
     }
