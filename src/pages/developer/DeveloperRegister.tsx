@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -32,13 +32,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { adminAPI } from '@/lib/axios';
 import { triggerConfetti } from '@/lib/confetti';
+import { supabase } from '@/lib/supabase';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+const UPLOAD_TIMEOUT_MS = 60000;
 
 const countries = [
   "United States", "United Kingdom", "Canada", "Germany", "France", 
   "India", "Japan", "Australia", "Brazil", "Netherlands", "Other"
 ];
 
-export default function DeveloperRegister() {
+function DeveloperRegisterForm() {
   const navigate = useNavigate();
   const { user, isAuthenticated, developerProfile, registerDeveloper, isLoading } = useAuth();
   const { toast } = useToast();
@@ -57,7 +63,173 @@ export default function DeveloperRegister() {
     bio: '',
   });
 
-  // If not authenticated, show login prompt
+  // --- All hooks/callbacks BEFORE any early returns ---
+
+  const handleIdFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (!VALID_FILE_TYPES.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a JPG, PNG, or PDF file",
+          variant: "destructive"
+        });
+        if (idFileRef.current) idFileRef.current.value = '';
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "File Too Large",
+          description: "Maximum file size is 5MB. Please compress or use a smaller file.",
+          variant: "destructive"
+        });
+        if (idFileRef.current) idFileRef.current.value = '';
+        return;
+      }
+
+      setIdFile(file);
+    } catch (error: any) {
+      console.error('[DeveloperRegister] File selection error:', error);
+      toast({
+        title: "File Error",
+        description: error?.message || "Failed to process file. Please try again.",
+        variant: "destructive"
+      });
+      if (idFileRef.current) idFileRef.current.value = '';
+    }
+  }, [toast]);
+
+  const verifySession = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive"
+        });
+        navigate('/login');
+        return false;
+      }
+      return true;
+    } catch {
+      toast({
+        title: "Auth Error",
+        description: "Could not verify your session. Please log in again.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return false;
+    }
+  }, [navigate, toast]);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!formData.developer_name.trim() || !formData.country || !formData.phone.trim()) {
+      toast({ title: "Missing Fields", description: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+
+    if (!idFile) {
+      toast({ title: "ID Required", description: "Please upload a government-issued ID", variant: "destructive" });
+      return;
+    }
+
+    const isSessionValid = await verifySession();
+    if (!isSessionValid) return;
+
+    setIsSubmitting(true);
+    setUploadProgress(0);
+
+    try {
+      const uniqueName = `${Date.now()}-${idFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+
+      const submitData = new FormData();
+      submitData.append('developer_name', formData.developer_name.trim());
+      submitData.append('full_name', formData.full_name.trim());
+      submitData.append('developer_type', formData.developer_type);
+      submitData.append('country', formData.country);
+      submitData.append('phone', formData.phone.trim());
+      submitData.append('email', user?.email || '');
+      if (formData.website.trim()) submitData.append('website', formData.website.trim());
+      if (formData.bio.trim()) submitData.append('bio', formData.bio.trim());
+      const renamedFile = new File([idFile], uniqueName, { type: idFile.type });
+      submitData.append('id_file', renamedFile);
+
+      const uploadTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Upload timed out after 60 seconds. Please check your connection and try again.')), UPLOAD_TIMEOUT_MS);
+      });
+
+      const uploadPromise = adminAPI.registerDeveloper(submitData, (progress) => {
+        setUploadProgress(Math.min(Math.round(progress * 0.9), 90));
+      });
+
+      const response = await Promise.race([uploadPromise, uploadTimeout]);
+      setUploadProgress(95);
+
+      if (response.data) {
+        setUploadProgress(100);
+        triggerConfetti();
+        toast({ title: "🎉 Application Submitted!", description: "Your developer application is under review" });
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setUploadProgress(0);
+          navigate('/developer/dashboard');
+        }, 1500);
+        return;
+      }
+
+      throw new Error('No response from server');
+    } catch (backendError: any) {
+      console.warn('[DeveloperRegister] Backend failed, trying local fallback:', backendError?.message);
+
+      try {
+        setUploadProgress(50);
+        await registerDeveloper({
+          full_name: formData.full_name.trim(),
+          developer_type: formData.developer_type,
+          developer_name: formData.developer_name.trim(),
+          country: formData.country,
+          phone: formData.phone.trim(),
+          website: formData.website.trim(),
+          bio: formData.bio.trim(),
+        });
+
+        setUploadProgress(100);
+        triggerConfetti();
+        toast({ title: "🎉 Application Submitted!", description: "Your developer application is under review" });
+        setTimeout(() => {
+          setIsSubmitting(false);
+          setUploadProgress(0);
+          navigate('/developer/dashboard');
+        }, 1500);
+        return;
+      } catch (localError: any) {
+        console.error('[DeveloperRegister] Local registration also failed:', localError);
+        try {
+          await adminAPI.getChatbotHelp(`Developer registration failed: ${localError?.message || backendError?.message || 'Unknown error'}`);
+        } catch {}
+
+        toast({
+          title: "Registration Failed",
+          description: localError?.message || backendError?.message || "Failed to submit application. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      // ALWAYS reset — prevents infinite spinner
+      setIsSubmitting(false);
+      setUploadProgress(0);
+    }
+  }, [formData, idFile, user, toast, navigate, verifySession, registerDeveloper]);
+
+  // --- Early returns AFTER all hooks ---
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -84,7 +256,6 @@ export default function DeveloperRegister() {
     );
   }
 
-  // If already registered as developer
   if (developerProfile) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -144,172 +315,6 @@ export default function DeveloperRegister() {
       </div>
     );
   }
-
-  const handleIdFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      const file = e.target.files?.[0];
-      if (file) {
-        // Validate file type
-        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-        if (!validTypes.includes(file.type)) {
-          toast({
-            title: "Invalid File Type",
-            description: "Please upload a JPG, PNG, or PDF file",
-            variant: "destructive"
-          });
-          return;
-        }
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          toast({
-            title: "File Too Large",
-            description: "Maximum file size is 5MB",
-            variant: "destructive"
-          });
-          return;
-        }
-        setIdFile(file);
-      }
-    } catch (error: any) {
-      console.error('File selection error:', error);
-      toast({
-        title: "File Error",
-        description: error.message || "Failed to process file. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.developer_name || !formData.country || !formData.phone) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!idFile) {
-      toast({
-        title: "ID Required",
-        description: "Please upload a government-issued ID",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setUploadProgress(0);
-
-    // Create a timeout promise for upload (60 seconds)
-    const uploadTimeout = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Upload timed out. Please try again.')), 60000);
-    });
-
-    try {
-      // Create FormData for multipart upload
-      const submitData = new FormData();
-      submitData.append('developer_name', formData.developer_name);
-      submitData.append('full_name', formData.full_name);
-      submitData.append('developer_type', formData.developer_type);
-      submitData.append('country', formData.country);
-      submitData.append('phone', formData.phone);
-      submitData.append('email', user?.email || '');
-      if (formData.website) submitData.append('website', formData.website);
-      if (formData.bio) submitData.append('bio', formData.bio);
-      submitData.append('id_file', idFile);
-
-      // Race between upload and timeout
-      const uploadPromise = adminAPI.registerDeveloper(submitData, (progress) => {
-        // Scale progress: 0-90% for upload, 90-100% for server processing
-        setUploadProgress(Math.min(progress * 0.9, 90));
-      });
-
-      const response = await Promise.race([uploadPromise, uploadTimeout]);
-
-      // Upload complete, now processing
-      setUploadProgress(95);
-
-      // If backend succeeds, we're done
-      if (response.data) {
-        setUploadProgress(100);
-        
-        // Trigger success confetti
-        triggerConfetti();
-
-        toast({
-          title: "🎉 Application Submitted!",
-          description: "Your developer application is under review"
-        });
-        
-        // Small delay to show 100% then redirect
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setUploadProgress(0);
-          navigate('/developer/dashboard');
-        }, 1500);
-        return;
-      }
-      
-      // If no data but no error, still proceed
-      throw new Error('No response from server');
-      
-    } catch (backendError: any) {
-      console.warn('Backend registration failed, trying local fallback:', backendError);
-      
-      // Fallback to local Supabase registration
-      try {
-        setUploadProgress(50);
-        
-        await registerDeveloper({
-          full_name: formData.full_name,
-          developer_type: formData.developer_type,
-          developer_name: formData.developer_name,
-          country: formData.country,
-          phone: formData.phone,
-          website: formData.website,
-          bio: formData.bio,
-        });
-
-        setUploadProgress(100);
-        triggerConfetti();
-
-        toast({
-          title: "🎉 Application Submitted!",
-          description: "Your developer application is under review"
-        });
-        
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setUploadProgress(0);
-          navigate('/developer/dashboard');
-        }, 1500);
-        return;
-        
-      } catch (localError: any) {
-        console.error('Local registration also failed:', localError);
-        
-        // Send error to chatbot for help
-        try {
-          await adminAPI.getChatbotHelp(`Developer registration failed: ${localError.message || backendError.message || 'Unknown error'}`);
-        } catch {}
-
-        const errorMessage = localError.message || backendError.message || "Failed to submit application. Please try again.";
-        
-        toast({
-          title: "Registration Failed",
-          description: errorMessage,
-          variant: "destructive"
-        });
-        
-        setIsSubmitting(false);
-        setUploadProgress(0);
-      }
-    }
-  };
 
   return (
     <motion.div
@@ -567,5 +572,17 @@ export default function DeveloperRegister() {
         </form>
       </div>
     </motion.div>
+  );
+}
+
+// Wrap with ErrorBoundary to prevent white screen crashes
+export default function DeveloperRegister() {
+  return (
+    <ErrorBoundary
+      fallbackTitle="Registration Error"
+      fallbackMessage="Something went wrong with the registration form. Please try again."
+    >
+      <DeveloperRegisterForm />
+    </ErrorBoundary>
   );
 }
