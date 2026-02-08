@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -36,14 +36,50 @@ import { supabase } from '@/lib/supabase';
 import { compressImage } from '@/lib/imageCompression';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB limit for faster approval
+const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB strict limit
 const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-const UPLOAD_TIMEOUT_MS = 30000; // 30s timeout
+const UPLOAD_TIMEOUT_MS = 15000; // 15s timeout — fail fast
 
 const countries = [
   "United States", "United Kingdom", "Canada", "Germany", "France", 
   "India", "Japan", "Australia", "Brazil", "Netherlands", "Other"
 ];
+
+/** Safe image thumbnail — shows fallback icon if the preview fails to render */
+function SafeImagePreview({ file }: { file: File }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const url = URL.createObjectURL(file);
+      setSrc(url);
+      return () => URL.revokeObjectURL(url);
+    } catch {
+      setFailed(true);
+    }
+  }, [file]);
+
+  if (failed || !src) {
+    return (
+      <div className="p-2 rounded-lg bg-primary/20">
+        <CreditCard className="w-5 h-5 text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt="ID preview"
+      className="w-10 h-10 rounded-lg object-cover border border-primary/30"
+      onError={() => {
+        setFailed(true);
+        URL.revokeObjectURL(src);
+      }}
+    />
+  );
+}
 
 function DeveloperRegisterForm() {
   const navigate = useNavigate();
@@ -81,22 +117,22 @@ function DeveloperRegisterForm() {
         return;
       }
 
-      if (file.size > MAX_FILE_SIZE && !file.type.startsWith('image/')) {
-        // Only hard-reject non-images over limit (images will be compressed)
+      if (file.size > 5 * 1024 * 1024) {
+        // Hard reject anything over 5MB — too large even after compression
         toast({
           title: "File Too Large",
-          description: "Please upload a file smaller than 2MB for faster approval.",
+          description: "Maximum file size is 5MB. Please use a smaller file.",
           variant: "destructive"
         });
         if (idFileRef.current) idFileRef.current.value = '';
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        // Hard reject anything over 5MB even images
+      if (file.size > MAX_FILE_SIZE && !file.type.startsWith('image/')) {
+        // Non-images over 1MB are rejected (can't compress PDFs)
         toast({
           title: "File Too Large",
-          description: "Maximum file size is 5MB. Please use a smaller file.",
+          description: "Please upload a PDF smaller than 1MB.",
           variant: "destructive"
         });
         if (idFileRef.current) idFileRef.current.value = '';
@@ -187,7 +223,7 @@ function DeveloperRegisterForm() {
         console.log('[DeveloperRegister] Compressing image...');
         setUploadProgress(15);
         try {
-          fileToUpload = await compressImage(idFile, 2);
+          fileToUpload = await compressImage(idFile, 1);
           console.log(`[DeveloperRegister] Compressed: ${(idFile.size / 1024 / 1024).toFixed(2)}MB → ${(fileToUpload.size / 1024 / 1024).toFixed(2)}MB`);
         } catch (compressError) {
           console.warn('[DeveloperRegister] Compression failed, using original:', compressError);
@@ -195,9 +231,9 @@ function DeveloperRegisterForm() {
         }
       }
 
-      // If still too large after compression (PDF or failed compression)
-      if (fileToUpload.size > 5 * 1024 * 1024) {
-        toast({ title: "File Too Large", description: "Please upload a file smaller than 2MB for faster approval.", variant: "destructive" });
+      // If still too large after compression — reject
+      if (fileToUpload.size > MAX_FILE_SIZE && fileToUpload.type !== 'application/pdf') {
+        toast({ title: "Image Too Heavy", description: "Image is still over 1MB after compression. Please use a different photo.", variant: "destructive" });
         setIsSubmitting(false);
         setUploadProgress(0);
         return;
@@ -216,7 +252,7 @@ function DeveloperRegisterForm() {
         });
 
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Upload timed out. Please check your connection and try again.')), UPLOAD_TIMEOUT_MS)
+        setTimeout(() => reject(new Error('Upload is taking too long. Please check your internet and try again.')), UPLOAD_TIMEOUT_MS)
       );
 
       const { data: uploadData, error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]);
@@ -575,7 +611,7 @@ function DeveloperRegisterForm() {
                   Click to upload your ID
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  JPG, PNG, or PDF (recommended under 2MB, images auto-compressed)
+                  JPG, PNG, or PDF (under 1MB recommended, images auto-compressed)
                 </p>
               </motion.div>
             ) : (
@@ -585,20 +621,31 @@ function DeveloperRegisterForm() {
                 className="relative p-4 rounded-xl bg-primary/10 border border-primary/30"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/20">
-                    <CreditCard className="w-5 h-5 text-primary" />
-                  </div>
+                  {/* Safe image preview — falls back to icon on error */}
+                  {idFile.type.startsWith('image/') ? (
+                    <SafeImagePreview file={idFile} />
+                  ) : (
+                    <div className="p-2 rounded-lg bg-primary/20">
+                      <CreditCard className="w-5 h-5 text-primary" />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{idFile.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {(idFile.size / 1024 / 1024).toFixed(2)} MB
+                      {idFile.size > MAX_FILE_SIZE && idFile.type.startsWith('image/') && (
+                        <span className="ml-1 text-warning"> — will be compressed</span>
+                      )}
                     </p>
                   </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() => setIdFile(null)}
+                    onClick={() => {
+                      setIdFile(null);
+                      if (idFileRef.current) idFileRef.current.value = '';
+                    }}
                     className="shrink-0"
                   >
                     <X className="w-4 h-4" />

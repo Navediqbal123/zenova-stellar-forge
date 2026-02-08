@@ -3,8 +3,8 @@
  * Reduces file size while maintaining reasonable quality.
  */
 
-const MAX_DIMENSION = 1920;
-const COMPRESSION_QUALITY = 0.7;
+const MAX_DIMENSION = 1280;
+const COMPRESSION_QUALITY = 0.6;
 
 /**
  * Compresses an image file using a canvas element.
@@ -14,7 +14,7 @@ const COMPRESSION_QUALITY = 0.7;
  * @param maxSizeMB - Target max size in MB (default 2)
  * @returns Compressed file or original if already small enough / not an image
  */
-export async function compressImage(file: File, maxSizeMB = 2): Promise<File> {
+export async function compressImage(file: File, maxSizeMB = 1): Promise<File> {
   // Skip non-image files (e.g., PDFs)
   if (!file.type.startsWith('image/')) {
     return file;
