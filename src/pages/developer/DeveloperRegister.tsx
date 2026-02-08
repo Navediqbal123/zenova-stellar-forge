@@ -33,11 +33,12 @@ import { useToast } from '@/hooks/use-toast';
 import { adminAPI } from '@/lib/axios';
 import { triggerConfetti } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
+import { compressImage } from '@/lib/imageCompression';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB limit for faster approval
 const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-const UPLOAD_TIMEOUT_MS = 60000;
+const UPLOAD_TIMEOUT_MS = 30000; // 30s timeout
 
 const countries = [
   "United States", "United Kingdom", "Canada", "Germany", "France", 
@@ -80,10 +81,22 @@ function DeveloperRegisterForm() {
         return;
       }
 
-      if (file.size > MAX_FILE_SIZE) {
+      if (file.size > MAX_FILE_SIZE && !file.type.startsWith('image/')) {
+        // Only hard-reject non-images over limit (images will be compressed)
         toast({
           title: "File Too Large",
-          description: "Maximum file size is 5MB. Please compress or use a smaller file.",
+          description: "Please upload a file smaller than 2MB for faster approval.",
+          variant: "destructive"
+        });
+        if (idFileRef.current) idFileRef.current.value = '';
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        // Hard reject anything over 5MB even images
+        toast({
+          title: "File Too Large",
+          description: "Maximum file size is 5MB. Please use a smaller file.",
           variant: "destructive"
         });
         if (idFileRef.current) idFileRef.current.value = '';
@@ -150,8 +163,7 @@ function DeveloperRegisterForm() {
       return;
     }
 
-    console.log('[DeveloperRegister] Validation passed, verifying session...');
-
+    // Session check
     let isSessionValid = false;
     try {
       isSessionValid = await verifySession();
@@ -162,89 +174,128 @@ function DeveloperRegisterForm() {
     }
     if (!isSessionValid) return;
 
-    console.log('[DeveloperRegister] Session valid, starting upload...');
+    console.log('[DeveloperRegister] Validation passed, starting upload...');
     setIsSubmitting(true);
-    setUploadProgress(0);
+    setUploadProgress(10);
 
     try {
-      const uniqueName = `${Date.now()}-${idFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      // Step 1: Compress image if needed
+      toast({ title: "Uploading ID...", description: "Please wait while we process your document." });
+      let fileToUpload = idFile;
+      
+      if (idFile.type.startsWith('image/') && idFile.size > MAX_FILE_SIZE) {
+        console.log('[DeveloperRegister] Compressing image...');
+        setUploadProgress(15);
+        try {
+          fileToUpload = await compressImage(idFile, 2);
+          console.log(`[DeveloperRegister] Compressed: ${(idFile.size / 1024 / 1024).toFixed(2)}MB → ${(fileToUpload.size / 1024 / 1024).toFixed(2)}MB`);
+        } catch (compressError) {
+          console.warn('[DeveloperRegister] Compression failed, using original:', compressError);
+          fileToUpload = idFile;
+        }
+      }
 
-      const submitData = new FormData();
-      submitData.append('developer_name', formData.developer_name.trim());
-      submitData.append('full_name', formData.full_name.trim());
-      submitData.append('developer_type', formData.developer_type);
-      submitData.append('country', formData.country);
-      submitData.append('phone', formData.phone.trim());
-      submitData.append('email', user.email || '');
-      if (formData.website.trim()) submitData.append('website', formData.website.trim());
-      if (formData.bio.trim()) submitData.append('bio', formData.bio.trim());
-      const renamedFile = new File([idFile], uniqueName, { type: idFile.type });
-      submitData.append('id_file', renamedFile);
-
-      console.log('[DeveloperRegister] Sending to backend API...');
-
-      const uploadTimeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Upload timed out after 60 seconds. Please check your connection and try again.')), UPLOAD_TIMEOUT_MS);
-      });
-
-      const uploadPromise = adminAPI.registerDeveloper(submitData, (progress) => {
-        setUploadProgress(Math.min(Math.round(progress * 0.9), 90));
-      });
-
-      const response = await Promise.race([uploadPromise, uploadTimeout]);
-      setUploadProgress(95);
-      console.log('[DeveloperRegister] Backend response received:', response?.status);
-
-      if (response.data) {
-        setUploadProgress(100);
-        triggerConfetti();
-        toast({ title: "🎉 Application Submitted!", description: "Your developer application is under review" });
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setUploadProgress(0);
-          navigate('/developer/dashboard');
-        }, 1500);
+      // If still too large after compression (PDF or failed compression)
+      if (fileToUpload.size > 5 * 1024 * 1024) {
+        toast({ title: "File Too Large", description: "Please upload a file smaller than 2MB for faster approval.", variant: "destructive" });
+        setIsSubmitting(false);
+        setUploadProgress(0);
         return;
       }
 
-      throw new Error('No response from server');
-    } catch (backendError: any) {
-      console.warn('[DeveloperRegister] Backend failed:', backendError?.message);
+      // Step 2: Upload to Supabase Storage directly
+      const uniqueName = `${user.id}/${Date.now()}-${fileToUpload.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      setUploadProgress(30);
+      console.log('[DeveloperRegister] Uploading to Supabase Storage:', uniqueName);
 
-      // Fallback: try local Supabase registration
+      const uploadPromise = supabase.storage
+        .from('developer-ids')
+        .upload(uniqueName, fileToUpload, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Upload timed out. Please check your connection and try again.')), UPLOAD_TIMEOUT_MS)
+      );
+
+      const { data: uploadData, error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]);
+
+      if (uploadError) {
+        console.error('[DeveloperRegister] Storage upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      if (!uploadData?.path) {
+        throw new Error('Upload completed but no file path was returned.');
+      }
+
+      console.log('[DeveloperRegister] File uploaded successfully:', uploadData.path);
+      setUploadProgress(60);
+
+      // Step 3: Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('developer-ids')
+        .getPublicUrl(uploadData.path);
+
+      const idDocumentUrl = urlData?.publicUrl || uploadData.path;
+      setUploadProgress(70);
+      console.log('[DeveloperRegister] Public URL:', idDocumentUrl);
+
+      // Step 4: Try backend API registration first
       try {
-        console.log('[DeveloperRegister] Trying local fallback...');
-        setUploadProgress(50);
-        await registerDeveloper({
-          full_name: formData.full_name.trim(),
-          developer_type: formData.developer_type,
-          developer_name: formData.developer_name.trim(),
-          country: formData.country,
-          phone: formData.phone.trim(),
-          website: formData.website.trim(),
-          bio: formData.bio.trim(),
-        });
+        const submitData = new FormData();
+        submitData.append('developer_name', formData.developer_name.trim());
+        submitData.append('full_name', formData.full_name.trim());
+        submitData.append('developer_type', formData.developer_type);
+        submitData.append('country', formData.country);
+        submitData.append('phone', formData.phone.trim());
+        submitData.append('email', user.email || '');
+        submitData.append('id_document_url', idDocumentUrl);
+        if (formData.website.trim()) submitData.append('website', formData.website.trim());
+        if (formData.bio.trim()) submitData.append('bio', formData.bio.trim());
 
-        setUploadProgress(100);
-        console.log('[DeveloperRegister] Local fallback succeeded');
-        triggerConfetti();
-        toast({ title: "🎉 Application Submitted!", description: "Your developer application is under review" });
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setUploadProgress(0);
-          navigate('/developer/dashboard');
-        }, 1500);
-        return;
-      } catch (localError: any) {
-        console.error('[DeveloperRegister] Local registration also failed:', localError);
-        toast({
-          title: "Registration Failed",
-          description: localError?.message || backendError?.message || "Failed to submit application. Please try again.",
-          variant: "destructive"
-        });
+        setUploadProgress(80);
+        const response = await adminAPI.registerDeveloper(submitData, () => {});
+        setUploadProgress(95);
+
+        if (response.data) {
+          setUploadProgress(100);
+          triggerConfetti();
+          toast({ title: "🎉 Application Submitted!", description: "Your developer application is under review" });
+          setTimeout(() => navigate('/developer/dashboard'), 1500);
+          return;
+        }
+      } catch (backendError: any) {
+        console.warn('[DeveloperRegister] Backend API failed, trying local fallback:', backendError?.message);
       }
+
+      // Step 5: Fallback - register via local Supabase
+      setUploadProgress(85);
+      await registerDeveloper({
+        full_name: formData.full_name.trim(),
+        developer_type: formData.developer_type,
+        developer_name: formData.developer_name.trim(),
+        country: formData.country,
+        phone: formData.phone.trim(),
+        website: formData.website.trim(),
+        bio: formData.bio.trim(),
+      });
+
+      setUploadProgress(100);
+      console.log('[DeveloperRegister] Local registration succeeded');
+      triggerConfetti();
+      toast({ title: "🎉 Application Submitted!", description: "Your developer application is under review" });
+      setTimeout(() => navigate('/developer/dashboard'), 1500);
+
+    } catch (error: any) {
+      console.error('[DeveloperRegister] Crash error:', error);
+      toast({
+        title: "Upload Failed",
+        description: error?.message || "Upload failed. Please try a smaller image.",
+        variant: "destructive"
+      });
     } finally {
-      // ALWAYS reset to prevent infinite spinner
       setIsSubmitting(false);
       setUploadProgress(0);
     }
@@ -524,7 +575,7 @@ function DeveloperRegisterForm() {
                   Click to upload your ID
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  JPG, PNG, or PDF (max 5MB)
+                  JPG, PNG, or PDF (recommended under 2MB, images auto-compressed)
                 </p>
               </motion.div>
             ) : (
