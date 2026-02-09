@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import DeveloperRegister from "./pages/developer/DeveloperRegister";
 import DeveloperDashboard from "./pages/developer/DeveloperDashboard";
+import AppUploadWizard from "./pages/developer/AppUploadWizard";
 import AdminPanel from "./pages/admin/AdminPanel";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -75,8 +76,9 @@ const App = () => (
             <BrowserRouter>
               <AuthRedirectHandler>
                 <Routes>
-                  {/* Developer Dashboard has its own sidebar layout */}
+                  {/* Developer routes with their own layout */}
                   <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+                  <Route path="/developer/upload" element={<AppUploadWizard />} />
                   <Route path="/admin" element={<AdminPanel />} />
                   
                   {/* All other routes use MainLayout */}

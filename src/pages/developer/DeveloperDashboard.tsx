@@ -18,15 +18,16 @@ import {
   Wand2,
   ArrowRight,
   ChevronDown,
-  ChevronUp,
   Menu,
+  Megaphone,
+  DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApps } from '@/contexts/AppsContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StatusPipeline } from '@/components/developer/StatusPipeline';
-import { AppUploadModal } from '@/components/developer/AppUploadModal';
 import { DeveloperSidebar } from '@/components/developer/DeveloperSidebar';
 import { MobileBottomNav } from '@/components/developer/MobileBottomNav';
 import { cn } from '@/lib/utils';
@@ -62,8 +63,6 @@ export default function DeveloperDashboard() {
   const { user, isAuthenticated, developerProfile, isDeveloperApproved } = useAuth();
   const { apps, getAppsByDeveloper } = useApps();
   
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [showUploadChoice, setShowUploadChoice] = useState(false);
   const [expandedAppId, setExpandedAppId] = useState<string | null>(null);
   const [previousStatuses, setPreviousStatuses] = useState<Record<string, string>>({});
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -296,16 +295,21 @@ export default function DeveloperDashboard() {
     },
   ];
 
-  const handleUploadMethodSelect = (method: 'manual' | 'ai') => {
-    setShowUploadChoice(false);
-    setIsUploadModalOpen(true);
+  const handleUploadMethodSelect = (_method: 'manual' | 'ai') => {
+    navigate('/developer/upload');
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background grid-pattern">
+      {/* Background Orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="gradient-orb gradient-orb-primary w-[600px] h-[600px] -top-48 -left-48" />
+        <div className="gradient-orb gradient-orb-secondary w-[500px] h-[500px] top-1/2 -right-64" />
+      </div>
+
       {/* Sidebar - hidden on mobile, shown on desktop */}
       <DeveloperSidebar
-        onUploadClick={() => setShowUploadChoice(true)}
+        onUploadClick={() => navigate('/developer/upload')}
         mobileOpen={mobileSidebarOpen}
         onMobileClose={() => setMobileSidebarOpen(false)}
       />
@@ -346,186 +350,135 @@ export default function DeveloperDashboard() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="hidden sm:block">
               <Button 
                 className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-[0_0_25px_hsl(var(--primary)/0.5)]" 
-                onClick={() => setShowUploadChoice(true)}
+                onClick={() => navigate('/developer/upload')}
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Upload New App
+                Create New App
               </Button>
             </motion.div>
           </motion.div>
 
-          {/* Upload Choice Modal - Side by Side Cards */}
-          {showUploadChoice && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => setShowUploadChoice(false)}
-            >
-              <motion.div
-                variants={popIn}
-                initial="hidden"
-                animate="show"
-                className="admin-glass-card p-8 max-w-3xl w-full"
-                onClick={(e) => e.stopPropagation()}
+          {/* Upload Method Cards - SIDE BY SIDE */}
+          <div className="grid grid-cols-2 gap-4 sm:gap-6">
+            {uploadMethods.map((method, index) => (
+              <motion.button
+                key={method.id}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: index * 0.1, type: 'spring', stiffness: 200 }}
+                whileHover={{ scale: 1.03, y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleUploadMethodSelect(method.id)}
+                className={cn(
+                  "relative p-4 sm:p-8 rounded-2xl text-left transition-all duration-300",
+                  "border-2 border-transparent",
+                  "admin-glass-card",
+                  "group overflow-hidden",
+                  method.color === 'primary' && "hover:border-primary/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.2)]",
+                  method.color === 'secondary' && "hover:border-secondary/50 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.2)]"
+                )}
               >
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold mb-2">Choose Upload Method</h2>
-                  <p className="text-muted-foreground">
-                    Select how you'd like to upload your app
+                {/* Premium badge */}
+                {method.premium && (
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-gradient-to-r from-secondary to-primary text-[10px] sm:text-xs font-semibold text-primary-foreground">
+                    Recommended
+                  </div>
+                )}
+
+                {/* Background gradient */}
+                <div className={cn(
+                  "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                  method.color === 'primary' && "bg-gradient-to-br from-primary/15 via-transparent to-transparent",
+                  method.color === 'secondary' && "bg-gradient-to-br from-secondary/15 via-transparent to-transparent"
+                )} />
+
+                {/* Content */}
+                <div className="relative z-10">
+                  {/* Icon */}
+                  <div className={cn(
+                    "w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-6 transition-all duration-300",
+                    "group-hover:scale-110",
+                    method.color === 'primary' && "bg-primary/15 group-hover:bg-primary/25",
+                    method.color === 'secondary' && "bg-secondary/15 group-hover:bg-secondary/25"
+                  )}>
+                    <method.icon className={cn(
+                      "w-6 h-6 sm:w-8 sm:h-8 transition-all duration-300",
+                      method.color === 'primary' && "text-primary",
+                      method.color === 'secondary' && "text-secondary"
+                    )} />
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-sm sm:text-xl font-bold mb-1 sm:mb-2 flex items-center gap-2">
+                    {method.title}
+                    <ArrowRight className={cn(
+                      "w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block",
+                      method.color === 'primary' && "text-primary",
+                      method.color === 'secondary' && "text-secondary"
+                    )} />
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-6 line-clamp-2">
+                    {method.description}
                   </p>
-                </div>
 
-                {/* Side by Side Premium Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {uploadMethods.map((method, index) => (
-                    <motion.button
-                      key={method.id}
-                      initial={{ opacity: 0, y: 30, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: index * 0.15, type: 'spring', stiffness: 200 }}
-                      whileHover={{ scale: 1.05, y: -8 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleUploadMethodSelect(method.id)}
-                      className={cn(
-                        "relative p-8 rounded-2xl text-left transition-all duration-300",
-                        "border-2 border-transparent",
-                        "bg-white/[0.03] hover:bg-white/[0.08]",
-                        "group overflow-hidden",
-                        method.color === 'primary' && "hover:border-primary/50 hover:shadow-[0_0_40px_hsl(var(--primary)/0.3)]",
-                        method.color === 'secondary' && "hover:border-secondary/50 hover:shadow-[0_0_40px_hsl(var(--secondary)/0.3)]"
-                      )}
-                    >
-                      {/* Premium badge */}
-                      {method.premium && (
-                        <motion.div
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.4 }}
-                          className="absolute top-4 right-4 px-3 py-1 rounded-full bg-gradient-to-r from-secondary to-primary text-xs font-semibold text-primary-foreground"
-                        >
-                          Recommended
-                        </motion.div>
-                      )}
-
-                      {/* Background gradient */}
-                      <div className={cn(
-                        "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                        method.color === 'primary' && "bg-gradient-to-br from-primary/15 via-transparent to-transparent",
-                        method.color === 'secondary' && "bg-gradient-to-br from-secondary/15 via-transparent to-transparent"
-                      )} />
-
-                      {/* Content */}
-                      <div className="relative z-10">
-                        {/* Icon */}
+                  {/* Features - hidden on mobile */}
+                  <ul className="space-y-1.5 hidden sm:block">
+                    {method.features.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                         <div className={cn(
-                          "w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300",
-                          "group-hover:scale-110",
-                          method.color === 'primary' && "bg-primary/15 group-hover:bg-primary/25",
-                          method.color === 'secondary' && "bg-secondary/15 group-hover:bg-secondary/25"
-                        )}>
-                          <method.icon className={cn(
-                            "w-10 h-10 transition-all duration-300",
-                            method.color === 'primary' && "text-primary group-hover:drop-shadow-[0_0_15px_hsl(var(--primary))]",
-                            method.color === 'secondary' && "text-secondary group-hover:drop-shadow-[0_0_15px_hsl(var(--secondary))]"
-                          )} />
-                        </div>
-
-                        {/* Title & Description */}
-                        <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                          {method.title}
-                          <motion.div
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
-                            initial={false}
-                          >
-                            <ArrowRight className={cn(
-                              "w-5 h-5",
-                              method.color === 'primary' && "text-primary",
-                              method.color === 'secondary' && "text-secondary"
-                            )} />
-                          </motion.div>
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-6">
-                          {method.description}
-                        </p>
-
-                        {/* Features */}
-                        <ul className="space-y-2">
-                          {method.features.map((feature, i) => (
-                            <motion.li
-                              key={i}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.3 + i * 0.1 }}
-                              className="flex items-center gap-2 text-sm text-muted-foreground"
-                            >
-                              <div className={cn(
-                                "w-2 h-2 rounded-full",
-                                method.color === 'primary' && "bg-primary",
-                                method.color === 'secondary' && "bg-secondary"
-                              )} />
-                              {feature}
-                            </motion.li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Floating decoration */}
-                      <motion.div
-                        className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-15 transition-opacity"
-                        animate={{ rotate: [0, 10, 0] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                      >
-                        <method.secondaryIcon className="w-40 h-40" />
-                      </motion.div>
-                    </motion.button>
-                  ))}
+                          "w-1.5 h-1.5 rounded-full",
+                          method.color === 'primary' && "bg-primary",
+                          method.color === 'secondary' && "bg-secondary"
+                        )} />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                {/* Close button */}
-                <div className="text-center mt-6">
-                  <Button variant="ghost" onClick={() => setShowUploadChoice(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-
-          {/* Upload Modal */}
-          <AppUploadModal 
-            isOpen={isUploadModalOpen} 
-            onClose={() => setIsUploadModalOpen(false)} 
-          />
+                {/* Floating decoration */}
+                <motion.div
+                  className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity"
+                  animate={{ rotate: [0, 10, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <method.secondaryIcon className="w-24 h-24 sm:w-40 sm:h-40" />
+                </motion.div>
+              </motion.button>
+            ))}
+          </div>
 
           {/* Stats Grid */}
           <motion.div 
             variants={staggerContainer}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
           >
             {statCards.map((stat) => (
               <motion.div
                 key={stat.label}
                 variants={staggerItem}
                 whileHover={{ scale: 1.02, y: -2 }}
-                className="admin-glass-card p-6"
+                className="admin-glass-card p-4 sm:p-6"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`p-2 rounded-xl ${
-                    stat.color === 'primary' ? 'bg-primary/15' :
-                    stat.color === 'success' ? 'bg-success/15' : 'bg-secondary/15'
-                  }`}>
-                    <stat.icon className={`w-5 h-5 ${
-                      stat.color === 'primary' ? 'text-primary' :
-                      stat.color === 'success' ? 'text-success' : 'text-secondary'
-                    }`} />
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <div className={cn(
+                    "p-1.5 sm:p-2 rounded-lg sm:rounded-xl",
+                    stat.color === 'primary' && 'bg-primary/15',
+                    stat.color === 'success' && 'bg-success/15',
+                    stat.color === 'secondary' && 'bg-secondary/15'
+                  )}>
+                    <stat.icon className={cn(
+                      "w-4 h-4 sm:w-5 sm:h-5",
+                      stat.color === 'primary' && 'text-primary',
+                      stat.color === 'success' && 'text-success',
+                      stat.color === 'secondary' && 'text-secondary'
+                    )} />
                   </div>
-                  <span className="text-sm text-muted-foreground">{stat.label}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">{stat.label}</span>
                 </div>
-                <p className="text-3xl font-bold">{stat.value}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{stat.value}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -541,7 +494,7 @@ export default function DeveloperDashboard() {
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="admin-glass-card p-12 text-center"
+                className="admin-glass-card p-8 sm:p-12 text-center"
               >
                 <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
                 <p className="text-xl text-muted-foreground mb-2">No apps yet</p>
@@ -549,9 +502,9 @@ export default function DeveloperDashboard() {
                   Upload your first app to get started
                 </p>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button onClick={() => setShowUploadChoice(true)} className="bg-primary hover:bg-primary/90">
+                  <Button onClick={() => navigate('/developer/upload')} className="bg-primary hover:bg-primary/90">
                     <Plus className="w-5 h-5 mr-2" />
-                    Upload App
+                    Create App
                   </Button>
                 </motion.div>
               </motion.div>
@@ -560,7 +513,7 @@ export default function DeveloperDashboard() {
                 variants={staggerContainer}
                 initial="hidden"
                 animate="show"
-                className="space-y-4"
+                className="space-y-3"
               >
                 {myApps.map((app) => {
                   const isExpanded = expandedAppId === app.id;
@@ -576,17 +529,31 @@ export default function DeveloperDashboard() {
                       <motion.button
                         whileHover={{ scale: 1.005 }}
                         onClick={() => setExpandedAppId(isExpanded ? null : app.id)}
-                        className="w-full p-4 flex items-center gap-4 text-left"
+                        className="w-full p-3 sm:p-4 flex items-center gap-3 sm:gap-4 text-left"
                       >
-                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
-                          {app.icon || app.icon_url || '📱'}
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl sm:text-2xl shrink-0 overflow-hidden">
+                          {app.icon_url && app.icon_url.startsWith('http') ? (
+                            <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                          ) : (
+                            app.icon || app.icon_url || '📱'
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold truncate">{app.name}</h3>
+                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <h3 className="font-semibold truncate text-sm sm:text-base">{app.name}</h3>
                             <StatusBadge status={app.status} size="sm" />
+                            {/* App badges */}
+                            {app.is_paid ? (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-warning/40 text-warning hidden sm:inline-flex">
+                                <DollarSign className="w-3 h-3 mr-0.5" />Paid
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-success/40 text-success hidden sm:inline-flex">
+                                Free
+                              </Badge>
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">{app.short_description}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{app.short_description}</p>
                         </div>
                         <div className="hidden md:flex items-center gap-6 text-sm">
                           <div className="text-center">
@@ -601,8 +568,8 @@ export default function DeveloperDashboard() {
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" className="border-white/10" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <Button variant="outline" size="sm" className="border-border hidden sm:flex" onClick={(e) => e.stopPropagation()}>
                             <BarChart3 className="w-4 h-4" />
                           </Button>
                           <motion.div
@@ -610,7 +577,7 @@ export default function DeveloperDashboard() {
                             transition={{ duration: 0.2 }}
                             className="p-1"
                           >
-                            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                            <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                           </motion.div>
                         </div>
                       </motion.button>
@@ -625,7 +592,7 @@ export default function DeveloperDashboard() {
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
                             className="overflow-hidden"
                           >
-                            <div className="px-4 pb-5 pt-2 border-t border-white/5">
+                            <div className="px-3 sm:px-4 pb-4 sm:pb-5 pt-2 border-t border-border/30">
                               <h4 className="text-sm font-medium mb-4 text-muted-foreground">Review Status Pipeline</h4>
                               <StatusPipeline 
                                 status={app.status} 
@@ -633,7 +600,7 @@ export default function DeveloperDashboard() {
                               />
                               
                               {/* Additional App Details */}
-                              <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-4">
+                              <div className="mt-4 pt-4 border-t border-border/30 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                                 <div>
                                   <p className="text-xs text-muted-foreground">Version</p>
                                   <p className="text-sm font-medium">{app.version || '1.0.0'}</p>
@@ -667,7 +634,7 @@ export default function DeveloperDashboard() {
       </motion.div>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav onUploadClick={() => setShowUploadChoice(true)} />
+      <MobileBottomNav onUploadClick={() => navigate('/developer/upload')} />
     </div>
   );
 }
