@@ -74,21 +74,28 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AuthRedirectHandler>
-                <MainLayout>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/apps" element={<Apps />} />
-                    <Route path="/apps/:appId" element={<AppDetail />} />
-                    <Route path="/categories" element={<Categories />} />
-                    <Route path="/categories/:categoryId" element={<Categories />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/developer/register" element={<DeveloperRegister />} />
-                    <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
-                    <Route path="/admin" element={<AdminPanel />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </MainLayout>
+                <Routes>
+                  {/* Developer Dashboard has its own sidebar layout */}
+                  <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+                  <Route path="/admin" element={<AdminPanel />} />
+                  
+                  {/* All other routes use MainLayout */}
+                  <Route path="*" element={
+                    <MainLayout>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/apps" element={<Apps />} />
+                        <Route path="/apps/:appId" element={<AppDetail />} />
+                        <Route path="/categories" element={<Categories />} />
+                        <Route path="/categories/:categoryId" element={<Categories />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/developer/register" element={<DeveloperRegister />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </MainLayout>
+                  } />
+                </Routes>
               </AuthRedirectHandler>
             </BrowserRouter>
           </TooltipProvider>

@@ -19,6 +19,7 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
+  Menu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,6 +28,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StatusPipeline } from '@/components/developer/StatusPipeline';
 import { AppUploadModal } from '@/components/developer/AppUploadModal';
 import { DeveloperSidebar } from '@/components/developer/DeveloperSidebar';
+import { MobileBottomNav } from '@/components/developer/MobileBottomNav';
 import { cn } from '@/lib/utils';
 import { triggerCelebrationConfetti } from '@/lib/confetti';
 
@@ -64,9 +66,23 @@ export default function DeveloperDashboard() {
   const [showUploadChoice, setShowUploadChoice] = useState(false);
   const [expandedAppId, setExpandedAppId] = useState<string | null>(null);
   const [previousStatuses, setPreviousStatuses] = useState<Record<string, string>>({});
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Track previous app statuses for confetti on approval
   const prevStatusesRef = useRef<Record<string, string>>({});
+
+  // Must call all hooks before any returns
+  const myApps = developerProfile ? getAppsByDeveloper(developerProfile.id) : [];
+
+  useEffect(() => {
+    myApps.forEach(app => {
+      const prevStatus = prevStatusesRef.current[app.id];
+      if (prevStatus && prevStatus !== 'approved' && app.status === 'approved') {
+        triggerCelebrationConfetti();
+      }
+      prevStatusesRef.current[app.id] = app.status;
+    });
+  }, [myApps]);
 
   // Not authenticated
   if (!isAuthenticated) {
@@ -237,19 +253,6 @@ export default function DeveloperDashboard() {
     );
   }
 
-  const myApps = getAppsByDeveloper(developerProfile.id);
-
-  // Check for status changes to trigger confetti
-  useEffect(() => {
-    myApps.forEach(app => {
-      const prevStatus = prevStatusesRef.current[app.id];
-      if (prevStatus && prevStatus !== 'approved' && app.status === 'approved') {
-        // App was just approved! Trigger celebration
-        triggerCelebrationConfetti();
-      }
-      prevStatusesRef.current[app.id] = app.status;
-    });
-  }, [myApps]);
 
   const stats = {
     totalApps: myApps.length,
@@ -300,35 +303,47 @@ export default function DeveloperDashboard() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <DeveloperSidebar onUploadClick={() => setShowUploadChoice(true)} />
+      {/* Sidebar - hidden on mobile, shown on desktop */}
+      <DeveloperSidebar
+        onUploadClick={() => setShowUploadChoice(true)}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* Mobile Hamburger Button */}
+      <button
+        onClick={() => setMobileSidebarOpen(true)}
+        className="fixed top-4 left-4 z-40 p-2.5 rounded-xl glass-card lg:hidden hover-glow"
+      >
+        <Menu className="w-5 h-5 text-primary" />
+      </button>
 
       {/* Main Content */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex-1 ml-64 p-8"
+        className="flex-1 lg:ml-64 p-4 pt-16 lg:p-8 lg:pt-8 pb-24 lg:pb-8"
       >
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
           >
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20">
-                  <LayoutDashboard className="w-7 h-7 text-primary" />
+                <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20">
+                  <LayoutDashboard className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
                 </div>
-                <h1 className="text-3xl font-bold">Developer Console</h1>
+                <h1 className="text-xl sm:text-3xl font-bold">Developer Console</h1>
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Welcome back, <span className="text-primary font-medium">{developerProfile.developer_name}</span>
               </p>
             </div>
 
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="hidden sm:block">
               <Button 
                 className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-[0_0_25px_hsl(var(--primary)/0.5)]" 
                 onClick={() => setShowUploadChoice(true)}
@@ -388,7 +403,7 @@ export default function DeveloperDashboard() {
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.4 }}
-                          className="absolute top-4 right-4 px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-primary text-xs font-semibold text-white"
+                          className="absolute top-4 right-4 px-3 py-1 rounded-full bg-gradient-to-r from-secondary to-primary text-xs font-semibold text-primary-foreground"
                         >
                           Recommended
                         </motion.div>
@@ -650,6 +665,9 @@ export default function DeveloperDashboard() {
           </div>
         </div>
       </motion.div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav onUploadClick={() => setShowUploadChoice(true)} />
     </div>
   );
 }
