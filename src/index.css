@@ -397,4 +397,9 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Safe area for bottom nav on mobile */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
