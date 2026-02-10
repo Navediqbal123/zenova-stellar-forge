@@ -24,6 +24,11 @@ export interface AppData {
   status: AppStatus;
   featured: boolean;
   trending: boolean;
+  is_paid?: boolean;
+  price?: number | null;
+  contains_ads?: boolean;
+  in_app_purchases?: boolean;
+  ai_scan_report?: string | null;
   created_at: string;
   updated_at: string;
 }
