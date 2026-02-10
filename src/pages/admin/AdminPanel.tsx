@@ -359,10 +359,12 @@ function AdminDevelopers() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const filteredDevelopers = developers.filter(dev => 
-    dev.developer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dev.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredDevelopers = developers.filter(dev => {
+    const query = searchQuery.toLowerCase();
+    return (dev.developer_name || '').toLowerCase().includes(query) ||
+      (dev.email || '').toLowerCase().includes(query) ||
+      (dev.full_name || '').toLowerCase().includes(query);
+  });
 
   const handleApprove = async (developer: Developer) => {
     setIsProcessing(true);
@@ -516,18 +518,18 @@ function AdminDevelopers() {
                   >
                     <td>
                       <div>
-                        <p className="font-medium">{developer.developer_name}</p>
-                        <p className="text-sm text-muted-foreground">{developer.full_name}</p>
+                        <p className="font-medium">{developer.developer_name || 'Unknown'}</p>
+                        <p className="text-sm text-muted-foreground">{developer.full_name || 'N/A'}</p>
                       </div>
                     </td>
-                    <td className="text-muted-foreground">{developer.email}</td>
+                    <td className="text-muted-foreground">{developer.email || 'N/A'}</td>
                     <td>
                       <span className="capitalize text-sm px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">
-                        {developer.developer_type}
+                        {developer.developer_type || 'N/A'}
                       </span>
                     </td>
                     <td>
-                      <StatusBadge status={developer.status} showIcon />
+                      <StatusBadge status={developer.status || 'pending'} showIcon />
                     </td>
                     <td>
                       <div className="flex items-center justify-end gap-2">
