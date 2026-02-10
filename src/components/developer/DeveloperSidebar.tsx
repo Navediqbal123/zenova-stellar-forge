@@ -1,8 +1,6 @@
-import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
-  Upload,
   Package,
   BarChart3,
   Settings,
@@ -17,33 +15,31 @@ import {
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+
+export type DeveloperTab = 'dashboard' | 'my-apps' | 'analytics' | 'notifications' | 'settings';
 
 interface DeveloperSidebarProps {
-  onUploadClick: () => void;
+  activeTab: DeveloperTab;
+  onTabChange: (tab: DeveloperTab) => void;
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
 
-export function DeveloperSidebar({ onUploadClick, mobileOpen = false, onMobileClose }: DeveloperSidebarProps) {
-  const location = useLocation();
+export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, onMobileClose }: DeveloperSidebarProps) {
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
-  const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/developer/dashboard' },
-    { icon: Package, label: 'My Apps', path: '/developer/apps' },
-    { icon: BarChart3, label: 'Analytics', path: '/developer/analytics' },
-    { icon: Bell, label: 'Notifications', path: '/developer/notifications' },
-    { icon: Settings, label: 'Settings', path: '/developer/settings' },
+  const navItems: { icon: React.ElementType; label: string; tab: DeveloperTab }[] = [
+    { icon: LayoutDashboard, label: 'Dashboard', tab: 'dashboard' },
+    { icon: Package, label: 'My Apps', tab: 'my-apps' },
+    { icon: BarChart3, label: 'Analytics', tab: 'analytics' },
+    { icon: Bell, label: 'Notifications', tab: 'notifications' },
+    { icon: Settings, label: 'Settings', tab: 'settings' },
   ];
 
-  const secondaryItems = [
-    { icon: Home, label: 'Home', path: '/' },
-    { icon: HelpCircle, label: 'Help Center', path: '/help' },
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
-
-  const handleNavClick = () => {
+  const handleNavClick = (tab: DeveloperTab) => {
+    onTabChange(tab);
     onMobileClose?.();
   };
 
@@ -95,95 +91,70 @@ export function DeveloperSidebar({ onUploadClick, mobileOpen = false, onMobileCl
         )}
       </Button>
 
-      {/* Upload Button */}
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => {
-          onUploadClick();
-          onMobileClose?.();
-        }}
-        className={cn(
-          "relative overflow-hidden mb-6 rounded-xl p-3 font-semibold transition-all",
-          "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground",
-          "hover:shadow-[0_0_25px_hsl(var(--primary)/0.5)]",
-          collapsed ? "px-2" : ""
-        )}
-      >
-        <div className="flex items-center justify-center gap-2">
-          <Upload className="w-5 h-5" />
-          {!collapsed && <span>Upload App</span>}
-        </div>
-        {/* Shimmer effect */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-          animate={{ x: ['-100%', '100%'] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-        />
-      </motion.button>
-
       {/* Main Navigation */}
       <nav className="flex-1 space-y-1">
-        {navItems.map((item, index) => (
-          <motion.div
-            key={item.path}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <NavLink
-              to={item.path}
-              onClick={handleNavClick}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group",
-                isActive(item.path)
-                  ? "bg-primary/15 text-primary border border-primary/30"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-              )}
+        {navItems.map((item, index) => {
+          const isActive = activeTab === item.tab;
+          return (
+            <motion.div
+              key={item.tab}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
             >
-              <item.icon className={cn(
-                "w-5 h-5 transition-all",
-                isActive(item.path)
-                  ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]"
-                  : "group-hover:text-primary"
-              )} />
-              {!collapsed && (
-                <span className="font-medium">{item.label}</span>
-              )}
-              {isActive(item.path) && !collapsed && (
-                <motion.div
-                  layoutId="activeIndicator"
-                  className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
-                />
-              )}
-            </NavLink>
-          </motion.div>
-        ))}
+              <button
+                onClick={() => handleNavClick(item.tab)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group",
+                  isActive
+                    ? "bg-primary/15 text-primary border border-primary/30"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                )}
+              >
+                <item.icon className={cn(
+                  "w-5 h-5 transition-all",
+                  isActive
+                    ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]"
+                    : "group-hover:text-primary"
+                )} />
+                {!collapsed && (
+                  <span className="font-medium">{item.label}</span>
+                )}
+                {isActive && !collapsed && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
+                  />
+                )}
+              </button>
+            </motion.div>
+          );
+        })}
       </nav>
 
       {/* Secondary Navigation */}
       <div className="border-t border-white/10 pt-4 mt-4 space-y-1">
-        {secondaryItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            onClick={handleNavClick}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all",
-              "text-muted-foreground hover:text-foreground hover:bg-white/5"
-            )}
-          >
-            <item.icon className="w-5 h-5" />
-            {!collapsed && <span className="text-sm">{item.label}</span>}
-          </NavLink>
-        ))}
+        <button
+          onClick={() => { navigate('/'); onMobileClose?.(); }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-muted-foreground hover:text-foreground hover:bg-white/5"
+        >
+          <Home className="w-5 h-5" />
+          {!collapsed && <span className="text-sm">Home</span>}
+        </button>
+        <button
+          onClick={() => { onMobileClose?.(); }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-muted-foreground hover:text-foreground hover:bg-white/5"
+        >
+          <HelpCircle className="w-5 h-5" />
+          {!collapsed && <span className="text-sm">Help Center</span>}
+        </button>
       </div>
     </div>
   );
 
   return (
     <>
-      {/* Desktop Sidebar - hidden on mobile */}
+      {/* Desktop Sidebar */}
       <motion.aside
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -192,13 +163,9 @@ export function DeveloperSidebar({ onUploadClick, mobileOpen = false, onMobileCl
           collapsed ? "w-20" : "w-64"
         )}
       >
-        {/* Glassmorphism Background */}
         <div className="absolute inset-0 bg-gradient-to-b from-sidebar via-sidebar to-background/95 backdrop-blur-xl border-r border-white/10" />
-        
-        {/* Decorative glow */}
         <div className="absolute top-1/4 -right-20 w-40 h-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 -right-10 w-20 h-20 rounded-full bg-secondary/10 blur-2xl pointer-events-none" />
-
         {sidebarContent}
       </motion.aside>
 
@@ -206,7 +173,6 @@ export function DeveloperSidebar({ onUploadClick, mobileOpen = false, onMobileCl
       <AnimatePresence>
         {mobileOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -214,7 +180,6 @@ export function DeveloperSidebar({ onUploadClick, mobileOpen = false, onMobileCl
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
               onClick={onMobileClose}
             />
-            {/* Drawer */}
             <motion.aside
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
@@ -222,9 +187,7 @@ export function DeveloperSidebar({ onUploadClick, mobileOpen = false, onMobileCl
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="fixed left-0 top-0 h-screen w-72 z-50 lg:hidden"
             >
-              {/* Glassmorphism Background */}
               <div className="absolute inset-0 bg-gradient-to-b from-sidebar via-sidebar to-background/95 backdrop-blur-xl border-r border-white/10" />
-              
               {sidebarContent}
             </motion.aside>
           </>

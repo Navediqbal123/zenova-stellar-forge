@@ -17,6 +17,7 @@ import Register from "./pages/Register";
 import DeveloperRegister from "./pages/developer/DeveloperRegister";
 import DeveloperDashboard from "./pages/developer/DeveloperDashboard";
 import AppUploadWizard from "./pages/developer/AppUploadWizard";
+import AIUploadPage from "./pages/developer/AIUploadPage";
 import AdminPanel from "./pages/admin/AdminPanel";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -79,6 +80,7 @@ const App = () => (
                   {/* Developer routes with their own layout */}
                   <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
                   <Route path="/developer/upload" element={<AppUploadWizard />} />
+                  <Route path="/developer/ai-upload" element={<AIUploadPage />} />
                   <Route path="/admin" element={<AdminPanel />} />
                   
                   {/* All other routes use MainLayout */}

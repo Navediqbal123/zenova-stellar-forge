@@ -625,17 +625,18 @@ function AdminDevelopers() {
   );
 }
 
-// Apps Tab with Pending Apps Section and Confetti
+// Apps Tab with Pending Apps Section, AI Report, and Confetti
 function AdminApps() {
   const { apps, pendingApps, updateStatus, refresh, isRefreshing } = useAppsQuery();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [aiReportAppId, setAiReportAppId] = useState<string | null>(null);
 
-  const filteredApps = apps.filter(app => 
-    app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.developer_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredApps = apps.filter(app =>
+    (app.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (app.developer_name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleApprove = async (app: any) => {
@@ -643,10 +644,7 @@ function AdminApps() {
     try {
       await updateStatus(app.id, 'approved');
       
-      // Trigger real confetti animation
       triggerConfetti();
-      
-      // Show confetti UI indicator
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
       
@@ -656,15 +654,12 @@ function AdminApps() {
       });
     } catch (error: any) {
       console.error('App approval error:', error);
-      
-      // Send error to chatbot for support
       try {
         await adminAPI.getChatbotHelpWithContext(
           error?.message || 'App approval failed',
           'Admin Panel - App Management'
         );
       } catch {}
-
       toast({
         title: "Failed to approve app",
         description: error?.message || "An error occurred. Please check RLS policies.",
@@ -693,6 +688,18 @@ function AdminApps() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  // Parse AI scan report from app data
+  const getAiReport = (app: any) => {
+    try {
+      if (app.ai_scan_report) {
+        return typeof app.ai_scan_report === 'string' 
+          ? JSON.parse(app.ai_scan_report)
+          : app.ai_scan_report;
+      }
+    } catch {}
+    return null;
   };
 
   return (
@@ -772,68 +779,160 @@ function AdminApps() {
             animate="show"
             className="space-y-3"
           >
-            {pendingApps.map((app) => (
-              <motion.div
-                key={app.id}
-                variants={staggerItem}
-                whileHover={{ scale: 1.01 }}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5"
-              >
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
-                  {app.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold">{app.name}</h3>
-                    <StatusBadge status="pending" size="sm" />
+            {pendingApps.map((app) => {
+              const aiReport = getAiReport(app);
+              const isReportOpen = aiReportAppId === app.id;
+              return (
+                <motion.div
+                  key={app.id}
+                  variants={staggerItem}
+                  className="rounded-xl bg-white/[0.03] border border-white/5 overflow-hidden"
+                >
+                  <div className="flex items-center gap-4 p-4">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
+                      {app.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold">{app.name}</h3>
+                        <StatusBadge status="pending" size="sm" />
+                        {app.contains_ads && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-warning/20 text-warning border border-warning/30">Ads</span>
+                        )}
+                        {app.in_app_purchases && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/20 text-secondary border border-secondary/30">IAP</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p>
+                      {app.version && (
+                        <p className="text-xs text-muted-foreground/70 mt-0.5">v{app.version} • {app.size}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* View AI Report */}
+                      {aiReport && (
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-secondary/30 text-secondary hover:bg-secondary/10"
+                            onClick={() => setAiReportAppId(isReportOpen ? null : app.id)}
+                          >
+                            <Sparkles className="w-4 h-4 mr-1" />
+                            AI Report
+                          </Button>
+                        </motion.div>
+                      )}
+                      {app.apk_url && (
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-primary/30 text-primary hover:bg-primary/10"
+                            onClick={() => window.open(app.apk_url, '_blank')}
+                            title="Download APK for testing"
+                          >
+                            <FileDown className="w-4 h-4 mr-1" />
+                            Test APK
+                          </Button>
+                        </motion.div>
+                      )}
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          size="sm"
+                          disabled={isProcessing}
+                          className="bg-success/20 text-success border border-success/30 hover:bg-success/30"
+                          onClick={() => handleApprove(app)}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Approve
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          size="sm"
+                          disabled={isProcessing}
+                          variant="outline"
+                          className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                          onClick={() => handleReject(app)}
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Reject
+                        </Button>
+                      </motion.div>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p>
-                  {app.version && (
-                    <p className="text-xs text-muted-foreground/70 mt-0.5">v{app.version} • {app.size}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Download APK for Testing */}
-                  {app.apk_url && (
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-primary/30 text-primary hover:bg-primary/10"
-                        onClick={() => window.open(app.apk_url, '_blank')}
-                        title="Download APK for testing"
+                  
+                  {/* AI Scan Report Expandable */}
+                  <AnimatePresence>
+                    {isReportOpen && aiReport && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
                       >
-                        <FileDown className="w-4 h-4 mr-1" />
-                        Test APK
-                      </Button>
-                    </motion.div>
-                  )}
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      size="sm"
-                      disabled={isProcessing}
-                      className="bg-success/20 text-success border border-success/30 hover:bg-success/30"
-                      onClick={() => handleApprove(app)}
-                    >
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Approve
-                    </Button>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button
-                      size="sm"
-                      disabled={isProcessing}
-                      variant="outline"
-                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                      onClick={() => handleReject(app)}
-                    >
-                      <XCircle className="w-4 h-4 mr-1" />
-                      Reject
-                    </Button>
-                  </motion.div>
-                </div>
-              </motion.div>
-            ))}
+                        <div className="px-4 pb-4 pt-2 border-t border-white/10">
+                          <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-secondary" />
+                            AI Scan Report
+                          </h4>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                              <p className="text-xs text-muted-foreground mb-1">Ad Networks</p>
+                              <p className="text-sm font-medium">
+                                {aiReport.ad_networks?.length > 0
+                                  ? aiReport.ad_networks.join(', ')
+                                  : 'None detected'}
+                              </p>
+                            </div>
+                            <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                              <p className="text-xs text-muted-foreground mb-1">IAP SDKs</p>
+                              <p className="text-sm font-medium">
+                                {aiReport.iap_sdks?.length > 0
+                                  ? aiReport.iap_sdks.join(', ')
+                                  : 'None detected'}
+                              </p>
+                            </div>
+                            <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                              <p className="text-xs text-muted-foreground mb-1">Category (AI)</p>
+                              <p className="text-sm font-medium capitalize">{aiReport.ai_category || 'N/A'}</p>
+                            </div>
+                            <div className={cn(
+                              "p-3 rounded-lg border",
+                              aiReport.risk_level === 'clean'
+                                ? "bg-success/5 border-success/30"
+                                : "bg-warning/5 border-warning/30"
+                            )}>
+                              <p className="text-xs text-muted-foreground mb-1">Risk</p>
+                              <p className={cn(
+                                "text-sm font-bold",
+                                aiReport.risk_level === 'clean' ? "text-success" : "text-warning"
+                              )}>
+                                {aiReport.risk_level === 'clean' ? '✅ Clean' : '⚠️ Warning'}
+                              </p>
+                            </div>
+                          </div>
+                          {aiReport.ai_tags && (
+                            <div className="mt-3 flex items-center gap-2 flex-wrap">
+                              <span className="text-xs text-muted-foreground">Tags:</span>
+                              {aiReport.ai_tags.map((tag: string) => (
+                                <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 capitalize">{tag}</span>
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-3">
+                            AI detected {aiReport.ad_networks?.length || 0} ad network(s) and {aiReport.iap_sdks?.length || 0} IAP SDK(s). 
+                            Recommended Status: <span className={aiReport.risk_level === 'clean' ? 'text-success' : 'text-warning'}>{aiReport.risk_level === 'clean' ? 'Safe' : 'Review Required'}</span>
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </motion.div>
       )}

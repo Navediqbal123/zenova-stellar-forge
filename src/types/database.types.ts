@@ -79,6 +79,9 @@ export interface Database {
           is_paid: boolean
           price: number | null
           apk_url: string | null
+          contains_ads: boolean
+          in_app_purchases: boolean
+          ai_scan_report: string | null
           created_at: string
           updated_at: string
         }
