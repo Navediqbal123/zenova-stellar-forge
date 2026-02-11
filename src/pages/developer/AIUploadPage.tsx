@@ -186,25 +186,14 @@ export default function AIUploadPage() {
     setIsSubmitting(true);
 
     try {
-      const categoryObj = categories.find(c =>
-        c.name.toLowerCase() === aiResult.category.toLowerCase() ||
-        c.id === aiResult.category
-      );
-
-      // Use the matched category's actual DB id, falling back to first available category
-      const resolvedCategoryId = categoryObj?.id || categories[0]?.id;
-
-      if (!resolvedCategoryId) {
-        toast({ title: 'Error', description: 'No categories available. Please try again later.', variant: 'destructive' });
-        setIsSubmitting(false);
-        return;
-      }
+      // Send category as text string directly (DB column is now TEXT)
+      const categoryName = aiResult.category.charAt(0).toUpperCase() + aiResult.category.slice(1).toLowerCase();
 
       await addApp({
         name: appName,
         description: aiResult.description,
         short_description: aiResult.short_description,
-        category_id: resolvedCategoryId,
+        category_id: categoryName,
         version: '1.0.0',
         size: file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : 'N/A',
         icon_url: '📱',
@@ -212,7 +201,6 @@ export default function AIUploadPage() {
         screenshots: [],
         featured: false,
         trending: false,
-        is_paid: false,
         price: null,
       } as any);
 
