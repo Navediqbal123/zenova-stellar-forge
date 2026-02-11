@@ -952,14 +952,16 @@ function AdminApps() {
           animate="show"
           className="space-y-3"
         >
-          {filteredApps.filter(a => a.status !== 'pending').map((app) => (
+          {filteredApps.filter(a => a.status !== 'pending').map((app) => {
+            const aiReport = getAiReport(app);
+            const isReportOpen = aiReportAppId === app.id;
+            return (
             <motion.div
               key={app.id}
               variants={staggerItem}
-              whileHover={{ scale: 1.01 }}
-              className="admin-glass-card p-4"
+              className="admin-glass-card overflow-hidden"
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 p-4">
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
                   {app.icon}
                 </div>
@@ -983,12 +985,65 @@ function AdminApps() {
                     </p>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" className="border-white/10">
-                  <Eye className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  {aiReport && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-secondary/30 text-secondary hover:bg-secondary/10"
+                      onClick={() => setAiReportAppId(isReportOpen ? null : app.id)}
+                    >
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      AI Report
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" className="border-white/10">
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
+              {/* AI Report Expandable */}
+              <AnimatePresence>
+                {isReportOpen && aiReport && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-4 pb-4 pt-2 border-t border-white/10">
+                      <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-secondary" />
+                        AI Scan Report
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                          <p className="text-xs text-muted-foreground mb-1">Ad Networks</p>
+                          <p className="text-sm font-medium">{aiReport.ad_networks?.length > 0 ? aiReport.ad_networks.join(', ') : 'None detected'}</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                          <p className="text-xs text-muted-foreground mb-1">IAP SDKs</p>
+                          <p className="text-sm font-medium">{aiReport.iap_sdks?.length > 0 ? aiReport.iap_sdks.join(', ') : 'None detected'}</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                          <p className="text-xs text-muted-foreground mb-1">Category (AI)</p>
+                          <p className="text-sm font-medium capitalize">{aiReport.ai_category || 'N/A'}</p>
+                        </div>
+                        <div className={cn("p-3 rounded-lg border", aiReport.risk_level === 'clean' ? "bg-success/5 border-success/30" : "bg-warning/5 border-warning/30")}>
+                          <p className="text-xs text-muted-foreground mb-1">Risk</p>
+                          <p className={cn("text-sm font-bold", aiReport.risk_level === 'clean' ? "text-success" : "text-warning")}>
+                            {aiReport.risk_level === 'clean' ? '✅ Clean' : '⚠️ Warning'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
-          ))}
+            );
+          })}
         </motion.div>
       )}
     </div>
