@@ -49,10 +49,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('apps')
-        .select(`
-          *,
-          developers(developer_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -60,11 +57,9 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         return [];
       }
 
-      // Transform to include developer_name at the top level and add UI aliases
       return (data || []).map((app: any) => ({
         ...app,
-        developer_name: app.developers?.developer_name || 'Unknown Developer',
-        // Add UI-friendly aliases
+        developer_name: 'Developer',
         icon: app.icon_url || '📱',
         category: app.category_id,
       }));
