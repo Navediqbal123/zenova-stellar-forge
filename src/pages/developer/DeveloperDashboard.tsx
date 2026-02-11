@@ -430,6 +430,57 @@ export default function DeveloperDashboard() {
                                     <div><p className="text-xs text-muted-foreground">Category</p><p className="text-sm font-medium">{app.category_id || 'General'}</p></div>
                                     <div><p className="text-xs text-muted-foreground">Submitted</p><p className="text-sm font-medium">{app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</p></div>
                                   </div>
+
+                                  {/* AI Scan Report (if available) */}
+                                  {(app as any).ai_scan_report && (() => {
+                                    try {
+                                      const report = typeof (app as any).ai_scan_report === 'string' ? JSON.parse((app as any).ai_scan_report) : (app as any).ai_scan_report;
+                                      return (
+                                        <div className="mt-4 pt-4 border-t border-border/30">
+                                          <h4 className="text-sm font-medium mb-3 text-muted-foreground flex items-center gap-2">
+                                            <Sparkles className="w-4 h-4 text-primary" /> AI Scan Report
+                                          </h4>
+                                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                            <div className="p-2 rounded-lg bg-white/[0.03] border border-white/5">
+                                              <p className="text-[10px] text-muted-foreground">Ads</p>
+                                              <p className="text-xs font-medium">{report.ad_networks?.length > 0 ? report.ad_networks.join(', ') : 'None'}</p>
+                                            </div>
+                                            <div className="p-2 rounded-lg bg-white/[0.03] border border-white/5">
+                                              <p className="text-[10px] text-muted-foreground">IAP</p>
+                                              <p className="text-xs font-medium">{report.iap_sdks?.length > 0 ? report.iap_sdks.join(', ') : 'None'}</p>
+                                            </div>
+                                            <div className="p-2 rounded-lg bg-white/[0.03] border border-white/5">
+                                              <p className="text-[10px] text-muted-foreground">Category</p>
+                                              <p className="text-xs font-medium capitalize">{report.ai_category || 'N/A'}</p>
+                                            </div>
+                                            <div className={cn("p-2 rounded-lg border", report.risk_level === 'clean' ? "bg-success/5 border-success/30" : "bg-warning/5 border-warning/30")}>
+                                              <p className="text-[10px] text-muted-foreground">Security</p>
+                                              <p className={cn("text-xs font-bold", report.risk_level === 'clean' ? "text-success" : "text-warning")}>
+                                                {report.risk_level === 'clean' ? 'Clean' : 'Warning'}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    } catch { return null; }
+                                  })()}
+
+                                  {/* Edit History */}
+                                  <div className="mt-4 pt-4 border-t border-border/30">
+                                    <h4 className="text-sm font-medium mb-3 text-muted-foreground">Edit History</h4>
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-3 text-xs">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                        <span className="text-muted-foreground">App submitted on {app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</span>
+                                      </div>
+                                      {app.updated_at && app.updated_at !== app.created_at && (
+                                        <div className="flex items-center gap-3 text-xs">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                                          <span className="text-muted-foreground">Last updated on {new Date(app.updated_at).toLocaleDateString()}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                               </motion.div>
                             )}

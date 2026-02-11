@@ -122,27 +122,40 @@ export default function AIUploadPage() {
           result = '✅ Manifest parsed. 12 permissions found.';
           break;
         case 'ads': {
-          // Simulate ad detection based on file name patterns
-          const hasAds = file.name.toLowerCase().includes('ad') || Math.random() > 0.5;
+          // Only flag ads if specific Ad SDK package strings are found in filename/metadata
+          const adSdkPatterns = ['com.google.android.gms.ads', 'admob', 'unity3d.ads', 'applovin', 'facebook.ads', 'mopub', 'ironsource'];
+          const fileNameLower = file.name.toLowerCase();
+          const hasAds = adSdkPatterns.some(pattern => fileNameLower.includes(pattern));
+          const detectedNetworks: string[] = [];
+          if (fileNameLower.includes('admob') || fileNameLower.includes('com.google.android.gms.ads')) detectedNetworks.push('Google AdMob');
+          if (fileNameLower.includes('unity3d.ads')) detectedNetworks.push('Unity Ads');
+          if (fileNameLower.includes('applovin')) detectedNetworks.push('AppLovin');
+          if (fileNameLower.includes('facebook.ads')) detectedNetworks.push('Facebook Ads');
+          if (fileNameLower.includes('ironsource')) detectedNetworks.push('ironSource');
           result = hasAds
-            ? '⚠️ AdMob SDK detected! Setting Ads to "Yes".'
+            ? `⚠️ ${detectedNetworks.join(', ')} detected! Setting Ads to "Yes".`
             : '✅ No Ad-Network SDKs detected.';
           setAiResult(prev => ({
             ...prev,
             contains_ads: hasAds,
-            ad_networks: hasAds ? ['Google AdMob'] : [],
+            ad_networks: detectedNetworks,
           }));
           break;
         }
         case 'iap': {
-          const hasIAP = file.name.toLowerCase().includes('pro') || Math.random() > 0.6;
+          const iapPatterns = ['com.android.vending.billing', 'billing', 'iap', 'in-app-purchase'];
+          const iapFileName = file.name.toLowerCase();
+          const hasIAP = iapPatterns.some(p => iapFileName.includes(p));
+          const detectedIAP: string[] = [];
+          if (iapFileName.includes('billing') || iapFileName.includes('com.android.vending.billing')) detectedIAP.push('Google Play Billing');
+          if (iapFileName.includes('iap') || iapFileName.includes('in-app-purchase')) detectedIAP.push('IAP SDK');
           result = hasIAP
-            ? '⚠️ Google Play Billing SDK detected!'
+            ? `⚠️ ${detectedIAP.join(', ')} detected!`
             : '✅ No In-App Purchase SDKs found.';
           setAiResult(prev => ({
             ...prev,
             in_app_purchases: hasIAP,
-            iap_sdks: hasIAP ? ['Google Play Billing'] : [],
+            iap_sdks: detectedIAP,
           }));
           break;
         }
@@ -189,6 +202,15 @@ export default function AIUploadPage() {
       // Send category as text string directly (DB column is now TEXT)
       const categoryName = aiResult.category.charAt(0).toUpperCase() + aiResult.category.slice(1).toLowerCase();
 
+      const aiScanReport = JSON.stringify({
+        ad_networks: aiResult.ad_networks,
+        iap_sdks: aiResult.iap_sdks,
+        risk_level: aiResult.risk_level,
+        ai_category: categoryName,
+        ai_tags: aiResult.tags,
+        scanned_at: new Date().toISOString(),
+      });
+
       await addApp({
         name: appName,
         description: aiResult.description,
@@ -202,6 +224,9 @@ export default function AIUploadPage() {
         featured: false,
         trending: false,
         price: null,
+        contains_ads: aiResult.contains_ads,
+        in_app_purchases: aiResult.in_app_purchases,
+        ai_scan_report: aiScanReport,
       } as any);
 
       triggerConfetti();
@@ -431,47 +456,57 @@ export default function AIUploadPage() {
                   </div>
                 </div>
 
-                {/* Monetization Flags */}
+                {/* Monetization Flags - Editable */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className={cn(
-                    "p-4 rounded-xl border",
-                    aiResult.contains_ads
-                      ? "bg-warning/5 border-warning/30"
-                      : "bg-white/[0.03] border-white/10"
-                  )}>
+                  <button
+                    type="button"
+                    onClick={() => setAiResult(prev => ({ ...prev, contains_ads: !prev.contains_ads, ad_networks: !prev.contains_ads ? prev.ad_networks : [] }))}
+                    className={cn(
+                      "p-4 rounded-xl border text-left transition-all",
+                      aiResult.contains_ads
+                        ? "bg-warning/5 border-warning/30"
+                        : "bg-white/[0.03] border-white/10 hover:border-white/20"
+                    )}
+                  >
                     <div className="flex items-center gap-2 mb-1">
                       <Megaphone className={cn("w-4 h-4", aiResult.contains_ads ? "text-warning" : "text-muted-foreground")} />
                       <span className="text-sm font-medium">Contains Ads</span>
+                      <span className="text-[10px] ml-auto text-muted-foreground">tap to toggle</span>
                     </div>
                     <p className={cn("text-lg font-bold", aiResult.contains_ads ? "text-warning" : "text-success")}>
-                      {aiResult.contains_ads ? 'Yes' : 'No'}
+                      {aiResult.contains_ads ? 'Yes' : 'No Ads Detected'}
                     </p>
                     {aiResult.ad_networks.length > 0 && (
                       <p className="text-xs text-muted-foreground mt-1">
                         Detected: {aiResult.ad_networks.join(', ')}
                       </p>
                     )}
-                  </div>
+                  </button>
 
-                  <div className={cn(
-                    "p-4 rounded-xl border",
-                    aiResult.in_app_purchases
-                      ? "bg-warning/5 border-warning/30"
-                      : "bg-white/[0.03] border-white/10"
-                  )}>
+                  <button
+                    type="button"
+                    onClick={() => setAiResult(prev => ({ ...prev, in_app_purchases: !prev.in_app_purchases, iap_sdks: !prev.in_app_purchases ? prev.iap_sdks : [] }))}
+                    className={cn(
+                      "p-4 rounded-xl border text-left transition-all",
+                      aiResult.in_app_purchases
+                        ? "bg-warning/5 border-warning/30"
+                        : "bg-white/[0.03] border-white/10 hover:border-white/20"
+                    )}
+                  >
                     <div className="flex items-center gap-2 mb-1">
                       <ShoppingCart className={cn("w-4 h-4", aiResult.in_app_purchases ? "text-warning" : "text-muted-foreground")} />
                       <span className="text-sm font-medium">In-App Purchases</span>
+                      <span className="text-[10px] ml-auto text-muted-foreground">tap to toggle</span>
                     </div>
                     <p className={cn("text-lg font-bold", aiResult.in_app_purchases ? "text-warning" : "text-success")}>
-                      {aiResult.in_app_purchases ? 'Yes' : 'No'}
+                      {aiResult.in_app_purchases ? 'Yes' : 'No Purchases Detected'}
                     </p>
                     {aiResult.iap_sdks.length > 0 && (
                       <p className="text-xs text-muted-foreground mt-1">
                         Detected: {aiResult.iap_sdks.join(', ')}
                       </p>
                     )}
-                  </div>
+                  </button>
                 </div>
 
                 {/* Security */}
