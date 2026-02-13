@@ -25,6 +25,8 @@ import {
   Settings,
   User,
   Save,
+  Pencil,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +40,8 @@ import { DeveloperSidebar, type DeveloperTab } from '@/components/developer/Deve
 import { MobileBottomNav } from '@/components/developer/MobileBottomNav';
 import { cn } from '@/lib/utils';
 import { triggerCelebrationConfetti } from '@/lib/confetti';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 // Animation variants
 const staggerContainer = {
@@ -53,11 +57,15 @@ const staggerItem = {
 export default function DeveloperDashboard() {
   const navigate = useNavigate();
   const { user, isAuthenticated, developerProfile, isDeveloperApproved } = useAuth();
-  const { apps, getAppsByDeveloper } = useApps();
+  const { apps, getAppsByDeveloper, refreshApps } = useApps();
+  const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState<DeveloperTab>('dashboard');
   const [expandedAppId, setExpandedAppId] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [editingAppId, setEditingAppId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ name: string; description: string; icon_url: string }>({ name: '', description: '', icon_url: '' });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const prevStatusesRef = useRef<Record<string, string>>({});
   const myApps = developerProfile ? getAppsByDeveloper(developerProfile.id) : [];
@@ -422,7 +430,68 @@ export default function DeveloperDashboard() {
                             {isExpanded && (
                               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }} className="overflow-hidden">
                                 <div className="px-3 sm:px-4 pb-4 sm:pb-5 pt-2 border-t border-border/30">
-                                  <h4 className="text-sm font-medium mb-4 text-muted-foreground">Review Status Pipeline</h4>
+                                  {/* Edit Button */}
+                                  <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-sm font-medium text-muted-foreground">Review Status Pipeline</h4>
+                                    {editingAppId === app.id ? (
+                                      <Button size="sm" variant="ghost" onClick={() => setEditingAppId(null)}>
+                                        <X className="w-4 h-4 mr-1" /> Cancel
+                                      </Button>
+                                    ) : (
+                                      <Button size="sm" variant="outline" className="border-primary/30 text-primary" onClick={() => {
+                                        setEditingAppId(app.id);
+                                        setEditForm({ name: app.name, description: app.description, icon_url: app.icon_url || '' });
+                                      }}>
+                                        <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+                                      </Button>
+                                    )}
+                                  </div>
+
+                                  {/* Inline Edit Form */}
+                                  {editingAppId === app.id && (
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-4 p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
+                                      <div>
+                                        <label className="text-xs font-medium mb-1 block text-muted-foreground">App Name</label>
+                                        <Input value={editForm.name} onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))} className="bg-white/5 border-white/10" maxLength={30} />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium mb-1 block text-muted-foreground">Description</label>
+                                        <Textarea value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="bg-white/5 border-white/10 min-h-[80px]" />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs font-medium mb-1 block text-muted-foreground">Icon URL or Emoji</label>
+                                        <Input value={editForm.icon_url} onChange={(e) => setEditForm(prev => ({ ...prev, icon_url: e.target.value }))} className="bg-white/5 border-white/10" placeholder="📱 or https://..." />
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        disabled={isSavingEdit || !editForm.name.trim()}
+                                        className="w-full bg-primary hover:bg-primary/90"
+                                        onClick={async () => {
+                                          setIsSavingEdit(true);
+                                          try {
+                                            const { error } = await supabase.from('apps').update({
+                                              name: editForm.name.trim(),
+                                              description: editForm.description.trim(),
+                                              icon_url: editForm.icon_url.trim() || '📱',
+                                              updated_at: new Date().toISOString(),
+                                            }).eq('id', app.id);
+                                            if (error) throw error;
+                                            await refreshApps();
+                                            setEditingAppId(null);
+                                            toast({ title: 'App Updated', description: 'Your changes have been saved.' });
+                                          } catch (err: any) {
+                                            toast({ title: 'Update Failed', description: err?.message || 'Please try again.', variant: 'destructive' });
+                                          } finally {
+                                            setIsSavingEdit(false);
+                                          }
+                                        }}
+                                      >
+                                        {isSavingEdit ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
+                                        Save Changes
+                                      </Button>
+                                    </motion.div>
+                                  )}
+
                                   <StatusPipeline status={app.status} lastUpdated={app.updated_at} />
                                   <div className="mt-4 pt-4 border-t border-border/30 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                                     <div><p className="text-xs text-muted-foreground">Version</p><p className="text-sm font-medium">{app.version || '1.0.0'}</p></div>

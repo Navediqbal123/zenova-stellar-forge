@@ -457,22 +457,19 @@ export default function AIUploadPage() {
                   </div>
                 </div>
 
-                {/* Monetization Flags - Editable */}
+                {/* Monetization Flags - Read Only */}
                 <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setAiResult(prev => ({ ...prev, contains_ads: !prev.contains_ads, ad_networks: !prev.contains_ads ? prev.ad_networks : [] }))}
+                  <div
                     className={cn(
-                      "p-4 rounded-xl border text-left transition-all",
+                      "p-4 rounded-xl border text-left",
                       aiResult.contains_ads
                         ? "bg-warning/5 border-warning/30"
-                        : "bg-white/[0.03] border-white/10 hover:border-white/20"
+                        : "bg-white/[0.03] border-white/10"
                     )}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <Megaphone className={cn("w-4 h-4", aiResult.contains_ads ? "text-warning" : "text-muted-foreground")} />
                       <span className="text-sm font-medium">Contains Ads</span>
-                      <span className="text-[10px] ml-auto text-muted-foreground">tap to toggle</span>
                     </div>
                     <p className={cn("text-lg font-bold", aiResult.contains_ads ? "text-warning" : "text-success")}>
                       {aiResult.contains_ads ? 'Yes' : 'No Ads Detected'}
@@ -482,22 +479,19 @@ export default function AIUploadPage() {
                         Detected: {aiResult.ad_networks.join(', ')}
                       </p>
                     )}
-                  </button>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setAiResult(prev => ({ ...prev, in_app_purchases: !prev.in_app_purchases, iap_sdks: !prev.in_app_purchases ? prev.iap_sdks : [] }))}
+                  <div
                     className={cn(
-                      "p-4 rounded-xl border text-left transition-all",
+                      "p-4 rounded-xl border text-left",
                       aiResult.in_app_purchases
                         ? "bg-warning/5 border-warning/30"
-                        : "bg-white/[0.03] border-white/10 hover:border-white/20"
+                        : "bg-white/[0.03] border-white/10"
                     )}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <ShoppingCart className={cn("w-4 h-4", aiResult.in_app_purchases ? "text-warning" : "text-muted-foreground")} />
                       <span className="text-sm font-medium">In-App Purchases</span>
-                      <span className="text-[10px] ml-auto text-muted-foreground">tap to toggle</span>
                     </div>
                     <p className={cn("text-lg font-bold", aiResult.in_app_purchases ? "text-warning" : "text-success")}>
                       {aiResult.in_app_purchases ? 'Yes' : 'No Purchases Detected'}
@@ -507,7 +501,7 @@ export default function AIUploadPage() {
                         Detected: {aiResult.iap_sdks.join(', ')}
                       </p>
                     )}
-                  </button>
+                  </div>
                 </div>
 
                 {/* Security */}
@@ -549,7 +543,7 @@ export default function AIUploadPage() {
                   ) : (
                     <>
                       <Send className="w-5 h-5 mr-2" />
-                      Submit to Admin
+                      Submit
                     </>
                   )}
                 </Button>
