@@ -223,11 +223,12 @@ export default function AIUploadPage() {
         screenshots: [],
         featured: false,
         trending: false,
+        is_paid: false,
         price: null,
         contains_ads: aiResult.contains_ads,
         in_app_purchases: aiResult.in_app_purchases,
         ai_scan_report: aiScanReport,
-      } as any);
+      });
 
       triggerConfetti();
       toast({
