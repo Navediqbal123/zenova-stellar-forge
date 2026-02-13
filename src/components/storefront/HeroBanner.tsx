@@ -156,7 +156,7 @@ export function HeroBanner({ app }: HeroBannerProps) {
               </motion.div>
 
               <h3 className="text-center font-bold text-lg mb-2">{app.name}</h3>
-              <p className="text-center text-sm text-muted-foreground mb-4">{app.category_id}</p>
+              <p className="text-center text-sm text-muted-foreground mb-4">{app.category}</p>
 
               {/* Rating stars */}
               <div className="flex justify-center gap-1 mb-4">

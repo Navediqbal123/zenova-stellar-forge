@@ -19,7 +19,7 @@ export interface StoreListingData {
   name: string;
   short_description: string;
   description: string;
-  category_id: string;
+  category: string;
   tags: string[];
   contact_email: string;
   contact_website: string;
@@ -124,7 +124,7 @@ export function StoreListingStep({ data, onChange, categories }: StoreListingSte
         <Label>
           Category <span className="text-destructive">*</span>
         </Label>
-        <Select value={data.category_id} onValueChange={(v) => update('category_id', v)}>
+        <Select value={data.category} onValueChange={(v) => update('category', v)}>
           <SelectTrigger className="bg-muted/50 border-border">
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
