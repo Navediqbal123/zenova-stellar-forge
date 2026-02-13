@@ -115,8 +115,7 @@ export function AppSidebar() {
               <span className="text-2xl">⚡</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold gradient-text">ZENOVA</h1>
-              <p className="text-xs text-muted-foreground">STORE</p>
+              <h1 className="text-xl font-bold gradient-text">EloraX</h1>
             </div>
           </Link>
           
