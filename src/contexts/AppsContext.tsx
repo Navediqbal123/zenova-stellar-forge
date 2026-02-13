@@ -7,7 +7,7 @@ export interface AppWithDeveloper extends App {
   developer_name?: string;
   // UI-friendly aliases (computed from actual fields)
   icon?: string;
-  category?: string;
+  // category is inherited from App type
 }
 
 interface AppsContextType {
@@ -61,7 +61,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
         ...app,
         developer_name: 'Developer',
         icon: app.icon_url || '📱',
-        category: app.category_id,
+        category: app.category,
       }));
     } catch (err) {
       console.error('Error in fetchApps:', err);
@@ -152,7 +152,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
   const trendingApps = approvedApps.filter(app => app.trending);
 
   const getAppsByCategory = useCallback((categoryId: string) => 
-    approvedApps.filter(app => app.category_id === categoryId), 
+    approvedApps.filter(app => app.category === categoryId), 
     [approvedApps]
   );
 
@@ -171,7 +171,7 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     return approvedApps.filter(app => 
       app.name.toLowerCase().includes(lowerQuery) ||
       app.description.toLowerCase().includes(lowerQuery) ||
-      app.category_id.toLowerCase().includes(lowerQuery)
+      (app.category || '').toLowerCase().includes(lowerQuery)
     );
   }, [approvedApps]);
 

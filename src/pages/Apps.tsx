@@ -20,7 +20,7 @@ export default function Apps() {
   const filteredApps = useMemo(() => {
     let result = approvedApps;
     if (searchQuery) result = searchApps(searchQuery);
-    if (selectedCategory !== 'all') result = result.filter(app => app.category_id === selectedCategory);
+    if (selectedCategory !== 'all') result = result.filter(app => app.category === selectedCategory);
 
     switch (sortBy) {
       case 'popular': result = [...result].sort((a, b) => b.downloads - a.downloads); break;
@@ -105,7 +105,7 @@ export default function Apps() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold group-hover:text-primary transition-colors">{app.name}</h3>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">{app.category_id}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">{app.category}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">{app.developer_name}</p>
                   </div>

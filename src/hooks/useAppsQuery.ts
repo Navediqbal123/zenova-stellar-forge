@@ -9,7 +9,7 @@ export interface AppData {
   name: string;
   description: string;
   short_description: string;
-  category_id: string;
+  category: string;
   developer_id: string;
   developer_name?: string;
   icon: string;

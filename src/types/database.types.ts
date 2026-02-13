@@ -67,7 +67,7 @@ export interface Database {
           short_description: string
           icon_url: string | null
           screenshots: string[]
-          category_id: string
+          category: string
           version: string
           size: string
           downloads: number
@@ -90,7 +90,7 @@ export interface Database {
           name: string
           description: string
           short_description: string
-          category_id: string
+          category: string
           version: string
           size: string
         }

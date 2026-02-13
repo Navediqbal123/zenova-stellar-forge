@@ -138,7 +138,7 @@ export function AppCard({ app, index, variant = 'default' }: AppCardProps) {
               <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
                 {app.name}
               </h3>
-              <p className="text-sm text-muted-foreground truncate">{app.category_id}</p>
+              <p className="text-sm text-muted-foreground truncate">{app.category}</p>
               <div className="flex items-center gap-3 mt-2 text-xs">
                 <span className="flex items-center gap-1 text-warning">
                   <Star className="w-3 h-3 fill-current" />

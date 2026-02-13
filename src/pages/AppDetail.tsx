@@ -29,7 +29,7 @@ export default function AppDetail() {
     );
   }
 
-  const category = categories.find(c => c.id === app.category_id);
+  const category = categories.find(c => c.id === app.category);
 
   return (
     <motion.div
@@ -69,7 +69,7 @@ export default function AppDetail() {
                   } downloads
                 </span>
               </div>
-              <Link to={`/categories/${app.category_id}`}>
+              <Link to={`/categories/${app.category}`}>
                 <span className="px-3 py-1 rounded-full bg-muted hover:bg-muted/80 transition-colors">
                   {category?.icon} {category?.name}
                 </span>

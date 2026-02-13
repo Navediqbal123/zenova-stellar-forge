@@ -41,7 +41,7 @@ interface UploadFormData {
   name: string;
   short_description: string;
   description: string;
-  category_id: string;
+  category: string;
   version: string;
   size: string;
   tags: string[];
@@ -52,7 +52,7 @@ const initialFormData: UploadFormData = {
   name: '',
   short_description: '',
   description: '',
-  category_id: '',
+  category: '',
   version: '1.0.0',
   size: '',
   tags: [],
@@ -112,7 +112,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
     try {
       const response = await adminAPI.aiGenerateDescription({
         name: formData.name,
-        category: categories.find(c => c.id === formData.category_id)?.name || 'App',
+        category: categories.find(c => c.id === formData.category)?.name || 'App',
       });
 
       if (response.data) {
@@ -142,7 +142,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.category_id) {
+    if (!formData.name || !formData.category) {
       toast({
         title: "Missing Fields",
         description: "Please fill in all required fields.",
@@ -171,7 +171,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
         uploadFormData.append('name', formData.name);
         uploadFormData.append('description', formData.description);
         uploadFormData.append('short_description', formData.short_description);
-        uploadFormData.append('category_id', formData.category_id);
+        uploadFormData.append('category', formData.category);
         uploadFormData.append('version', formData.version);
         uploadFormData.append('size', formData.size);
         uploadFormData.append('developer_id', developerProfile.id);
@@ -196,7 +196,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
           name: formData.name,
           description: formData.description,
           short_description: formData.short_description,
-          category_id: formData.category_id,
+          category: formData.category,
           version: formData.version,
           size: formData.size || '50 MB',
           icon_url: '📱',
@@ -414,8 +414,8 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
               <div className="space-y-2">
                 <Label>Category *</Label>
                 <Select
-                  value={formData.category_id}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+                  value={formData.category}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
                 >
                   <SelectTrigger className="bg-white/5 border-white/10">
                     <SelectValue placeholder="Select category" />
@@ -534,7 +534,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
                   )}
                   <Button
                     onClick={handleSubmit}
-                    disabled={isSubmitting || !formData.name || !formData.category_id}
+                    disabled={isSubmitting || !formData.name || !formData.category}
                     className="w-full bg-success hover:bg-success/90"
                   >
                     {isSubmitting ? (
@@ -586,8 +586,8 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
               <div className="space-y-2">
                 <Label>Category *</Label>
                 <Select
-                  value={formData.category_id}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+                  value={formData.category}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
                 >
                   <SelectTrigger className="bg-white/5 border-white/10">
                     <SelectValue placeholder="Select category" />
@@ -657,7 +657,7 @@ export function AppUploadModal({ isOpen, onClose }: AppUploadModalProps) {
                 )}
                 <Button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !formData.name || !formData.category_id}
+                  disabled={isSubmitting || !formData.name || !formData.category}
                   className="w-full bg-success hover:bg-success/90"
                 >
                   {isSubmitting ? (

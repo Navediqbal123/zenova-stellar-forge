@@ -37,7 +37,7 @@ export default function AppUploadWizard() {
     name: '',
     short_description: '',
     description: '',
-    category_id: '',
+    category: '',
     tags: [],
     contact_email: '',
     contact_website: '',
@@ -75,7 +75,7 @@ export default function AppUploadWizard() {
         if (!storeListing.name.trim()) return 'App name is required';
         if (!storeListing.short_description.trim()) return 'Short description is required';
         if (!storeListing.description.trim()) return 'Full description is required';
-        if (!storeListing.category_id) return 'Category is required';
+        if (!storeListing.category) return 'Category is required';
         return null;
       case 2:
         if (graphics.phoneScreenshots.length < 2) return 'At least 2 phone screenshots are required';
@@ -162,7 +162,7 @@ export default function AppUploadWizard() {
         name: storeListing.name,
         description: storeListing.description,
         short_description: storeListing.short_description,
-        category_id: storeListing.category_id,
+        category: storeListing.category,
         version: '1.0.0',
         size: release.fileSize || 'N/A',
         icon_url: iconUrl,

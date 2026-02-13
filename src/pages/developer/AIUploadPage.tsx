@@ -215,7 +215,7 @@ export default function AIUploadPage() {
         name: appName,
         description: aiResult.description,
         short_description: aiResult.short_description,
-        category_id: categoryName,
+        category: categoryName,
         version: '1.0.0',
         size: file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : 'N/A',
         icon_url: '📱',

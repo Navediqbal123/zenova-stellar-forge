@@ -427,7 +427,7 @@ export default function DeveloperDashboard() {
                                   <div className="mt-4 pt-4 border-t border-border/30 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                                     <div><p className="text-xs text-muted-foreground">Version</p><p className="text-sm font-medium">{app.version || '1.0.0'}</p></div>
                                     <div><p className="text-xs text-muted-foreground">Size</p><p className="text-sm font-medium">{app.size || 'N/A'}</p></div>
-                                    <div><p className="text-xs text-muted-foreground">Category</p><p className="text-sm font-medium">{app.category_id || 'General'}</p></div>
+                                    <div><p className="text-xs text-muted-foreground">Category</p><p className="text-sm font-medium">{app.category || 'General'}</p></div>
                                     <div><p className="text-xs text-muted-foreground">Submitted</p><p className="text-sm font-medium">{app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</p></div>
                                   </div>
 
