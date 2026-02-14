@@ -22,6 +22,11 @@ import {
   RefreshCw,
   FileDown,
   ExternalLink,
+  Brain,
+  Scan,
+  AlertTriangle,
+  Shield,
+  Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,6 +87,7 @@ export default function AdminPanel() {
       {activeTab === 'apps' && <AdminApps />}
       {activeTab === 'categories' && <AdminCategories />}
       {activeTab === 'stats' && <AdminStats />}
+      {activeTab === 'ai-insights' && <AdminAIInsights />}
     </AdminLayout>
   );
 }
@@ -1268,6 +1274,159 @@ function AdminStats() {
           )}
         </motion.div>
       </motion.div>
+    </div>
+  );
+}
+
+// AI Insights Tab - Shows AI scan data from all apps
+function AdminAIInsights() {
+  const { apps, refresh, isRefreshing } = useAppsQuery();
+
+  const appsWithReports = apps.filter(app => {
+    try {
+      if (app.ai_scan_report) {
+        const report = typeof app.ai_scan_report === 'string' ? JSON.parse(app.ai_scan_report) : app.ai_scan_report;
+        return !!report;
+      }
+    } catch {}
+    return false;
+  }).map(app => {
+    const report = typeof app.ai_scan_report === 'string' ? JSON.parse(app.ai_scan_report) : app.ai_scan_report;
+    return { ...app, parsedReport: report };
+  });
+
+  const totalWithAds = appsWithReports.filter(a => a.parsedReport?.ad_networks?.length > 0).length;
+  const totalWithIAP = appsWithReports.filter(a => a.parsedReport?.iap_sdks?.length > 0).length;
+  const totalClean = appsWithReports.filter(a => a.parsedReport?.risk_level === 'clean').length;
+  const totalWarning = appsWithReports.filter(a => a.parsedReport?.risk_level !== 'clean').length;
+
+  const summaryCards = [
+    { label: 'Apps Scanned', value: appsWithReports.length, icon: Scan, color: 'primary' },
+    { label: 'Ads Detected', value: totalWithAds, icon: Tag, color: 'warning' },
+    { label: 'IAP Detected', value: totalWithIAP, icon: Package, color: 'secondary' },
+    { label: 'Clean Apps', value: totalClean, icon: Shield, color: 'success' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold mb-1 flex items-center gap-2">
+            <Brain className="w-6 h-6 text-purple-400" />
+            AI Insights
+          </h1>
+          <p className="text-muted-foreground">AI-detected monetization, categories & risk analysis</p>
+        </div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button variant="outline" size="sm" onClick={refresh} disabled={isRefreshing} className="bg-white/5 border-white/10 hover:bg-white/10">
+            <RotateCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
+            Refresh
+          </Button>
+        </motion.div>
+      </motion.div>
+
+      {/* Summary Cards */}
+      <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {summaryCards.map((card) => (
+          <motion.div
+            key={card.label}
+            variants={staggerItem}
+            whileHover={{ scale: 1.02, y: -4 }}
+            className="admin-glass-card p-5 relative overflow-hidden"
+          >
+            <div className={cn("p-2.5 rounded-xl w-fit mb-3",
+              card.color === 'primary' && "bg-primary/15",
+              card.color === 'secondary' && "bg-secondary/15",
+              card.color === 'success' && "bg-success/15",
+              card.color === 'warning' && "bg-warning/15"
+            )}>
+              <card.icon className={cn("w-5 h-5",
+                card.color === 'primary' && "text-primary",
+                card.color === 'secondary' && "text-secondary",
+                card.color === 'success' && "text-success",
+                card.color === 'warning' && "text-warning"
+              )} />
+            </div>
+            <p className="text-sm text-muted-foreground">{card.label}</p>
+            <p className="text-3xl font-bold mt-1">{card.value}</p>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Warning Banner */}
+      {totalWarning > 0 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="admin-glass-card p-4 border-warning/30 flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-warning shrink-0" />
+          <p className="text-sm"><span className="font-semibold text-warning">{totalWarning} app(s)</span> flagged for review by AI scan</p>
+        </motion.div>
+      )}
+
+      {/* App-wise AI Reports */}
+      {appsWithReports.length === 0 ? (
+        <div className="admin-glass-card p-12 text-center">
+          <Brain className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+          <p className="text-xl text-muted-foreground">No AI scan reports yet</p>
+          <p className="text-sm text-muted-foreground/70 mt-1">Reports will appear when developers upload apps with AI scanning</p>
+        </div>
+      ) : (
+        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-3">
+          {appsWithReports.map((app) => {
+            const report = app.parsedReport;
+            return (
+              <motion.div key={app.id} variants={staggerItem} className="admin-glass-card overflow-hidden">
+                <div className="flex items-center gap-4 p-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center text-xl shrink-0">
+                    {app.icon || '📱'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold">{app.name}</h3>
+                      <StatusBadge status={app.status} size="sm" />
+                      {report.risk_level === 'clean' ? (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-success/20 text-success border border-success/30">✅ Clean</span>
+                      ) : (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-warning/20 text-warning border border-warning/30">⚠️ Review</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{app.developer_name || 'Unknown'}</p>
+                  </div>
+                </div>
+                <div className="px-4 pb-4 border-t border-white/5 pt-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                      <p className="text-xs text-muted-foreground mb-1">Ad Networks</p>
+                      <p className="text-sm font-medium">{report.ad_networks?.length > 0 ? report.ad_networks.join(', ') : 'None'}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                      <p className="text-xs text-muted-foreground mb-1">IAP SDKs</p>
+                      <p className="text-sm font-medium">{report.iap_sdks?.length > 0 ? report.iap_sdks.join(', ') : 'None'}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                      <p className="text-xs text-muted-foreground mb-1">AI Category</p>
+                      <p className="text-sm font-medium capitalize">{report.ai_category || 'N/A'}</p>
+                    </div>
+                    <div className={cn("p-3 rounded-lg border", report.risk_level === 'clean' ? "bg-success/5 border-success/30" : "bg-warning/5 border-warning/30")}>
+                      <p className="text-xs text-muted-foreground mb-1">Risk Level</p>
+                      <p className={cn("text-sm font-bold", report.risk_level === 'clean' ? "text-success" : "text-warning")}>
+                        {report.risk_level === 'clean' ? 'Safe' : 'Review'}
+                      </p>
+                    </div>
+                  </div>
+                  {report.ai_tags && report.ai_tags.length > 0 && (
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      <Tag className="w-3 h-3 text-muted-foreground" />
+                      {report.ai_tags.map((tag: string) => (
+                        <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 capitalize">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      )}
     </div>
   );
 }
