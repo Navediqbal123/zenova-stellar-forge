@@ -37,7 +37,6 @@ import { useApps } from '@/contexts/AppsContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StatusPipeline } from '@/components/developer/StatusPipeline';
 import { DeveloperSidebar, type DeveloperTab } from '@/components/developer/DeveloperSidebar';
-import { MobileBottomNav } from '@/components/developer/MobileBottomNav';
 import { cn } from '@/lib/utils';
 import { triggerCelebrationConfetti } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
@@ -714,8 +713,6 @@ export default function DeveloperDashboard() {
         </div>
       </motion.div>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav onUploadClick={() => navigate('/developer/upload')} />
     </div>
   );
 }

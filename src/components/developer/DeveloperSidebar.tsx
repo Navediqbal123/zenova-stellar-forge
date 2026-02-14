@@ -11,11 +11,15 @@ import {
   Sparkles,
   Home,
   X,
+  Grid3X3,
+  Layers,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type DeveloperTab = 'dashboard' | 'my-apps' | 'analytics' | 'notifications' | 'settings';
 
@@ -28,9 +32,17 @@ interface DeveloperSidebarProps {
 
 export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, onMobileClose }: DeveloperSidebarProps) {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
-  const navItems: { icon: React.ElementType; label: string; tab: DeveloperTab }[] = [
+  const generalNavItems = [
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: Grid3X3, label: 'Apps', path: '/apps' },
+    { icon: Layers, label: 'Categories', path: '/categories' },
+    ...(isAdmin ? [{ icon: Shield, label: 'Admin Panel', path: '/admin' }] : []),
+  ];
+
+  const devNavItems: { icon: React.ElementType; label: string; tab: DeveloperTab }[] = [
     { icon: LayoutDashboard, label: 'Dashboard', tab: 'dashboard' },
     { icon: Package, label: 'My Apps', tab: 'my-apps' },
     { icon: BarChart3, label: 'Analytics', tab: 'analytics' },
@@ -46,7 +58,7 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
   const sidebarContent = (
     <div className="relative z-10 h-full flex flex-col p-4">
       {/* Logo */}
-      <div className="flex items-center justify-between mb-8 px-2">
+      <div className="flex items-center justify-between mb-6 px-2">
         {!collapsed && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -91,56 +103,83 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
         )}
       </Button>
 
-      {/* Main Navigation */}
-      <nav className="flex-1 space-y-1">
-        {navItems.map((item, index) => {
-          const isActive = activeTab === item.tab;
-          return (
+      {/* General Navigation */}
+      <div className="mb-2">
+        {!collapsed && (
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 font-semibold">Navigate</p>
+        )}
+        <nav className="space-y-1">
+          {generalNavItems.map((item, index) => (
             <motion.div
-              key={item.tab}
+              key={item.path}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
             >
               <button
-                onClick={() => handleNavClick(item.tab)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group",
-                  isActive
-                    ? "bg-primary/15 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                )}
+                onClick={() => { navigate(item.path); onMobileClose?.(); }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group text-muted-foreground hover:text-foreground hover:bg-white/5"
               >
-                <item.icon className={cn(
-                  "w-5 h-5 transition-all",
-                  isActive
-                    ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]"
-                    : "group-hover:text-primary"
-                )} />
+                <item.icon className="w-5 h-5 transition-all group-hover:text-primary" />
                 {!collapsed && (
-                  <span className="font-medium">{item.label}</span>
-                )}
-                {isActive && !collapsed && (
-                  <motion.div
-                    layoutId="activeIndicator"
-                    className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
-                  />
+                  <span className="font-medium text-sm">{item.label}</span>
                 )}
               </button>
             </motion.div>
-          );
-        })}
-      </nav>
+          ))}
+        </nav>
+      </div>
 
-      {/* Secondary Navigation */}
-      <div className="border-t border-white/10 pt-4 mt-4 space-y-1">
-        <button
-          onClick={() => { navigate('/'); onMobileClose?.(); }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-muted-foreground hover:text-foreground hover:bg-white/5"
-        >
-          <Home className="w-5 h-5" />
-          {!collapsed && <span className="text-sm">Home</span>}
-        </button>
+      <div className="border-t border-white/10 my-2" />
+
+      {/* Developer Navigation */}
+      <div className="flex-1">
+        {!collapsed && (
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 font-semibold">Developer</p>
+        )}
+        <nav className="space-y-1">
+          {devNavItems.map((item, index) => {
+            const isActive = activeTab === item.tab;
+            return (
+              <motion.div
+                key={item.tab}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <button
+                  onClick={() => handleNavClick(item.tab)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group",
+                    isActive
+                      ? "bg-primary/15 text-primary border border-primary/30"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  )}
+                >
+                  <item.icon className={cn(
+                    "w-5 h-5 transition-all",
+                    isActive
+                      ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]"
+                      : "group-hover:text-primary"
+                  )} />
+                  {!collapsed && (
+                    <span className="font-medium">{item.label}</span>
+                  )}
+                  {isActive && !collapsed && (
+                    <motion.div
+                      layoutId="activeIndicator"
+                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
+                    />
+                  )}
+                </button>
+              </motion.div>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Help */}
+      <div className="border-t border-white/10 pt-4 mt-4">
         <button
           onClick={() => { onMobileClose?.(); }}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-muted-foreground hover:text-foreground hover:bg-white/5"
