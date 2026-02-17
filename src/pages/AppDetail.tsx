@@ -1,6 +1,6 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Download, Share2, Flag, ExternalLink, Shield, Users, Info } from 'lucide-react';
+import { ArrowLeft, Star, Download, Share2, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApps } from '@/contexts/AppsContext';
 
@@ -44,7 +44,7 @@ export default function AppDetail() {
       className="max-w-4xl mx-auto space-y-6 pb-8"
     >
       {/* Back */}
-      <Link to="/apps" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm">
+      <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm">
         <ArrowLeft className="w-4 h-4" />
         Back
       </Link>
@@ -157,54 +157,6 @@ export default function AppDetail() {
         </div>
       </motion.div>
 
-      {/* Data Safety */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="glass-card p-5 space-y-3"
-      >
-        <h2 className="text-base font-semibold flex items-center gap-2">
-          <Shield className="w-4 h-4 text-success" />
-          Data safety
-        </h2>
-        <div className="space-y-3">
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-            <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-medium">Data encryption</p>
-              <p className="text-xs text-muted-foreground">Data is encrypted in transit</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-            <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-medium">Data deletion</p>
-              <p className="text-xs text-muted-foreground">You can request that data be deleted</p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Developer contact */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45 }}
-        className="glass-card p-5"
-      >
-        <h2 className="text-base font-semibold mb-3">Developer contact</h2>
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <p className="font-medium text-sm">{app.developer_name}</p>
-            <p className="text-xs text-muted-foreground">Developer</p>
-          </div>
-          <Button variant="outline" size="sm" className="border-border">
-            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-            Website
-          </Button>
-        </div>
-      </motion.div>
 
       {/* Report */}
       <div className="flex justify-center pb-4">

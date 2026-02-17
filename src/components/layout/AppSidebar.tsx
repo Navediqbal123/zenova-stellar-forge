@@ -38,8 +38,6 @@ export function AppSidebar() {
 
   const navItems: NavItem[] = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'Apps', path: '/apps', icon: Grid3X3 },
-    { name: 'Categories', path: '/categories', icon: Layers },
     { name: 'Become a Developer', path: '/developer/register', icon: Code, requiresAuth: true },
     { 
       name: 'Developer Dashboard', 
