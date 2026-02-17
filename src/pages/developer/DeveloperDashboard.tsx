@@ -223,7 +223,7 @@ export default function DeveloperDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background grid-pattern">
+    <div className="flex min-h-screen bg-background">
       {/* Background Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="gradient-orb gradient-orb-primary w-[600px] h-[600px] -top-48 -left-48" />
@@ -407,9 +407,18 @@ export default function DeveloperDashboard() {
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-xs sm:text-sm text-muted-foreground truncate">{app.short_description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{app.short_description}</p>
+                              <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5 md:hidden">
+                                <span>{app.size || 'N/A'}</span>
+                                <span>•</span>
+                                <span>{app.downloads.toLocaleString()} downloads</span>
+                              </div>
                             </div>
                             <div className="hidden md:flex items-center gap-6 text-sm">
+                              <div className="text-center">
+                                <p className="text-muted-foreground">Size</p>
+                                <p className="font-semibold">{app.size || 'N/A'}</p>
+                              </div>
                               <div className="text-center">
                                 <p className="text-muted-foreground">Downloads</p>
                                 <p className="font-semibold">{app.downloads.toLocaleString()}</p>

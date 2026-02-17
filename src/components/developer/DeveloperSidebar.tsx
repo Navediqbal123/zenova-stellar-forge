@@ -69,8 +69,8 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg">Developer</h1>
-              <p className="text-xs text-muted-foreground">Console</p>
+              <h1 className="font-bold text-lg gradient-text">EloraX</h1>
+              <p className="text-xs text-muted-foreground">Developer Console</p>
             </div>
           </motion.div>
         )}
