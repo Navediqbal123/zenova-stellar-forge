@@ -240,7 +240,7 @@ export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSid
         </motion.button>
       </div>
 
-      {/* Logout + User */}
+      {/* User Info */}
       <div className={cn("p-3 border-t border-slate-800/50 bg-gradient-to-r from-slate-900/50 to-slate-950/50")}>
         <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}>
           <div className="relative">
@@ -264,43 +264,7 @@ export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSid
               </motion.div>
             )}
           </AnimatePresence>
-
-          <AnimatePresence mode="wait">
-            {!isCollapsed && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <motion.button
-                      onClick={handleLogout}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                    </motion.button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">Logout</TooltipContent>
-                </Tooltip>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
-
-        {isCollapsed && (
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <motion.button
-                onClick={handleLogout}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="w-full mt-2 p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors flex justify-center"
-              >
-                <LogOut className="w-4 h-4" />
-              </motion.button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Logout</TooltipContent>
-          </Tooltip>
-        )}
       </div>
     </>
   );
