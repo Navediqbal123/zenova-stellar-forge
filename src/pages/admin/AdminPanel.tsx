@@ -469,12 +469,13 @@ function AdminDevelopers() {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={refresh}
               disabled={isRefreshing}
-              className="bg-white/5 border-white/10 hover:bg-white/10"
+              className="bg-white/5 border-white/10 hover:bg-white/10 gap-2"
             >
-              <RotateCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              {isRefreshing ? 'Loading...' : 'Refresh'}
             </Button>
           </motion.div>
           <div className="relative">
@@ -744,12 +745,13 @@ function AdminApps() {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={refresh}
               disabled={isRefreshing}
-              className="bg-white/5 border-white/10 hover:bg-white/10"
+              className="bg-white/5 border-white/10 hover:bg-white/10 gap-2"
             >
-              <RotateCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              {isRefreshing ? 'Loading...' : 'Refresh'}
             </Button>
           </motion.div>
           <div className="relative">

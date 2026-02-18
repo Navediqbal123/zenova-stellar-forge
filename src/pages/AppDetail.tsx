@@ -1,6 +1,6 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Download, Share2, Flag } from 'lucide-react';
+import { ArrowLeft, Star, Download, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApps } from '@/contexts/AppsContext';
 
@@ -44,9 +44,8 @@ export default function AppDetail() {
       className="max-w-4xl mx-auto space-y-6 pb-8"
     >
       {/* Back */}
-      <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm">
-        <ArrowLeft className="w-4 h-4" />
-        Back
+      <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors p-2 -ml-2 rounded-lg hover:bg-muted/50">
+        <ArrowLeft className="w-5 h-5" />
       </Link>
 
       {/* Top Section - Icon, Name, Developer */}
@@ -111,9 +110,6 @@ export default function AppDetail() {
       >
         <Button className="flex-1 bg-primary hover:bg-primary/90 py-6 text-base font-semibold rounded-xl">
           Install
-        </Button>
-        <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-border">
-          <Share2 className="w-5 h-5" />
         </Button>
       </motion.div>
 

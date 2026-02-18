@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Star, Download, Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
@@ -14,12 +14,25 @@ export default function Apps() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('popular');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchResults, setSearchResults] = useState<any[] | null>(null);
 
   const approvedApps = apps.filter(app => app.status === 'approved');
 
+  // Handle async search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      return;
+    }
+    let cancelled = false;
+    searchApps(searchQuery).then(results => {
+      if (!cancelled) setSearchResults(results);
+    });
+    return () => { cancelled = true; };
+  }, [searchQuery, searchApps]);
+
   const filteredApps = useMemo(() => {
-    let result = approvedApps;
-    if (searchQuery) result = searchApps(searchQuery);
+    let result = searchResults !== null ? searchResults : approvedApps;
     if (selectedCategory !== 'all') result = result.filter(app => app.category === selectedCategory);
 
     switch (sortBy) {
@@ -29,7 +42,7 @@ export default function Apps() {
       case 'name': result = [...result].sort((a, b) => a.name.localeCompare(b.name)); break;
     }
     return result;
-  }, [approvedApps, searchQuery, selectedCategory, sortBy, searchApps]);
+  }, [approvedApps, searchResults, selectedCategory, sortBy]);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-7xl mx-auto space-y-8">

@@ -291,11 +291,11 @@ export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSid
       </motion.aside>
 
       {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <div className="lg:hidden fixed top-4 right-4 z-[60]">
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setMobileOpen(true)}
-          className="p-2.5 rounded-xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 text-white"
+          className="p-2.5 rounded-xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 text-white shadow-lg"
         >
           <Menu className="w-5 h-5" />
         </motion.button>

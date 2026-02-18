@@ -19,7 +19,7 @@ interface AppsContextType {
   getAppsByCategory: (categoryId: string) => AppWithDeveloper[];
   getAppsByDeveloper: (developerId: string) => AppWithDeveloper[];
   getAppById: (appId: string) => AppWithDeveloper | undefined;
-  searchApps: (query: string) => AppWithDeveloper[];
+  searchApps: (query: string) => Promise<AppWithDeveloper[]>;
   updateAppStatus: (appId: string, status: AppStatus) => Promise<void>;
   addApp: (app: Omit<AppInsert, 'id' | 'created_at' | 'updated_at' | 'downloads' | 'rating' | 'review_count' | 'status'>) => Promise<void>;
   refreshApps: () => Promise<void>;
@@ -166,13 +166,33 @@ export function AppsProvider({ children }: { children: ReactNode }) {
     [apps]
   );
 
-  const searchApps = useCallback((query: string) => {
-    const lowerQuery = query.toLowerCase();
-    return approvedApps.filter(app => 
-      app.name.toLowerCase().includes(lowerQuery) ||
-      app.description.toLowerCase().includes(lowerQuery) ||
-      (app.category || '').toLowerCase().includes(lowerQuery)
-    );
+  const searchApps = useCallback(async (query: string): Promise<AppWithDeveloper[]> => {
+    if (!query.trim()) return approvedApps;
+    try {
+      const { data, error } = await (supabase.rpc as any)('search_apps_priority', { search_term: query.trim() });
+      if (error) {
+        console.error('RPC search error, falling back to local:', error);
+        const lowerQuery = query.toLowerCase();
+        return approvedApps.filter(app =>
+          app.name.toLowerCase().includes(lowerQuery) ||
+          app.description.toLowerCase().includes(lowerQuery) ||
+          (app.category || '').toLowerCase().includes(lowerQuery)
+        );
+      }
+      return (data || []).map((app: any) => ({
+        ...app,
+        developer_name: app.developer_name || 'Developer',
+        icon: app.icon_url || '📱',
+        category: app.category,
+      }));
+    } catch {
+      const lowerQuery = query.toLowerCase();
+      return approvedApps.filter(app =>
+        app.name.toLowerCase().includes(lowerQuery) ||
+        app.description.toLowerCase().includes(lowerQuery) ||
+        (app.category || '').toLowerCase().includes(lowerQuery)
+      );
+    }
   }, [approvedApps]);
 
   const updateAppStatus = async (appId: string, status: AppStatus) => {

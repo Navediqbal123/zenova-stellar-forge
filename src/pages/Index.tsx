@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Search, Menu, X, Home, Grid3X3, Layers, Code, LayoutDashboard, Shield, LogIn, UserPlus, Gamepad2, AppWindow, ChevronLeft, ChevronRight, Star, Download } from 'lucide-react';
+import { Search, Menu, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, LogOut, Gamepad2, AppWindow, Star, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useApps } from '@/contexts/AppsContext';
@@ -307,8 +307,6 @@ export default function Index() {
               <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                 {[
                   { name: 'Home', path: '/', icon: Home, show: true },
-                  { name: 'Apps', path: '/apps', icon: Grid3X3, show: true },
-                  { name: 'Categories', path: '/categories', icon: Layers, show: true },
                   { name: 'Become a Developer', path: isAuthenticated ? '/developer/register' : '/register', icon: Code, show: !developerProfile },
                   { name: 'Developer Dashboard', path: '/developer/dashboard', icon: LayoutDashboard, show: !!developerProfile },
                   { name: 'Admin Panel', path: '/admin', icon: Shield, show: isAdmin },
@@ -340,7 +338,16 @@ export default function Index() {
                     </Link>
                   </>
                 ) : (
-                  <p className="text-xs text-muted-foreground text-center">Logged in</p>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+                    onClick={() => {
+                      localStorage.removeItem('token');
+                      window.location.href = '/login';
+                    }}
+                  >
+                    <LogOut className="w-4 h-4" /> Logout
+                  </Button>
                 )}
               </div>
             </motion.div>
