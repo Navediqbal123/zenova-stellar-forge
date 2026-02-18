@@ -19,6 +19,7 @@ import {
   Brain,
   Menu,
   X,
+  Pencil,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,6 +52,7 @@ const adminNavItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, type: 'tab', tab: 'dashboard' },
   { id: 'developers', label: 'Developers', icon: UserCheck, type: 'tab', tab: 'developers', badge: 'Live' },
   { id: 'apps', label: 'Apps', icon: Box, type: 'tab', tab: 'apps' },
+  { id: 'edit-apps', label: 'Edit Apps', icon: Pencil, type: 'tab', tab: 'edit-apps' },
   { id: 'categories', label: 'Categories', icon: Layers, type: 'tab', tab: 'categories' },
   { id: 'ai-insights', label: 'AI Insights', icon: Brain, type: 'tab', tab: 'ai-insights', isSpecial: true },
   { id: 'stats', label: 'Statistics', icon: BarChart3, type: 'tab', tab: 'stats' },

@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import { triggerCelebrationConfetti } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { EditAppsTab } from '@/components/developer/EditAppsTab';
 
 // Animation variants
 const staggerContainer = {
@@ -567,6 +568,13 @@ export default function DeveloperDashboard() {
                     })}
                   </motion.div>
                 )}
+              </motion.div>
+            )}
+
+            {/* Edit Apps Tab */}
+            {activeTab === 'edit-apps' && (
+              <motion.div key="edit-apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <EditAppsTab />
               </motion.div>
             )}
 
