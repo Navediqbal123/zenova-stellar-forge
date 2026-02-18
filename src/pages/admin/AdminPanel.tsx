@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AdminEditAppsTab } from '@/components/admin/AdminEditAppsTab';
 import { 
   Users, 
   Package, 
@@ -85,6 +86,7 @@ export default function AdminPanel() {
       {activeTab === 'dashboard' && <AdminDashboard />}
       {activeTab === 'developers' && <AdminDevelopers />}
       {activeTab === 'apps' && <AdminApps />}
+      {activeTab === 'edit-apps' && <AdminEditAppsTab />}
       {activeTab === 'categories' && <AdminCategories />}
       {activeTab === 'stats' && <AdminStats />}
       {activeTab === 'ai-insights' && <AdminAIInsights />}

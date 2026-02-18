@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { ChatbotSupport, ChatbotTrigger } from '@/components/admin/ChatbotSupport';
 
-export type AdminTab = 'dashboard' | 'developers' | 'apps' | 'categories' | 'stats' | 'ai-insights';
+export type AdminTab = 'dashboard' | 'developers' | 'apps' | 'edit-apps' | 'categories' | 'stats' | 'ai-insights';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -64,7 +64,7 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
           onOpenChatbot={() => setIsChatbotOpen(true)}
         />
 
-        <main className="flex-1 min-w-0 pb-6">
+        <main className="flex-1 min-w-0 pb-6 pt-14 lg:pt-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

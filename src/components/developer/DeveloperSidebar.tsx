@@ -14,6 +14,7 @@ import {
   Grid3X3,
   Layers,
   Shield,
+  Pencil,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -21,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-export type DeveloperTab = 'dashboard' | 'my-apps' | 'analytics' | 'notifications' | 'settings';
+export type DeveloperTab = 'dashboard' | 'my-apps' | 'edit-apps' | 'analytics' | 'notifications' | 'settings';
 
 interface DeveloperSidebarProps {
   activeTab: DeveloperTab;
@@ -45,6 +46,7 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
   const devNavItems: { icon: React.ElementType; label: string; tab: DeveloperTab }[] = [
     { icon: LayoutDashboard, label: 'Dashboard', tab: 'dashboard' },
     { icon: Package, label: 'My Apps', tab: 'my-apps' },
+    { icon: Pencil, label: 'Edit Apps', tab: 'edit-apps' },
     { icon: BarChart3, label: 'Analytics', tab: 'analytics' },
     { icon: Bell, label: 'Notifications', tab: 'notifications' },
     { icon: Settings, label: 'Settings', tab: 'settings' },
