@@ -461,32 +461,29 @@ function AdminDevelopers() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-3">
         <div>
-          <h1 className="text-2xl font-bold mb-1">Developers</h1>
-          <p className="text-muted-foreground">{developers.length} registered developers</p>
+          <h1 className="text-lg font-bold">Developers</h1>
+          <p className="text-xs text-muted-foreground">{developers.length} registered</p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Refresh Button */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refresh}
-              disabled={isRefreshing}
-              className="bg-white/5 border-white/10 hover:bg-white/10 gap-2"
-            >
-              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-              {isRefreshing ? 'Loading...' : 'Refresh'}
-            </Button>
-          </motion.div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refresh}
+            disabled={isRefreshing}
+            className="bg-white/5 border-white/10 hover:bg-white/10 gap-1.5 h-8 text-xs"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
+            {isRefreshing ? '...' : 'Refresh'}
+          </Button>
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input 
-              placeholder="Search developers..." 
+              placeholder="Search..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full sm:w-64 bg-white/5 border-white/10"
+              className="pl-8 h-8 text-sm bg-white/5 border-white/10"
             />
           </div>
         </div>
@@ -494,101 +491,80 @@ function AdminDevelopers() {
 
       {/* Developers List */}
       {filteredDevelopers.length === 0 ? (
-        <div className="admin-glass-card p-12 text-center">
-          <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-          <p className="text-xl text-muted-foreground">
+        <div className="admin-glass-card p-8 text-center">
+          <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+          <p className="text-base text-muted-foreground">
             {searchQuery ? 'No developers found' : 'No developers yet'}
           </p>
         </div>
       ) : (
-        <motion.div 
-          className="admin-glass-card overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="overflow-x-auto">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Developer</th>
-                  <th>Email</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th className="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDevelopers.map((developer, index) => (
-                  <motion.tr 
-                    key={developer.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                  >
-                    <td>
-                      <div>
-                        <p className="font-medium">{developer.developer_name || 'Unknown'}</p>
-                        <p className="text-sm text-muted-foreground">{developer.full_name || 'N/A'}</p>
-                      </div>
-                    </td>
-                    <td className="text-muted-foreground">{developer.email || 'N/A'}</td>
-                    <td>
-                      <span className="capitalize text-sm px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">
-                        {developer.developer_type || 'N/A'}
-                      </span>
-                    </td>
-                    <td>
-                      <StatusBadge status={developer.status || 'pending'} showIcon />
-                    </td>
-                    <td>
-                      <div className="flex items-center justify-end gap-2">
-                        {developer.status === 'pending' && (
-                          <>
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                              <Button
-                                size="sm"
-                                disabled={isProcessing}
-                                className="bg-success/20 text-success border border-success/30 hover:bg-success/30"
-                                onClick={() => handleApprove(developer)}
-                              >
-                                <CheckCircle className="w-4 h-4 mr-1" />
-                                Approve
-                              </Button>
-                            </motion.div>
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                              <Button
-                                size="sm"
-                                disabled={isProcessing}
-                                variant="outline"
-                                className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                                onClick={() => setRejectDialog({ open: true, developer })}
-                              >
-                                <XCircle className="w-4 h-4 mr-1" />
-                                Reject
-                              </Button>
-                            </motion.div>
-                          </>
-                        )}
-                        {developer.status === 'approved' && (
-                          <span className="text-sm text-success flex items-center gap-1">
-                            <CheckCircle className="w-4 h-4" />
-                            Active
-                          </span>
-                        )}
-                        {developer.status === 'rejected' && (
-                          <span className="text-sm text-destructive flex items-center gap-1">
-                            <XCircle className="w-4 h-4" />
-                            Rejected
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
+        <div className="space-y-3">
+          {filteredDevelopers.map((developer, index) => (
+            <motion.div
+              key={developer.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.03 }}
+              className="admin-glass-card p-4 space-y-3"
+            >
+              {/* Developer Info */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-sm truncate">{developer.developer_name || 'Unknown'}</p>
+                  <p className="text-xs text-muted-foreground truncate">{developer.full_name || 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">{developer.email || 'N/A'}</p>
+                </div>
+                <StatusBadge status={developer.status || 'pending'} showIcon />
+              </div>
+
+              {/* Type Badge */}
+              <div>
+                <span className="capitalize text-xs px-2 py-0.5 rounded-lg bg-white/5 border border-white/10">
+                  {developer.developer_type || 'N/A'}
+                </span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2">
+                {developer.status === 'pending' && (
+                  <>
+                    <Button
+                      size="sm"
+                      disabled={isProcessing}
+                      className="flex-1 h-8 text-xs bg-success/20 text-success border border-success/30 hover:bg-success/30"
+                      onClick={() => handleApprove(developer)}
+                    >
+                      <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={isProcessing}
+                      variant="outline"
+                      className="flex-1 h-8 text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
+                      onClick={() => setRejectDialog({ open: true, developer })}
+                    >
+                      <XCircle className="w-3.5 h-3.5 mr-1" />
+                      Reject
+                    </Button>
+                  </>
+                )}
+                {developer.status === 'approved' && (
+                  <span className="text-xs text-success flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Active
+                  </span>
+                )}
+                {developer.status === 'rejected' && (
+                  <span className="text-xs text-destructive flex items-center gap-1">
+                    <XCircle className="w-3.5 h-3.5" />
+                    Rejected
+                  </span>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
       )}
 
       {/* Reject Dialog */}

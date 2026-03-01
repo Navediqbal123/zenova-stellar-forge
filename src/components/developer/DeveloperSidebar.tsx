@@ -39,7 +39,6 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
   const generalNavItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Grid3X3, label: 'Apps', path: '/apps' },
-    { icon: Layers, label: 'Categories', path: '/categories' },
     ...(isAdmin ? [{ icon: Shield, label: 'Admin Panel', path: '/admin' }] : []),
   ];
 
