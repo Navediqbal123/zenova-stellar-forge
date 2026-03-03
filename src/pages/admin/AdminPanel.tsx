@@ -713,32 +713,29 @@ function AdminApps() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-3">
         <div>
-          <h1 className="text-2xl font-bold mb-1">Apps</h1>
-          <p className="text-muted-foreground">{apps.length} total apps</p>
+          <h1 className="text-lg font-bold">Apps</h1>
+          <p className="text-xs text-muted-foreground">{apps.length} total apps</p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Refresh Button */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refresh}
-              disabled={isRefreshing}
-              className="bg-white/5 border-white/10 hover:bg-white/10 gap-2"
-            >
-              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-              {isRefreshing ? 'Loading...' : 'Refresh'}
-            </Button>
-          </motion.div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refresh}
+            disabled={isRefreshing}
+            className="bg-white/5 border-white/10 hover:bg-white/10 gap-1.5 h-8 text-xs"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
+            {isRefreshing ? '...' : 'Refresh'}
+          </Button>
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input 
-              placeholder="Search apps..." 
+              placeholder="Search..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full sm:w-64 bg-white/5 border-white/10"
+              className="pl-8 h-8 text-sm bg-white/5 border-white/10"
             />
           </div>
         </div>
@@ -774,78 +771,75 @@ function AdminApps() {
                   variants={staggerItem}
                   className="rounded-xl bg-white/[0.03] border border-white/5 overflow-hidden"
                 >
-                  <div className="flex items-center gap-4 p-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
-                      {app.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold">{app.name}</h3>
-                        <StatusBadge status="pending" size="sm" />
-                        {app.contains_ads && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-warning/20 text-warning border border-warning/30">Ads</span>
-                        )}
-                        {app.in_app_purchases && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/20 text-secondary border border-secondary/30">IAP</span>
-                        )}
+                  <div className="p-4 space-y-3">
+                    {/* App Info Row */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl shrink-0">
+                        {app.icon}
                       </div>
-                      <p className="text-sm text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p>
-                      {app.version && (
-                        <p className="text-xs text-muted-foreground/70 mt-0.5">v{app.version} • {app.size}</p>
-                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-semibold text-sm truncate">{app.name}</h3>
+                          <StatusBadge status="pending" size="sm" />
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{app.developer_name || 'Unknown Developer'}</p>
+                        {app.version && (
+                          <p className="text-[11px] text-muted-foreground/70 mt-0.5">v{app.version} • {app.size}</p>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          {app.contains_ads && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-warning/20 text-warning border border-warning/30">Ads</span>
+                          )}
+                          {app.in_app_purchases && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/20 text-secondary border border-secondary/30">IAP</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
+                    {/* Action Buttons - stacked for mobile */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      {/* View AI Report */}
                       {aiReport && (
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-secondary/30 text-secondary hover:bg-secondary/10"
-                            onClick={() => setAiReportAppId(isReportOpen ? null : app.id)}
-                          >
-                            <Sparkles className="w-4 h-4 mr-1" />
-                            AI Report
-                          </Button>
-                        </motion.div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs border-secondary/30 text-secondary hover:bg-secondary/10"
+                          onClick={() => setAiReportAppId(isReportOpen ? null : app.id)}
+                        >
+                          <Sparkles className="w-3.5 h-3.5 mr-1" />
+                          AI Report
+                        </Button>
                       )}
                       {app.apk_url && (
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-primary/30 text-primary hover:bg-primary/10"
-                            onClick={() => window.open(app.apk_url, '_blank')}
-                            title="Download APK for testing"
-                          >
-                            <FileDown className="w-4 h-4 mr-1" />
-                            Test APK
-                          </Button>
-                        </motion.div>
-                      )}
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button
                           size="sm"
-                          disabled={isProcessing}
-                          className="bg-success/20 text-success border border-success/30 hover:bg-success/30"
-                          onClick={() => handleApprove(app)}
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Approve
-                        </Button>
-                      </motion.div>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          size="sm"
-                          disabled={isProcessing}
                           variant="outline"
-                          className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                          onClick={() => handleReject(app)}
+                          className="h-8 text-xs border-primary/30 text-primary hover:bg-primary/10"
+                          onClick={() => window.open(app.apk_url, '_blank')}
                         >
-                          <XCircle className="w-4 h-4 mr-1" />
-                          Reject
+                          <FileDown className="w-3.5 h-3.5 mr-1" />
+                          APK
                         </Button>
-                      </motion.div>
+                      )}
+                      <div className="flex-1" />
+                      <Button
+                        size="sm"
+                        disabled={isProcessing}
+                        className="h-8 text-xs bg-success/20 text-success border border-success/30 hover:bg-success/30"
+                        onClick={() => handleApprove(app)}
+                      >
+                        <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={isProcessing}
+                        variant="outline"
+                        className="h-8 text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
+                        onClick={() => handleReject(app)}
+                      >
+                        <XCircle className="w-3.5 h-3.5 mr-1" />
+                        Reject
+                      </Button>
                     </div>
                   </div>
                   
@@ -947,28 +941,27 @@ function AdminApps() {
               variants={staggerItem}
               className="admin-glass-card overflow-hidden"
             >
-              <div className="flex items-center gap-4 p-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl shrink-0">
-                  {app.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold">{app.name}</h3>
-                    <StatusBadge status={app.status} size="sm" />
+              <div className="p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl shrink-0">
+                    {app.icon}
                   </div>
-                  <p className="text-sm text-muted-foreground">{app.developer_name}</p>
-                </div>
-                <div className="hidden md:flex items-center gap-6 text-sm">
-                  <div className="text-center">
-                    <p className="text-muted-foreground">Downloads</p>
-                    <p className="font-semibold">{app.downloads.toLocaleString()}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-muted-foreground">Rating</p>
-                    <p className="font-semibold flex items-center gap-1">
-                      <Star className="w-4 h-4 text-warning fill-current" />
-                      {app.rating || '-'}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h3 className="font-semibold text-sm truncate">{app.name}</h3>
+                      <StatusBadge status={app.status} size="sm" />
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{app.developer_name}</p>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Download className="w-3 h-3" />
+                        {app.downloads.toLocaleString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3 h-3 text-warning fill-current" />
+                        {app.rating || '-'}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -976,15 +969,16 @@ function AdminApps() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="border-secondary/30 text-secondary hover:bg-secondary/10"
+                      className="h-8 text-xs border-secondary/30 text-secondary hover:bg-secondary/10"
                       onClick={() => setAiReportAppId(isReportOpen ? null : app.id)}
                     >
-                      <Sparkles className="w-4 h-4 mr-1" />
+                      <Sparkles className="w-3.5 h-3.5 mr-1" />
                       AI Report
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" className="border-white/10">
-                    <Eye className="w-4 h-4" />
+                  <div className="flex-1" />
+                  <Button size="sm" variant="outline" className="h-8 text-xs border-white/10">
+                    <Eye className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>
