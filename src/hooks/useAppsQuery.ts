@@ -115,14 +115,6 @@ export function useAppsQuery(options: UseAppsQueryOptions = {}): UseAppsQueryRes
     );
 
     try {
-      // Try backend API first
-      try {
-        await adminAPI.updateAppStatus(appId, status);
-        return;
-      } catch {
-        // Fallback to Supabase
-      }
-
       const { error: supabaseError } = await supabase
         .from('apps')
         .update({ status, updated_at: new Date().toISOString() })
