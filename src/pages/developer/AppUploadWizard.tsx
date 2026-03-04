@@ -151,10 +151,17 @@ export default function AppUploadWizard() {
         if (url) screenshotUrls.push(url);
       }
 
-      // Upload APK/AAB
+      // Upload APK/AAB - auto-detect file type
       let apkUrl: string | null = null;
+      let aabUrl: string | null = null;
       if (release.file) {
-        apkUrl = await uploadToStorage(release.file, 'app-assets', 'releases');
+        const fileUrl = await uploadToStorage(release.file, 'app-assets', 'releases');
+        const ext = release.file.name.split('.').pop()?.toLowerCase();
+        if (ext === 'aab') {
+          aabUrl = fileUrl;
+        } else {
+          apkUrl = fileUrl;
+        }
       }
 
       // Insert to database
@@ -173,7 +180,8 @@ export default function AppUploadWizard() {
         is_paid: monetization.is_paid,
         price: monetization.is_paid ? Number(monetization.price) : null,
         apk_url: apkUrl,
-      });
+        aab_url: aabUrl,
+      } as any);
 
       triggerConfetti();
 

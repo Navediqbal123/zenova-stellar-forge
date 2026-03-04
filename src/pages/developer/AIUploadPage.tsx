@@ -211,6 +211,10 @@ export default function AIUploadPage() {
         scanned_at: new Date().toISOString(),
       });
 
+      // Auto-detect file type for correct column
+      const fileExt = file?.name.split('.').pop()?.toLowerCase();
+      const isAAB = fileExt === 'aab';
+
       await addApp({
         name: appName,
         description: aiResult.description,
@@ -228,7 +232,9 @@ export default function AIUploadPage() {
         contains_ads: aiResult.contains_ads,
         in_app_purchases: aiResult.in_app_purchases,
         ai_scan_report: aiScanReport,
-      });
+        apk_url: isAAB ? null : null, // file upload handled separately
+        aab_url: isAAB ? null : null,
+      } as any);
 
       triggerConfetti();
       toast({
