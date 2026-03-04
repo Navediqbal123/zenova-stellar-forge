@@ -363,8 +363,8 @@ export default function DeveloperDashboard() {
             {activeTab === 'my-apps' && (
               <motion.div key="my-apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">My Apps</h2>
-                  <span className="text-sm text-muted-foreground">{myApps.length} apps</span>
+                  <h2 className="text-lg font-bold">My Apps</h2>
+                  <span className="text-xs text-muted-foreground">{myApps.length} apps</span>
                 </div>
                 {myApps.length === 0 ? (
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="admin-glass-card p-8 sm:p-12 text-center">
@@ -384,61 +384,37 @@ export default function DeveloperDashboard() {
                           <motion.button
                             whileHover={{ scale: 1.005 }}
                             onClick={() => setExpandedAppId(isExpanded ? null : app.id)}
-                            className="w-full p-3 sm:p-4 flex items-center gap-3 sm:gap-4 text-left"
+                            className="w-full p-2.5 flex items-center gap-2.5 text-left"
                           >
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl sm:text-2xl shrink-0 overflow-hidden">
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-lg shrink-0 overflow-hidden">
                               {app.icon_url && app.icon_url.startsWith('http') ? (
                                 <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                               ) : (app.icon || app.icon_url || '📱')}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                <h3 className="font-semibold truncate text-sm sm:text-base">{app.name}</h3>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <h3 className="font-semibold truncate text-sm">{app.name}</h3>
                                 <StatusBadge status={app.status} size="sm" />
-                                {app.is_paid ? (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-warning/40 text-warning hidden sm:inline-flex">
-                                    <DollarSign className="w-3 h-3 mr-0.5" />Paid
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-success/40 text-success hidden sm:inline-flex">Free</Badge>
-                                )}
-                                {(app as any).contains_ads && (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-warning/40 text-warning hidden sm:inline-flex">
-                                    <Megaphone className="w-3 h-3 mr-0.5" />Ads
-                                  </Badge>
-                                )}
                               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">{app.short_description}</p>
-                              <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5 md:hidden">
+                              <p className="text-[11px] text-muted-foreground truncate">{app.short_description}</p>
+                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-0.5">
                                 <span>{app.size || 'N/A'}</span>
                                 <span>•</span>
                                 <span>{app.downloads.toLocaleString()} downloads</span>
+                                {app.rating && <>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-0.5"><Star className="w-2.5 h-2.5 text-warning fill-current" />{app.rating}</span>
+                                </>}
                               </div>
                             </div>
-                            <div className="hidden md:flex items-center gap-6 text-sm">
-                              <div className="text-center">
-                                <p className="text-muted-foreground">Size</p>
-                                <p className="font-semibold">{app.size || 'N/A'}</p>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-muted-foreground">Downloads</p>
-                                <p className="font-semibold">{app.downloads.toLocaleString()}</p>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-muted-foreground">Rating</p>
-                                <p className="font-semibold flex items-center gap-1">
-                                  <Star className="w-4 h-4 text-warning fill-current" />{app.rating || '-'}
-                                </p>
-                              </div>
-                            </div>
-                            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="p-1">
-                              <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="p-0.5">
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
                             </motion.div>
                           </motion.button>
                           <AnimatePresence>
                             {isExpanded && (
                               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }} className="overflow-hidden">
-                                <div className="px-3 sm:px-4 pb-4 sm:pb-5 pt-2 border-t border-border/30">
+                                <div className="px-2.5 pb-3 pt-2 border-t border-border/30">
                                   {/* Edit Button */}
                                   <div className="flex items-center justify-between mb-4">
                                     <h4 className="text-sm font-medium text-muted-foreground">Review Status Pipeline</h4>
@@ -502,11 +478,11 @@ export default function DeveloperDashboard() {
                                   )}
 
                                   <StatusPipeline status={app.status} lastUpdated={app.updated_at} />
-                                  <div className="mt-4 pt-4 border-t border-border/30 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                                    <div><p className="text-xs text-muted-foreground">Version</p><p className="text-sm font-medium">{app.version || '1.0.0'}</p></div>
-                                    <div><p className="text-xs text-muted-foreground">Size</p><p className="text-sm font-medium">{app.size || 'N/A'}</p></div>
-                                    <div><p className="text-xs text-muted-foreground">Category</p><p className="text-sm font-medium">{app.category || 'General'}</p></div>
-                                    <div><p className="text-xs text-muted-foreground">Submitted</p><p className="text-sm font-medium">{app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</p></div>
+                                  <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-2 gap-2">
+                                    <div><p className="text-[10px] text-muted-foreground">Version</p><p className="text-xs font-medium">{app.version || '1.0.0'}</p></div>
+                                    <div><p className="text-[10px] text-muted-foreground">Size</p><p className="text-xs font-medium">{app.size || 'N/A'}</p></div>
+                                    <div><p className="text-[10px] text-muted-foreground">Category</p><p className="text-xs font-medium">{app.category || 'General'}</p></div>
+                                    <div><p className="text-[10px] text-muted-foreground">Submitted</p><p className="text-xs font-medium">{app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</p></div>
                                   </div>
 
                                   {/* AI Scan Report (if available) */}
