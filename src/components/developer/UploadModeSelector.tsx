@@ -14,7 +14,11 @@ export function UploadModeSelector({ onSelectMode }: UploadModeSelectorProps) {
       description: 'Full control over all app details. Perfect for experienced developers.',
       icon: UploadCloud,
       secondaryIcon: FileCode,
-      color: 'secondary',
+      gradient: 'from-cyan-500/20 via-blue-500/10 to-transparent',
+      borderGlow: 'hover:shadow-[0_0_40px_rgba(6,182,212,0.15)]',
+      accentColor: 'text-cyan-400',
+      accentBg: 'bg-cyan-500/15 group-hover:bg-cyan-500/25',
+      dotColor: 'bg-cyan-400',
       features: ['Complete field control', 'Custom descriptions', 'Manual tagging'],
     },
     {
@@ -23,7 +27,11 @@ export function UploadModeSelector({ onSelectMode }: UploadModeSelectorProps) {
       description: 'Let AI generate descriptions and tags automatically. Fast and smart.',
       icon: Sparkles,
       secondaryIcon: Wand2,
-      color: 'primary',
+      gradient: 'from-violet-500/20 via-primary/10 to-transparent',
+      borderGlow: 'hover:shadow-[0_0_40px_rgba(139,92,246,0.2)]',
+      accentColor: 'text-violet-400',
+      accentBg: 'bg-violet-500/15 group-hover:bg-violet-500/25',
+      dotColor: 'bg-violet-400',
       features: ['AI-powered descriptions', 'Auto-generated tags', 'One-click setup'],
       premium: true,
     },
@@ -48,17 +56,16 @@ export function UploadModeSelector({ onSelectMode }: UploadModeSelectorProps) {
             key={card.id}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ scale: 1.03, y: -4 }}
-            whileTap={{ scale: 0.98 }}
+            transition={{ delay: index * 0.15, type: 'spring', stiffness: 300, damping: 25 }}
+            whileHover={{ scale: 1.03, y: -6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onSelectMode(card.id)}
             className={cn(
-              "relative p-6 rounded-2xl text-left transition-all duration-300",
-              "border-2 border-transparent",
-              "bg-white/[0.03] hover:bg-white/[0.06]",
+              "relative p-6 rounded-2xl text-left transition-all duration-500",
+              "border border-white/[0.08] hover:border-white/20",
+              "bg-white/[0.02] backdrop-blur-xl",
               "group overflow-hidden",
-              card.color === 'primary' && "hover:border-primary/50 hover:shadow-[0_0_30px_rgba(var(--primary-rgb),0.15)]",
-              card.color === 'secondary' && "hover:border-secondary/50 hover:shadow-[0_0_30px_rgba(var(--secondary-rgb),0.15)]"
+              card.borderGlow
             )}
           >
             {/* Premium badge */}
@@ -66,50 +73,47 @@ export function UploadModeSelector({ onSelectMode }: UploadModeSelectorProps) {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500 to-primary text-xs font-semibold text-white"
+                transition={{ delay: 0.4, type: 'spring' }}
+                className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-600 to-primary text-[10px] font-bold tracking-wider uppercase text-white shadow-lg shadow-violet-500/20"
               >
-                Recommended
+                ✨ Recommended
               </motion.div>
             )}
 
             {/* Background gradient on hover */}
             <div className={cn(
-              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-              card.color === 'primary' && "bg-gradient-to-br from-primary/10 via-transparent to-transparent",
-              card.color === 'secondary' && "bg-gradient-to-br from-secondary/10 via-transparent to-transparent"
+              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700",
+              "bg-gradient-to-br",
+              card.gradient
             )} />
+
+            {/* Subtle glass shine */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent" />
 
             {/* Icon */}
             <div className="relative z-10">
-              <div className={cn(
-                "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300",
-                "group-hover:scale-110",
-                card.color === 'primary' && "bg-primary/15 group-hover:bg-primary/25",
-                card.color === 'secondary' && "bg-secondary/15 group-hover:bg-secondary/25"
-              )}>
-                <card.icon className={cn(
-                  "w-8 h-8 transition-all duration-300",
-                  card.color === 'primary' && "text-primary group-hover:drop-shadow-[0_0_12px_hsl(var(--primary))]",
-                  card.color === 'secondary' && "text-secondary group-hover:drop-shadow-[0_0_12px_hsl(var(--secondary))]"
-                )} />
-              </div>
+              <motion.div
+                className={cn(
+                  "w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all duration-500",
+                  card.accentBg
+                )}
+                whileHover={{ rotate: [0, -5, 5, 0] }}
+                transition={{ duration: 0.5 }}
+              >
+                <card.icon className={cn("w-7 h-7 transition-all duration-500", card.accentColor)} />
+              </motion.div>
 
               {/* Title & Description */}
-              <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+              <h3 className="text-lg font-bold mb-1.5 flex items-center gap-2">
                 {card.title}
                 <motion.div
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1"
                   initial={false}
                 >
-                  <ArrowRight className={cn(
-                    "w-4 h-4",
-                    card.color === 'primary' && "text-primary",
-                    card.color === 'secondary' && "text-secondary"
-                  )} />
+                  <ArrowRight className={cn("w-4 h-4", card.accentColor)} />
                 </motion.div>
               </h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                 {card.description}
               </p>
 
@@ -120,14 +124,10 @@ export function UploadModeSelector({ onSelectMode }: UploadModeSelectorProps) {
                     key={i}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + i * 0.1 }}
-                    className="flex items-center gap-2 text-xs text-muted-foreground"
+                    transition={{ delay: 0.25 + i * 0.1 }}
+                    className="flex items-center gap-2.5 text-xs text-muted-foreground"
                   >
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      card.color === 'primary' && "bg-primary",
-                      card.color === 'secondary' && "bg-secondary"
-                    )} />
+                    <div className={cn("w-1.5 h-1.5 rounded-full", card.dotColor)} />
                     {feature}
                   </motion.li>
                 ))}
@@ -136,11 +136,11 @@ export function UploadModeSelector({ onSelectMode }: UploadModeSelectorProps) {
 
             {/* Floating icon decoration */}
             <motion.div
-              className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity"
+              className="absolute -bottom-6 -right-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700"
               animate={{ rotate: [0, 10, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <card.secondaryIcon className="w-32 h-32" />
+              <card.secondaryIcon className="w-36 h-36" />
             </motion.div>
           </motion.button>
         ))}
