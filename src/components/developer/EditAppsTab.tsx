@@ -9,6 +9,8 @@ import {
   ImagePlus,
   Trash2,
   Upload,
+  Megaphone,
+  ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApps, type AppWithDeveloper } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,6 +40,8 @@ interface EditForm {
   version: string;
   icon_url: string;
   screenshots: string[];
+  contains_ads: boolean;
+  in_app_purchases: boolean;
 }
 
 const staggerContainer = {
@@ -55,7 +60,7 @@ export function EditAppsTab() {
 
   const [editingAppId, setEditingAppId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditForm>({
-    name: '', short_description: '', description: '', category: '', version: '', icon_url: '', screenshots: [],
+    name: '', short_description: '', description: '', category: '', version: '', icon_url: '', screenshots: [], contains_ads: false, in_app_purchases: false,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingIcon, setUploadingIcon] = useState(false);
@@ -73,6 +78,8 @@ export function EditAppsTab() {
       version: app.version || '1.0.0',
       icon_url: app.icon_url || '',
       screenshots: app.screenshots || [],
+      contains_ads: app.contains_ads || false,
+      in_app_purchases: app.in_app_purchases || false,
     });
   };
 
@@ -136,6 +143,8 @@ export function EditAppsTab() {
         version: editForm.version.trim(),
         icon_url: editForm.icon_url.trim() || '📱',
         screenshots: editForm.screenshots,
+        contains_ads: editForm.contains_ads,
+        in_app_purchases: editForm.in_app_purchases,
         updated_at: new Date().toISOString(),
       }).eq('id', editingAppId);
       if (error) throw error;
@@ -276,15 +285,27 @@ export function EditAppsTab() {
                           <Input disabled placeholder="Tags are auto-generated" className="bg-white/5 border-white/10 h-9 text-sm" />
                         </div>
 
-                        {/* Ads & IAP - Disabled */}
-                        <div className="grid grid-cols-1 gap-3 opacity-50 pointer-events-none">
-                          <div className="space-y-1.5">
-                            <Label className="flex items-center gap-2 text-xs">Contains Ads <Badge variant="outline" className="text-[10px]">Disabled</Badge></Label>
-                            <Input disabled value={app.contains_ads ? 'Yes' : 'No'} className="bg-white/5 border-white/10 h-9 text-sm" />
+                        {/* Ads & IAP - Enabled */}
+                        <div className="grid grid-cols-1 gap-3">
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
+                            <div className="flex items-center gap-2">
+                              <Megaphone className="w-4 h-4 text-muted-foreground" />
+                              <Label className="text-xs cursor-pointer">Contains Ads</Label>
+                            </div>
+                            <Switch
+                              checked={editForm.contains_ads}
+                              onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, contains_ads: checked }))}
+                            />
                           </div>
-                          <div className="space-y-1.5">
-                            <Label className="flex items-center gap-2 text-xs">In-App Purchases <Badge variant="outline" className="text-[10px]">Disabled</Badge></Label>
-                            <Input disabled value={app.in_app_purchases ? 'Yes' : 'No'} className="bg-white/5 border-white/10 h-9 text-sm" />
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
+                            <div className="flex items-center gap-2">
+                              <ShoppingCart className="w-4 h-4 text-muted-foreground" />
+                              <Label className="text-xs cursor-pointer">In-App Purchases</Label>
+                            </div>
+                            <Switch
+                              checked={editForm.in_app_purchases}
+                              onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, in_app_purchases: checked }))}
+                            />
                           </div>
                         </div>
 
