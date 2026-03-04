@@ -384,31 +384,30 @@ export default function DeveloperDashboard() {
                           <motion.button
                             whileHover={{ scale: 1.005 }}
                             onClick={() => setExpandedAppId(isExpanded ? null : app.id)}
-                            className="w-full p-2.5 flex items-center gap-2.5 text-left"
+                            className="w-full p-2 flex items-center gap-2 text-left"
                           >
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-lg shrink-0 overflow-hidden">
+                            <div className="w-8 h-8 rounded-md bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-sm shrink-0 overflow-hidden">
                               {app.icon_url && app.icon_url.startsWith('http') ? (
                                 <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                               ) : (app.icon || app.icon_url || '📱')}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <h3 className="font-semibold truncate text-sm">{app.name}</h3>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <h3 className="font-semibold truncate text-xs">{app.name}</h3>
                                 <StatusBadge status={app.status} size="sm" />
                               </div>
-                              <p className="text-[11px] text-muted-foreground truncate">{app.short_description}</p>
-                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-0.5">
+                              <div className="flex items-center gap-1 text-[9px] text-muted-foreground mt-0.5">
                                 <span>{app.size || 'N/A'}</span>
                                 <span>•</span>
-                                <span>{app.downloads.toLocaleString()} downloads</span>
+                                <span>{app.downloads.toLocaleString()}↓</span>
                                 {app.rating && <>
                                   <span>•</span>
-                                  <span className="flex items-center gap-0.5"><Star className="w-2.5 h-2.5 text-warning fill-current" />{app.rating}</span>
+                                  <span className="flex items-center gap-0.5"><Star className="w-2 h-2 text-warning fill-current" />{app.rating}</span>
                                 </>}
                               </div>
                             </div>
-                            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="p-0.5">
-                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                             </motion.div>
                           </motion.button>
                           <AnimatePresence>
