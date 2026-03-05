@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { triggerConfetti } from '@/lib/confetti';
 import { cn } from '@/lib/utils';
 import { adminAPI } from '@/lib/axios';
+import { supabase } from '@/lib/supabase';
 
 interface ScanStep {
   id: string;
@@ -211,9 +212,32 @@ export default function AIUploadPage() {
         scanned_at: new Date().toISOString(),
       });
 
-      // Auto-detect file type for correct column
-      const fileExt = file?.name.split('.').pop()?.toLowerCase();
-      const isAAB = fileExt === 'aab';
+      // Upload file to 'apps' bucket and get public URL
+      let apkUrl: string | null = null;
+      let aabUrl: string | null = null;
+
+      if (file) {
+        const uniqueName = `releases/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('apps')
+          .upload(uniqueName, file);
+
+        if (uploadError) {
+          console.error('File upload failed:', uploadError);
+          throw new Error('File upload failed: ' + uploadError.message);
+        }
+
+        const { data: urlData } = supabase.storage.from('apps').getPublicUrl(uploadData.path);
+        const publicUrl = urlData.publicUrl;
+        console.log('Uploaded file public URL:', publicUrl);
+
+        const fileExt = file.name.split('.').pop()?.toLowerCase();
+        if (fileExt === 'aab') {
+          aabUrl = publicUrl;
+        } else {
+          apkUrl = publicUrl;
+        }
+      }
 
       await addApp({
         name: appName,
@@ -232,8 +256,8 @@ export default function AIUploadPage() {
         contains_ads: aiResult.contains_ads,
         in_app_purchases: aiResult.in_app_purchases,
         ai_scan_report: aiScanReport,
-        apk_url: isAAB ? null : null, // file upload handled separately
-        aab_url: isAAB ? null : null,
+        apk_url: apkUrl,
+        aab_url: aabUrl,
       } as any);
 
       triggerConfetti();
