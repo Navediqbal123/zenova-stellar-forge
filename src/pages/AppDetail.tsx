@@ -5,6 +5,7 @@ import { ArrowLeft, Star, Download, Flag, CheckCircle, Loader2 } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { useApps } from '@/contexts/AppsContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
 export default function AppDetail() {
@@ -45,8 +46,24 @@ export default function AppDetail() {
   };
 
   const handleInstall = async () => {
-    // Priority: apk_url first, then aab_url fallback
-    const downloadUrl = app.apk_url || (app as any).aab_url;
+    // Fetch fresh data directly from Supabase to get latest apk_url/aab_url
+    let downloadUrl = app.apk_url || app.aab_url;
+
+    if (!downloadUrl && app.id) {
+      try {
+        const { data } = await supabase
+          .from('apps')
+          .select('apk_url, aab_url')
+          .eq('id', app.id)
+          .single();
+
+        if (data) {
+          downloadUrl = data.apk_url || data.aab_url;
+        }
+      } catch (err) {
+        console.error('Error fetching app URLs:', err);
+      }
+    }
 
     if (!downloadUrl) {
       toast({
