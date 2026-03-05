@@ -140,14 +140,14 @@ export default function AppUploadWizard() {
       // Upload icon
       let iconUrl = '📱';
       if (graphics.icon) {
-        const url = await uploadToStorage(graphics.icon, 'app-assets', 'icons');
+        const url = await uploadToStorage(graphics.icon, 'apps', 'icons');
         if (url) iconUrl = url;
       }
 
       // Upload screenshots
       const screenshotUrls: string[] = [];
       for (const ss of graphics.phoneScreenshots) {
-        const url = await uploadToStorage(ss, 'app-assets', 'screenshots');
+        const url = await uploadToStorage(ss, 'apps', 'screenshots');
         if (url) screenshotUrls.push(url);
       }
 
@@ -155,7 +155,7 @@ export default function AppUploadWizard() {
       let apkUrl: string | null = null;
       let aabUrl: string | null = null;
       if (release.file) {
-        const fileUrl = await uploadToStorage(release.file, 'app-assets', 'releases');
+        const fileUrl = await uploadToStorage(release.file, 'apps', 'releases');
         const ext = release.file.name.split('.').pop()?.toLowerCase();
         if (ext === 'aab') {
           aabUrl = fileUrl;
