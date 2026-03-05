@@ -46,23 +46,24 @@ export default function AppDetail() {
   };
 
   const handleInstall = async () => {
-    // Fetch fresh data directly from Supabase to get latest apk_url/aab_url
-    let downloadUrl = app.apk_url || app.aab_url;
+    // ALWAYS fetch fresh from Supabase - never rely on cached data
+    let downloadUrl: string | null = null;
 
-    if (!downloadUrl && app.id) {
-      try {
-        const { data } = await supabase
-          .from('apps')
-          .select('apk_url, aab_url')
-          .eq('id', app.id)
-          .single();
+    try {
+      const { data, error } = await supabase
+        .from('apps')
+        .select('apk_url, aab_url')
+        .eq('id', app.id)
+        .maybeSingle();
 
-        if (data) {
-          downloadUrl = data.apk_url || data.aab_url;
-        }
-      } catch (err) {
-        console.error('Error fetching app URLs:', err);
+      console.log('Supabase fetch result:', { data, error, appId: app.id });
+
+      if (data) {
+        downloadUrl = data.apk_url || data.aab_url;
+        console.log('Download URL resolved:', downloadUrl);
       }
+    } catch (err) {
+      console.error('Error fetching app URLs:', err);
     }
 
     if (!downloadUrl) {
