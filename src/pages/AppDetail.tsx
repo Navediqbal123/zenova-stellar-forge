@@ -1,21 +1,16 @@
 import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Star, Download, Flag, CheckCircle, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Star, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApps } from '@/contexts/AppsContext';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
+import InstallButton from '@/components/appdetail/InstallButton';
+import RatingReview from '@/components/appdetail/RatingReview';
 
 export default function AppDetail() {
   const { appId } = useParams();
   const navigate = useNavigate();
   const { getAppById, categories } = useApps();
-  const { toast } = useToast();
-
-  const [downloadState, setDownloadState] = useState<'idle' | 'downloading' | 'done'>('idle');
-  const [downloadProgress, setDownloadProgress] = useState(0);
 
   const app = appId ? getAppById(appId) : undefined;
 
@@ -45,88 +40,6 @@ export default function AppDetail() {
     return num.toString();
   };
 
-  const handleInstall = async () => {
-    // ALWAYS fetch fresh from Supabase - never rely on cached data
-    let downloadUrl: string | null = null;
-
-    try {
-      const { data, error } = await supabase
-        .from('apps')
-        .select('apk_url, aab_url')
-        .eq('id', app.id)
-        .maybeSingle();
-
-      console.log('Supabase fetch result:', { data, error, appId: app.id });
-
-      if (data) {
-        downloadUrl = data.apk_url || data.aab_url;
-        console.log('Download URL resolved:', downloadUrl);
-      }
-    } catch (err) {
-      console.error('Error fetching app URLs:', err);
-    }
-
-    if (!downloadUrl) {
-      toast({
-        title: 'No File Available',
-        description: 'This app does not have a downloadable file yet.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setDownloadState('downloading');
-    setDownloadProgress(0);
-
-    // Animate progress
-    const duration = 2000;
-    const interval = 30;
-    const steps = duration / interval;
-    let step = 0;
-
-    const progressTimer = setInterval(() => {
-      step++;
-      const progress = Math.min((step / steps) * 100, 95);
-      setDownloadProgress(progress);
-      if (step >= steps) clearInterval(progressTimer);
-    }, interval);
-
-    try {
-      // Trigger actual download
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = app.name || 'app';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Complete progress
-      clearInterval(progressTimer);
-      setDownloadProgress(100);
-      setDownloadState('done');
-
-      toast({
-        title: '✅ Download Started',
-        description: `${app.name} is downloading...`,
-      });
-
-      setTimeout(() => {
-        setDownloadState('idle');
-        setDownloadProgress(0);
-      }, 3000);
-    } catch {
-      clearInterval(progressTimer);
-      setDownloadState('idle');
-      setDownloadProgress(0);
-      toast({
-        title: 'Download Failed',
-        description: 'Could not start the download. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -138,14 +51,14 @@ export default function AppDetail() {
         <ArrowLeft className="w-5 h-5" />
       </Link>
 
-      {/* Top Section - Icon, Name, Developer */}
+      {/* Top Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="flex items-start gap-5"
       >
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl shrink-0 overflow-hidden">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl shrink-0 overflow-hidden shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)]">
           {app.icon_url && app.icon_url.startsWith('http') ? (
             <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover rounded-2xl" />
           ) : (app.icon || '📱')}
@@ -165,7 +78,7 @@ export default function AppDetail() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="flex items-center justify-around py-3 border-y border-border"
+        className="flex items-center justify-around py-3 border-y border-border/50 backdrop-blur-sm"
       >
         <div className="text-center">
           <div className="flex items-center gap-1 justify-center">
@@ -174,79 +87,30 @@ export default function AppDetail() {
           </div>
           <p className="text-[10px] text-muted-foreground">{app.review_count.toLocaleString()} reviews</p>
         </div>
-        <div className="w-px h-8 bg-border" />
+        <div className="w-px h-8 bg-border/50" />
         <div className="text-center">
           <p className="text-sm font-bold">{formatDownloads(app.downloads)}</p>
           <p className="text-[10px] text-muted-foreground">Downloads</p>
         </div>
-        <div className="w-px h-8 bg-border" />
+        <div className="w-px h-8 bg-border/50" />
         <div className="text-center">
           <p className="text-sm font-bold">{app.size || 'N/A'}</p>
           <p className="text-[10px] text-muted-foreground">Size</p>
         </div>
-        <div className="w-px h-8 bg-border" />
+        <div className="w-px h-8 bg-border/50" />
         <div className="text-center">
           <p className="text-sm font-bold">4+</p>
           <p className="text-[10px] text-muted-foreground">Rated</p>
         </div>
       </motion.div>
 
-      {/* Install Button */}
+      {/* Premium Install Button */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="flex gap-3"
       >
-        <motion.div className="flex-1 relative" whileTap={{ scale: 0.98 }}>
-          <Button
-            onClick={handleInstall}
-            disabled={downloadState === 'downloading'}
-            className={cn(
-              "w-full py-6 text-base font-semibold rounded-xl relative overflow-hidden transition-all duration-500",
-              downloadState === 'done'
-                ? "bg-emerald-600 hover:bg-emerald-600"
-                : "bg-primary hover:bg-primary/90"
-            )}
-          >
-            {/* Progress bar overlay */}
-            <AnimatePresence>
-              {downloadState === 'downloading' && (
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: downloadProgress / 100 }}
-                  className="absolute inset-0 bg-white/10 origin-left"
-                  transition={{ duration: 0.1 }}
-                />
-              )}
-            </AnimatePresence>
-
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              {downloadState === 'idle' && (
-                <>
-                  <Download className="w-5 h-5" />
-                  Install
-                </>
-              )}
-              {downloadState === 'downloading' && (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Downloading... {Math.round(downloadProgress)}%
-                </>
-              )}
-              {downloadState === 'done' && (
-                <motion.span
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="flex items-center gap-2"
-                >
-                  <CheckCircle className="w-5 h-5" />
-                  Downloaded
-                </motion.span>
-              )}
-            </span>
-          </Button>
-        </motion.div>
+        <InstallButton appId={app.id} appName={app.name} />
       </motion.div>
 
       {/* Screenshots */}
@@ -259,7 +123,7 @@ export default function AppDetail() {
           <h3 className="text-sm font-semibold mb-3">Screenshots</h3>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
             {(app.screenshots as string[]).map((url, i) => (
-              <img key={i} src={url} alt={`Screenshot ${i + 1}`} className="h-48 rounded-xl border border-border shrink-0 object-cover" />
+              <img key={i} src={url} alt={`Screenshot ${i + 1}`} className="h-48 rounded-xl border border-border/50 shrink-0 object-cover" />
             ))}
           </div>
         </motion.div>
@@ -287,6 +151,9 @@ export default function AppDetail() {
           </Link>
         </div>
       </motion.div>
+
+      {/* Rating & Reviews */}
+      <RatingReview appId={app.id} />
 
       {/* Report */}
       <div className="flex justify-center pb-4">
