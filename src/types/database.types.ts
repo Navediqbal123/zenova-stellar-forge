@@ -83,6 +83,7 @@ export interface Database {
           contains_ads: boolean
           in_app_purchases: boolean
           ai_scan_report: string | null
+          version_code: number | null
           created_at: string
           updated_at: string
         }
