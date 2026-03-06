@@ -68,7 +68,7 @@ export default function AIUploadPage() {
     { id: 'ads', icon: Megaphone, message: 'Detecting Monetization SDKs...', status: 'pending' },
     { id: 'iap', icon: ShoppingCart, message: 'Checking for In-App Purchase SDKs...', status: 'pending' },
     { id: 'description', icon: FileText, message: 'Generating App Description & SEO Tags...', status: 'pending' },
-    { id: 'icon', icon: Image, message: 'Generating Placeholder Icon & Graphics...', status: 'pending' },
+    { id: 'icon', icon: Image, message: 'AI is designing your app assets...', status: 'pending' },
     { id: 'security', icon: Shield, message: 'Running Security Assessment...', status: 'pending' },
   ]);
 
