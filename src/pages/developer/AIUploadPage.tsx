@@ -47,6 +47,8 @@ interface AIResult {
   risk_level: 'clean' | 'warning';
   ad_networks: string[];
   iap_sdks: string[];
+  icon_url: string | null;
+  screenshot_urls: string[];
 }
 
 export default function AIUploadPage() {
