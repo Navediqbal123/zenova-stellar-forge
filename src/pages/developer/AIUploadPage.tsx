@@ -183,7 +183,22 @@ export default function AIUploadPage() {
           result = '✅ Description & tags generated successfully.';
           break;
         case 'icon':
-          result = '✅ Default icon assigned.';
+          // Call AI image generation API
+          try {
+            const imgResp = await adminAPI.aiGenerateImages({ name: appName, description: aiDescription });
+            const iconUrl = imgResp.data?.icon_url || null;
+            const screenshotUrls = imgResp.data?.screenshot_urls || [];
+            setAiResult(prev => ({
+              ...prev,
+              icon_url: iconUrl,
+              screenshot_urls: screenshotUrls,
+            }));
+            result = iconUrl
+              ? `✅ AI generated icon + ${screenshotUrls.length} screenshots.`
+              : '⚠️ AI image generation returned no results. Default assets will be used.';
+          } catch {
+            result = '⚠️ AI image generation failed. Default assets will be used.';
+          }
           break;
         case 'security':
           result = '✅ No malicious code detected. Status: Clean.';
