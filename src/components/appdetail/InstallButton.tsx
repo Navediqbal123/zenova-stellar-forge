@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, CheckCircle, X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
@@ -15,8 +15,11 @@ export default function InstallButton({ appId, appName }: InstallButtonProps) {
   const { toast } = useToast();
   const [state, setState] = useState<'idle' | 'downloading' | 'done'>('idle');
   const [progress, setProgress] = useState(0);
+  const cancelledRef = useRef(false);
+  const downloadUrlRef = useRef<string | null>(null);
 
   const handleInstall = async () => {
+    cancelledRef.current = false;
     let downloadUrl: string | null = null;
 
     try {
@@ -42,141 +45,134 @@ export default function InstallButton({ appId, appName }: InstallButtonProps) {
       return;
     }
 
+    downloadUrlRef.current = downloadUrl;
     setState('downloading');
     setProgress(0);
 
-    // Smooth eased progress animation
-    const duration = 2200;
+    // Simulate smooth download progress
+    const duration = 2500;
     const start = performance.now();
 
     const animate = (now: number) => {
+      if (cancelledRef.current) return;
       const elapsed = now - start;
       const t = Math.min(elapsed / duration, 1);
-      // Ease-out cubic
       const eased = 1 - Math.pow(1 - t, 3);
-      setProgress(Math.min(eased * 100, 95));
-      if (t < 1) requestAnimationFrame(animate);
+      const p = Math.min(eased * 100, 100);
+      setProgress(p);
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setState('done');
+        toast({ title: '✅ Download Complete', description: `${appName} is ready.` });
+      }
     };
     requestAnimationFrame(animate);
+  };
 
-    try {
+  const handleCancel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    cancelledRef.current = true;
+    setState('idle');
+    setProgress(0);
+  };
+
+  const handleOpen = () => {
+    if (downloadUrlRef.current) {
       const link = document.createElement('a');
-      link.href = downloadUrl;
+      link.href = downloadUrlRef.current;
       link.download = appName || 'app';
-      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      setProgress(100);
-      setState('done');
-
-      toast({ title: '✅ Download Started', description: `${appName} is downloading...` });
-
-      setTimeout(() => {
-        setState('idle');
-        setProgress(0);
-      }, 3000);
-    } catch {
-      setState('idle');
-      setProgress(0);
-      toast({
-        title: 'Download Failed',
-        description: 'Could not start the download. Please try again.',
-        variant: 'destructive',
-      });
     }
+    setState('idle');
+    setProgress(0);
   };
 
-  const circumference = 2 * Math.PI * 18;
+  const radius = 22;
+  const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
     <motion.div className="w-full" whileTap={{ scale: 0.98 }}>
-      <Button
-        onClick={handleInstall}
-        disabled={state === 'downloading'}
-        className={cn(
-          "w-full py-6 text-base font-semibold rounded-2xl relative overflow-hidden transition-all duration-500",
-          "backdrop-blur-xl border border-white/10 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)]",
-          state === 'done'
-            ? "bg-emerald-600/90 hover:bg-emerald-600/90 shadow-[0_0_30px_-5px_rgba(16,185,129,0.5)]"
-            : "bg-primary/90 hover:bg-primary/80"
+      <AnimatePresence mode="wait">
+        {state === 'idle' && (
+          <motion.div
+            key="idle"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Button
+              onClick={handleInstall}
+              className={cn(
+                "w-full py-6 text-base font-semibold rounded-2xl relative overflow-hidden transition-all duration-500",
+                "backdrop-blur-xl border border-white/10 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)]",
+                "bg-primary/90 hover:bg-primary/80"
+              )}
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Install
+            </Button>
+          </motion.div>
         )}
-      >
-        {/* Animated background shimmer */}
-        <AnimatePresence>
-          {state === 'downloading' && (
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: '200%' }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-              className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-            />
-          )}
-        </AnimatePresence>
 
-        {/* Progress bar at bottom */}
         {state === 'downloading' && (
           <motion.div
-            className="absolute bottom-0 left-0 h-1 bg-white/30 rounded-full"
-            initial={{ width: '0%' }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.1 }}
-          />
-        )}
-
-        <span className="relative z-10 flex items-center justify-center gap-3">
-          {state === 'idle' && (
-            <motion.span
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2"
+            key="downloading"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="flex items-center justify-center py-4"
+          >
+            <button
+              onClick={handleCancel}
+              className="relative w-16 h-16 flex items-center justify-center group"
             >
-              <Download className="w-5 h-5" />
-              Install
-            </motion.span>
-          )}
-          {state === 'downloading' && (
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center gap-3"
-            >
-              {/* Circular progress */}
-              <svg width="24" height="24" viewBox="0 0 40 40" className="rotate-[-90deg]">
-                <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" strokeWidth="3" opacity={0.2} />
+              {/* Background track */}
+              <svg className="absolute inset-0 w-full h-full rotate-[-90deg]" viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
                 <motion.circle
-                  cx="20" cy="20" r="18" fill="none"
-                  stroke="currentColor" strokeWidth="3"
+                  cx="26" cy="26" r={radius} fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="3.5"
                   strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
-                  transition={{ duration: 0.15 }}
+                  className="drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]"
                 />
               </svg>
-              <span className="tabular-nums">{Math.round(progress)}%</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); setState('idle'); setProgress(0); }}
-                className="ml-1 p-0.5 rounded-full hover:bg-white/10 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </motion.span>
-          )}
-          {state === 'done' && (
-            <motion.span
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="flex items-center gap-2"
+              {/* Cancel icon inside */}
+              <X className="w-5 h-5 text-primary group-hover:text-destructive transition-colors relative z-10" />
+            </button>
+          </motion.div>
+        )}
+
+        {state === 'done' && (
+          <motion.div
+            key="done"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          >
+            <Button
+              onClick={handleOpen}
+              className={cn(
+                "w-full py-6 text-base font-semibold rounded-2xl relative overflow-hidden transition-all duration-500",
+                "backdrop-blur-xl border border-white/10",
+                "bg-emerald-600/90 hover:bg-emerald-600/80 shadow-[0_0_30px_-5px_rgba(16,185,129,0.5)]"
+              )}
             >
-              <CheckCircle className="w-5 h-5" />
-              Downloaded
-            </motion.span>
-          )}
-        </span>
-      </Button>
+              Open
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
