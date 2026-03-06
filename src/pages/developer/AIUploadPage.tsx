@@ -82,6 +82,8 @@ export default function AIUploadPage() {
     risk_level: 'clean',
     ad_networks: [],
     iap_sdks: [],
+    icon_url: null,
+    screenshot_urls: [],
   });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
