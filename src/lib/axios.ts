@@ -77,6 +77,10 @@ export const adminAPI = {
   aiGenerateDescription: (data: { name: string; category: string }) => 
     apiClient.post('/api/ai-upload', data),
   
+  // AI Image Generation
+  aiGenerateImages: (data: { name: string; description: string }) =>
+    apiClient.post('/api/ai-image/generate', data),
+  
   // Clone Check
   checkClone: (packageId: string) => 
     apiClient.post('/api/clone-check/clone-check', { package_id: packageId }),
