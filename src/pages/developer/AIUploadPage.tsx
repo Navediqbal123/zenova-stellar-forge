@@ -68,7 +68,7 @@ export default function AIUploadPage() {
     { id: 'ads', icon: Megaphone, message: 'Detecting Monetization SDKs...', status: 'pending' },
     { id: 'iap', icon: ShoppingCart, message: 'Checking for In-App Purchase SDKs...', status: 'pending' },
     { id: 'description', icon: FileText, message: 'Generating App Description & SEO Tags...', status: 'pending' },
-    { id: 'icon', icon: Image, message: 'AI is designing your app assets...', status: 'pending' },
+    { id: 'icon', icon: Image, message: 'AI is generating your app icon and screenshots...', status: 'pending' },
     { id: 'security', icon: Shield, message: 'Running Security Assessment...', status: 'pending' },
   ]);
 
@@ -183,9 +183,12 @@ export default function AIUploadPage() {
           result = '✅ Description & tags generated successfully.';
           break;
         case 'icon':
-          // Call AI image generation API
+          // Call AI image generation API with auto-generated description
           try {
-            const imgResp = await adminAPI.aiGenerateImages({ name: appName, description: aiDescription });
+            const imgResp = await adminAPI.aiGenerateImages({
+              name: appName,
+              description: aiDescription || `${appName} is an innovative mobile application.`,
+            });
             const iconUrl = imgResp.data?.icon_url || null;
             const screenshotUrls = imgResp.data?.screenshot_urls || [];
             setAiResult(prev => ({
@@ -198,6 +201,11 @@ export default function AIUploadPage() {
               : '⚠️ AI image generation returned no results. Default assets will be used.';
           } catch {
             result = '⚠️ AI image generation failed. Default assets will be used.';
+            toast({
+              title: 'AI generation failed',
+              description: 'AI generation failed, please try again',
+              variant: 'destructive',
+            });
           }
           break;
         case 'security':
