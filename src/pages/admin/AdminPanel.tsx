@@ -945,8 +945,10 @@ function AdminApps() {
             >
               <div className="p-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl shrink-0">
-                    {app.icon}
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl shrink-0 overflow-hidden">
+                    {app.icon && (app.icon.startsWith('http') || app.icon.startsWith('/')) ? (
+                      <img src={app.icon} alt={app.name} className="w-full h-full object-cover" />
+                    ) : (app.icon || '📱')}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
