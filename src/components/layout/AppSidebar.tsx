@@ -51,6 +51,11 @@ export function AppSidebar() {
   ];
 
   const filteredNavItems = navItems.filter(item => {
+    // Admin can see everything
+    if (isAdmin) {
+      if (item.requiresDeveloper && !developerProfile) return true; // still show for admin
+      return true;
+    }
     if (item.requiresAdmin && !isAdmin) return false;
     if (item.requiresDeveloper && !developerProfile) return false;
     if (item.requiresAuth && !isAuthenticated) return false;
