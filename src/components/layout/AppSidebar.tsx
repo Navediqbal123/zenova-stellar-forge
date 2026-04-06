@@ -68,11 +68,10 @@ export function AppSidebar() {
     try {
       closeMobile();
       await logout();
-      navigate('/', { replace: true });
+      navigate('/login', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
-      // Force reload as fallback
-      window.location.href = '/';
+      window.location.href = '/login';
     }
   };
 
