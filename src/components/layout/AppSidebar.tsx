@@ -51,6 +51,11 @@ export function AppSidebar() {
   ];
 
   const filteredNavItems = navItems.filter(item => {
+    // Admin can see everything
+    if (isAdmin) {
+      if (item.requiresDeveloper && !developerProfile) return true; // still show for admin
+      return true;
+    }
     if (item.requiresAdmin && !isAdmin) return false;
     if (item.requiresDeveloper && !developerProfile) return false;
     if (item.requiresAuth && !isAuthenticated) return false;
@@ -67,10 +72,13 @@ export function AppSidebar() {
   const handleLogout = async () => {
     try {
       closeMobile();
+      // Clear all localStorage
+      localStorage.clear();
       await logout();
       navigate('/login', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
+      localStorage.clear();
       window.location.href = '/login';
     }
   };
@@ -133,7 +141,7 @@ export function AppSidebar() {
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {filteredNavItems.map((item, index) => {
             const active = isActive(item.path);
-            const locked = item.locked;
+            const locked = isAdmin ? false : item.locked;
             
             return (
               <motion.div
