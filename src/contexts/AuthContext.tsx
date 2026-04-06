@@ -166,11 +166,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    localStorage.clear();
+    setUser(null);
+    setSession(null);
+    setDeveloperProfile(null);
     const { error } = await supabase.auth.signOut();
     if (error) {
-      throw error;
+      console.error('Sign out error:', error);
     }
-    setDeveloperProfile(null);
   };
 
   const registerDeveloper = async (data: Omit<DeveloperInsert, 'user_id' | 'email' | 'status' | 'created_at' | 'updated_at'>) => {
