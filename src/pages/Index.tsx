@@ -184,11 +184,11 @@ export default function Index() {
                     autoFocus
                   />
                   {searchQuery && (
-                    <Link to={`/apps?search=${searchQuery}`}>
-                      <Button size="sm" className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary/90">
-                        Search
-                      </Button>
-                    </Link>
+                    <Button size="sm" className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary/90"
+                      onClick={() => setShowSearch(false)}
+                    >
+                      Search
+                    </Button>
                   )}
                 </div>
               </div>
