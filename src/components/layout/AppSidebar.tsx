@@ -72,10 +72,13 @@ export function AppSidebar() {
   const handleLogout = async () => {
     try {
       closeMobile();
+      // Clear all localStorage
+      localStorage.clear();
       await logout();
       navigate('/login', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
+      localStorage.clear();
       window.location.href = '/login';
     }
   };
