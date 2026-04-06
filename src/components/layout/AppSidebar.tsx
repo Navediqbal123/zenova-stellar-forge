@@ -141,7 +141,7 @@ export function AppSidebar() {
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {filteredNavItems.map((item, index) => {
             const active = isActive(item.path);
-            const locked = item.locked;
+            const locked = isAdmin ? false : item.locked;
             
             return (
               <motion.div
