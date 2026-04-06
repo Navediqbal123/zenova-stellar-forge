@@ -66,10 +66,13 @@ export function AppSidebar() {
 
   const handleLogout = async () => {
     try {
-      await logout();
       closeMobile();
+      await logout();
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
+      // Force reload as fallback
+      window.location.href = '/';
     }
   };
 
