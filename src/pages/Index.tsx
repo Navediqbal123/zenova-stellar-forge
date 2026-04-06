@@ -138,7 +138,10 @@ export default function Index() {
   const gameApps = approvedApps.filter(a => (a.category || '').toLowerCase() === 'games');
   const nonGameApps = approvedApps.filter(a => (a.category || '').toLowerCase() !== 'games');
 
-  const displayApps = bottomTab === 'games' ? gameApps : bottomTab === 'apps' ? nonGameApps : approvedApps;
+  const filteredBySearch = searchQuery
+    ? approvedApps.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : null;
+  const displayApps = filteredBySearch || (bottomTab === 'games' ? gameApps : bottomTab === 'apps' ? nonGameApps : approvedApps);
   const [showSearch, setShowSearch] = useState(false);
 
   return (
@@ -184,11 +187,11 @@ export default function Index() {
                     autoFocus
                   />
                   {searchQuery && (
-                    <Link to={`/apps?search=${searchQuery}`}>
-                      <Button size="sm" className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary/90">
-                        Search
-                      </Button>
-                    </Link>
+                    <Button size="sm" className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary/90"
+                      onClick={() => setShowSearch(false)}
+                    >
+                      Search
+                    </Button>
                   )}
                 </div>
               </div>

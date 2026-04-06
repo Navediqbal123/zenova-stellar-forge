@@ -88,7 +88,6 @@ const App = () => (
                     <MainLayout>
                       <Routes>
                         <Route path="/" element={<Index />} />
-                        <Route path="/apps" element={<Apps />} />
                         <Route path="/apps/:appId" element={<AppDetail />} />
                         <Route path="/categories" element={<Categories />} />
                         <Route path="/categories/:categoryId" element={<Categories />} />

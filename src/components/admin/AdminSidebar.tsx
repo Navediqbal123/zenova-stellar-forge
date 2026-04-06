@@ -62,7 +62,6 @@ const adminNavItems: NavItem[] = [
 
 const generalNavItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home, type: 'link', path: '/' },
-  { id: 'browse-apps', label: 'Browse Apps', icon: Grid3X3, type: 'link', path: '/apps' },
 ];
 
 export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSidebarProps) {
