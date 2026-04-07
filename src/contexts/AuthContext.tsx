@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isLoggingOut: boolean;
   isAdmin: boolean;
   developerProfile: Developer | null;
   isDeveloperApproved: boolean;
