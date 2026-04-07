@@ -32,22 +32,23 @@ function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   useEffect(() => {
-    // Skip all redirects if logout is in progress
     if (isLoggingOut) return;
-    
-    if (!isLoading && !hasCheckedAuth) {
+
+    const authPages = ['/login', '/register'];
+
+    if (isLoading) return;
+
+    if (!hasCheckedAuth) {
       setHasCheckedAuth(true);
-      
-      const authPages = ['/login', '/register'];
-      
-      if (isAuthenticated && authPages.includes(location.pathname)) {
-        if (isAdmin) {
-          navigate('/admin', { replace: true });
-        } else if (isDeveloperApproved) {
-          navigate('/developer/dashboard', { replace: true });
-        } else {
-          navigate('/', { replace: true });
-        }
+    }
+
+    if (isAuthenticated && authPages.includes(location.pathname)) {
+      if (isAdmin) {
+        navigate('/admin', { replace: true });
+      } else if (isDeveloperApproved) {
+        navigate('/developer/dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true });
       }
     }
   }, [isAuthenticated, isAdmin, isDeveloperApproved, isLoading, isLoggingOut, hasCheckedAuth, location.pathname, navigate]);
