@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isAdminEmail } from '@/lib/supabase';
 import type { Developer, DeveloperInsert, DeveloperStatus, DeveloperUpdate } from '@/types/database.types';
@@ -26,6 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [developerProfile, setDeveloperProfile] = useState<Developer | null>(null);
+  const authSubscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
+  const developerChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const isLoggingOutRef = useRef(false);
 
   const fetchDeveloperProfile = useCallback(async (userId: string) => {
     try {
@@ -60,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (!mounted) return;
+      if (!mounted || isLoggingOutRef.current) return;
 
       setSession(newSession);
       setUser(newSession?.user ?? null);
@@ -78,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setIsLoading(false);
     });
+    authSubscriptionRef.current = subscription;
 
     // Then get the initial session
     supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
@@ -99,6 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      if (authSubscriptionRef.current === subscription) {
+        authSubscriptionRef.current = null;
+      }
     };
   }, [fetchDeveloperProfile]);
 
@@ -126,7 +133,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       )
       .subscribe();
 
+    developerChannelRef.current = channel;
+
     return () => {
+      if (developerChannelRef.current === channel) {
+        developerChannelRef.current = null;
+      }
       supabase.removeChannel(channel);
     };
   }, [user?.id]);
@@ -163,10 +175,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    isLoggingOutRef.current = true;
     localStorage.clear();
+    authSubscriptionRef.current?.unsubscribe();
+    authSubscriptionRef.current = null;
+    if (developerChannelRef.current) {
+      supabase.removeChannel(developerChannelRef.current);
+      developerChannelRef.current = null;
+    }
     setUser(null);
     setSession(null);
     setDeveloperProfile(null);
+    setIsLoading(false);
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Sign out error:', error);

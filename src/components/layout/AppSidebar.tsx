@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Home, 
@@ -30,7 +30,6 @@ interface NavItem {
 
 export function AppSidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin, isDeveloperApproved, developerProfile, logout } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -72,13 +71,12 @@ export function AppSidebar() {
   const handleLogout = async () => {
     try {
       closeMobile();
-      localStorage.clear();
       await logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       localStorage.clear();
-      window.location.href = '/login';
+      window.location.replace('/login');
     }
   };
 
