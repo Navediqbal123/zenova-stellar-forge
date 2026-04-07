@@ -59,22 +59,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
 
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!mounted) return;
 
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
       if (newSession?.user) {
-        // Defer fetching developer profile to avoid blocking
-        setTimeout(async () => {
+        // Fire and forget - no await to prevent deadlock
+        fetchDeveloperProfile(newSession.user.id).then((profile) => {
           if (mounted) {
-            const profile = await fetchDeveloperProfile(newSession.user.id);
-            if (mounted) {
-              setDeveloperProfile(profile);
-            }
+            setDeveloperProfile(profile);
           }
-        }, 0);
+        });
       } else {
         setDeveloperProfile(null);
       }
