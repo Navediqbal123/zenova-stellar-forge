@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isLoading, isAuthenticated, isAdmin, isDeveloperApproved } = useAuth();
+  const { login, isLoading, isAuthenticated, isAdmin, isDeveloperApproved, isLoggingOut } = useAuth();
   const { toast } = useToast();
   
   const [email, setEmail] = useState('');
@@ -21,12 +21,14 @@ export default function Login() {
   const [isFocused, setIsFocused] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isLoggingOut) return;
+
     if (isAuthenticated) {
       if (isAdmin) navigate('/admin', { replace: true });
       else if (isDeveloperApproved) navigate('/developer/dashboard', { replace: true });
       else navigate('/', { replace: true });
     }
-  }, [isAuthenticated, isAdmin, isDeveloperApproved, navigate]);
+  }, [isAuthenticated, isAdmin, isDeveloperApproved, isLoggingOut, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +65,7 @@ export default function Login() {
     }
   };
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !isLoggingOut) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
