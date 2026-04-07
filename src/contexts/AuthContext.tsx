@@ -246,6 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         isAuthenticated: !!user,
         isLoading,
+        isLoggingOut: isLoggingOutRef.current,
         isAdmin,
         developerProfile,
         isDeveloperApproved,

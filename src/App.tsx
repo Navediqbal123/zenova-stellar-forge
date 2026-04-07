@@ -26,7 +26,7 @@ const queryClient = new QueryClient();
 
 // Component to handle auto-redirect based on auth state
 function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isAdmin, isDeveloperApproved, isLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isDeveloperApproved, isLoading, isLoggingOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
