@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isLoggingOut: boolean;
   isAdmin: boolean;
   developerProfile: Developer | null;
   isDeveloperApproved: boolean;
@@ -245,6 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         isAuthenticated: !!user,
         isLoading,
+        isLoggingOut: isLoggingOutRef.current,
         isAdmin,
         developerProfile,
         isDeveloperApproved,

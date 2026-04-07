@@ -26,17 +26,18 @@ const queryClient = new QueryClient();
 
 // Component to handle auto-redirect based on auth state
 function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isAdmin, isDeveloperApproved, isLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isDeveloperApproved, isLoading, isLoggingOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   useEffect(() => {
-    // Only redirect after initial auth check is complete
+    // Skip all redirects if logout is in progress
+    if (isLoggingOut) return;
+    
     if (!isLoading && !hasCheckedAuth) {
       setHasCheckedAuth(true);
       
-      // Only auto-redirect if user is on login/register page and is authenticated
       const authPages = ['/login', '/register'];
       
       if (isAuthenticated && authPages.includes(location.pathname)) {
@@ -49,7 +50,7 @@ function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
         }
       }
     }
-  }, [isAuthenticated, isAdmin, isDeveloperApproved, isLoading, hasCheckedAuth, location.pathname, navigate]);
+  }, [isAuthenticated, isAdmin, isDeveloperApproved, isLoading, isLoggingOut, hasCheckedAuth, location.pathname, navigate]);
 
   // Show loading spinner during initial auth check
   if (isLoading && !hasCheckedAuth) {
