@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [developerProfile, setDeveloperProfile] = useState<Developer | null>(null);
   const authSubscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
   const developerChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -177,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     isLoggingOutRef.current = true;
+    setIsLoggingOut(true);
     localStorage.clear();
     authSubscriptionRef.current?.unsubscribe();
     authSubscriptionRef.current = null;
@@ -246,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         isAuthenticated: !!user,
         isLoading,
-        isLoggingOut: isLoggingOutRef.current,
+        isLoggingOut,
         isAdmin,
         developerProfile,
         isDeveloperApproved,
