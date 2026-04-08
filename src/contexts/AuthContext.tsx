@@ -178,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     isLoggingOutRef.current = true;
+    setIsLoggingOut(true);
     localStorage.clear();
     authSubscriptionRef.current?.unsubscribe();
     authSubscriptionRef.current = null;
