@@ -30,7 +30,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [developerProfile, setDeveloperProfile] = useState<Developer | null>(null);
   const authSubscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
   const developerChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const isLoggingOutRef = useRef(false);
 
   const fetchDeveloperProfile = useCallback(async (userId: string) => {
     try {
@@ -63,9 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
+    if (isLoggingOut) {
+      return () => {
+        mounted = false;
+      };
+    }
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (!mounted || isLoggingOutRef.current) return;
+      if (!mounted || isLoggingOut) return;
 
       setSession(newSession);
       setUser(newSession?.user ?? null);
@@ -109,11 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authSubscriptionRef.current = null;
       }
     };
-  }, [fetchDeveloperProfile]);
+  }, [fetchDeveloperProfile, isLoggingOut]);
 
   // Set up real-time subscription for developer profile changes
   useEffect(() => {
-    if (!user?.id) return;
+    if (isLoggingOut || !user?.id) return;
 
     const channel = supabase
       .channel('developer_profile_changes')
@@ -143,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [isLoggingOut, user?.id]);
 
   const isAdmin = isAdminEmail(user?.email);
   const isDeveloperApproved = developerProfile?.status === 'approved';
@@ -177,35 +182,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    // 1. Set logout flag immediately to block all redirects
-    isLoggingOutRef.current = true;
     setIsLoggingOut(true);
-    
-    // 2. Unsubscribe all listeners first
-    authSubscriptionRef.current?.unsubscribe();
-    authSubscriptionRef.current = null;
-    if (developerChannelRef.current) {
-      supabase.removeChannel(developerChannelRef.current);
-      developerChannelRef.current = null;
-    }
-    
-    // 3. Clear all state and storage
-    setUser(null);
-    setSession(null);
-    setDeveloperProfile(null);
-    setIsLoading(false);
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // 4. Sign out from Supabase
+
     try {
       await supabase.auth.signOut();
+      window.location.href = '/login';
     } catch (e) {
       console.error('Sign out error:', e);
+      setIsLoggingOut(false);
+      throw e;
     }
-    
-    // 5. Hard redirect — replaces history so back button won't return
-    window.location.replace('/login');
   };
 
   const registerDeveloper = async (data: Omit<DeveloperInsert, 'user_id' | 'email' | 'status' | 'created_at' | 'updated_at'>) => {

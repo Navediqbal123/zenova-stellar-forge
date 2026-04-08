@@ -53,6 +53,10 @@ function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, isAdmin, isDeveloperApproved, isLoading, isLoggingOut, hasCheckedAuth, location.pathname, navigate]);
 
+  if (isLoggingOut) {
+    return null;
+  }
+
   // Show loading spinner during initial auth check
   if (isLoading && !hasCheckedAuth) {
     return (
