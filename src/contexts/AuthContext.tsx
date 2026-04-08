@@ -177,23 +177,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    // 1. Set logout flag immediately to block all redirects
     isLoggingOutRef.current = true;
     setIsLoggingOut(true);
-    localStorage.clear();
+    
+    // 2. Unsubscribe all listeners first
     authSubscriptionRef.current?.unsubscribe();
     authSubscriptionRef.current = null;
     if (developerChannelRef.current) {
       supabase.removeChannel(developerChannelRef.current);
       developerChannelRef.current = null;
     }
+    
+    // 3. Clear all state and storage
     setUser(null);
     setSession(null);
     setDeveloperProfile(null);
     setIsLoading(false);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Sign out error:', error);
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // 4. Sign out from Supabase
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error('Sign out error:', e);
     }
+    
+    // 5. Hard redirect — replaces history so back button won't return
+    window.location.replace('/login');
   };
 
   const registerDeveloper = async (data: Omit<DeveloperInsert, 'user_id' | 'email' | 'status' | 'created_at' | 'updated_at'>) => {
