@@ -55,7 +55,6 @@ const App = () => (
                     </MainLayout>
                   } />
                 </Routes>
-              </AuthRedirectHandler>
             </BrowserRouter>
           </TooltipProvider>
         </AppsProvider>
