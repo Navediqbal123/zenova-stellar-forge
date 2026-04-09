@@ -69,14 +69,11 @@ export function AppSidebar() {
   const closeMobile = () => setIsMobileOpen(false);
 
   const handleLogout = async () => {
+    closeMobile();
     try {
-      closeMobile();
       await logout();
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      localStorage.clear();
-      window.location.replace('/login');
     }
   };
 
