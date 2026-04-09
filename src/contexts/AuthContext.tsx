@@ -187,7 +187,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await supabase.auth.signOut();
       window.location.href = '/login';
-      setTimeout(() => setIsLoggingOut(false), 0);
     } catch (e) {
       console.error('Sign out error:', e);
       setIsLoggingOut(false);
