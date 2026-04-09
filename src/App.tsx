@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import { AppsProvider } from "./contexts/AppsContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { MainLayout } from "./components/layout/MainLayout";
@@ -20,7 +19,6 @@ import AppUploadWizard from "./pages/developer/AppUploadWizard";
 import AIUploadPage from "./pages/developer/AIUploadPage";
 import AdminPanel from "./pages/admin/AdminPanel";
 import NotFound from "./pages/NotFound";
-import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
