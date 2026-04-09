@@ -32,7 +32,6 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <AuthRedirectHandler>
                 <Routes>
                   {/* Developer routes with their own layout */}
                   <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
