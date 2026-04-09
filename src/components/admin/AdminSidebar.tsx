@@ -71,10 +71,12 @@ export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSid
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const handleItemClick = (item: NavItem) => {
