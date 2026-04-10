@@ -8,7 +8,7 @@ import {
   Sparkles,
   ShieldCheck,
   MessageCircle,
-  LogOut,
+  
   ChevronLeft,
   ChevronRight,
   BarChart3,
