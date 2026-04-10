@@ -10,8 +10,10 @@ import {
   Menu,
   X,
   User,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -206,6 +208,16 @@ export function AppSidebar() {
                   )}
                 </div>
               </div>
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = '/login';
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 group"
+              >
+                <LogOut className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+                <span className="text-sm font-medium">Sign Out</span>
+              </button>
             </div>
           ) : (
             <div className="space-y-2">
