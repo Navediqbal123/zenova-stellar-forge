@@ -235,6 +235,7 @@ export function AppSidebar() {
             <span className="text-sm font-medium">Sign Out</span>
           </button>
         </div>
+        <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }} style={{position:'absolute', bottom:'20px', left:'20px', color:'red', cursor:'pointer'}}>Logout</button>
       </motion.aside>
     </>
   );
