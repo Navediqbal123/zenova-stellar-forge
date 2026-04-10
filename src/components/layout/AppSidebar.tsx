@@ -184,42 +184,32 @@ export function AppSidebar() {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-sidebar-border">
-          {isAuthenticated ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{displayName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                  {developerProfile && (
-                    <span className={cn(
-                      "text-xs px-2 py-0.5 rounded-full inline-block mt-1",
-                      developerProfile.status === 'pending' && "status-pending",
-                      developerProfile.status === 'approved' && "status-approved",
-                      developerProfile.status === 'rejected' && "status-rejected"
-                    )}>
-                      {developerProfile.status === 'pending' && 'Dev: Under Review'}
-                      {developerProfile.status === 'approved' && 'Developer'}
-                      {developerProfile.status === 'rejected' && 'Dev: Rejected'}
-                    </span>
-                  )}
-                </div>
+        <div className="p-4 border-t border-sidebar-border space-y-3">
+          {isAuthenticated && (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                <User className="w-5 h-5 text-primary-foreground" />
               </div>
-              <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.href = '/login';
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 group"
-              >
-                <LogOut className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
-                <span className="text-sm font-medium">Sign Out</span>
-              </button>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{displayName}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                {developerProfile && (
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-full inline-block mt-1",
+                    developerProfile.status === 'pending' && "status-pending",
+                    developerProfile.status === 'approved' && "status-approved",
+                    developerProfile.status === 'rejected' && "status-rejected"
+                  )}>
+                    {developerProfile.status === 'pending' && 'Dev: Under Review'}
+                    {developerProfile.status === 'approved' && 'Developer'}
+                    {developerProfile.status === 'rejected' && 'Dev: Rejected'}
+                  </span>
+                )}
+              </div>
             </div>
-          ) : (
+          )}
+
+          {!isAuthenticated && (
             <div className="space-y-2">
               <Link to="/login" onClick={closeMobile}>
                 <Button variant="outline" className="w-full">
@@ -233,6 +223,17 @@ export function AppSidebar() {
               </Link>
             </div>
           )}
+
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 group"
+          >
+            <LogOut className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            <span className="text-sm font-medium">Sign Out</span>
+          </button>
         </div>
       </motion.aside>
     </>
