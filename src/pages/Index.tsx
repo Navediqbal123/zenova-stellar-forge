@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Search, Menu, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, LogOut, Gamepad2, AppWindow, Star, Download } from 'lucide-react';
+import { Search, Menu, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Gamepad2, AppWindow, Star, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useApps } from '@/contexts/AppsContext';
@@ -327,7 +327,7 @@ export default function Index() {
               </nav>
 
               <div className="p-4 border-t border-border space-y-2">
-                {!isAuthenticated ? (
+                {!isAuthenticated && (
                   <>
                     <Link to="/login" onClick={() => setDrawerOpen(false)}>
                       <Button variant="outline" className="w-full justify-start gap-2">
@@ -340,17 +340,6 @@ export default function Index() {
                       </Button>
                     </Link>
                   </>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
-                    onClick={() => {
-                      localStorage.removeItem('token');
-                      window.location.href = '/login';
-                    }}
-                  >
-                    <LogOut className="w-4 h-4" /> Logout
-                  </Button>
                 )}
               </div>
             </motion.div>

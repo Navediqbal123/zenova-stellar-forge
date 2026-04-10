@@ -8,7 +8,7 @@ import {
   Sparkles,
   ShieldCheck,
   MessageCircle,
-  LogOut,
+  
   ChevronLeft,
   ChevronRight,
   BarChart3,
@@ -69,15 +69,7 @@ export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSid
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+  const { user } = useAuth();
 
   const handleItemClick = (item: NavItem) => {
     if (item.type === 'action' && item.id === 'support') {
