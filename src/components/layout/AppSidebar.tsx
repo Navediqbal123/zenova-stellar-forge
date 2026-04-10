@@ -9,7 +9,6 @@ import {
   Shield,
   Menu,
   X,
-  LogOut,
   User,
   ChevronRight
 } from 'lucide-react';
@@ -30,7 +29,7 @@ interface NavItem {
 
 export function AppSidebar() {
   const location = useLocation();
-  const { user, isAuthenticated, isAdmin, isDeveloperApproved, developerProfile, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, isDeveloperApproved, developerProfile } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Get display name from user metadata or email
@@ -68,14 +67,6 @@ export function AppSidebar() {
 
   const closeMobile = () => setIsMobileOpen(false);
 
-  const handleLogout = async () => {
-    closeMobile();
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
 
   return (
     <>
@@ -215,14 +206,6 @@ export function AppSidebar() {
                   )}
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </Button>
             </div>
           ) : (
             <div className="space-y-2">
