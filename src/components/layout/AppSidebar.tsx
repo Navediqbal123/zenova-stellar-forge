@@ -206,7 +206,7 @@ export function AppSidebar() {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 pb-12 border-t border-sidebar-border space-y-3">
+        <div className="p-4 border-t border-sidebar-border space-y-3">
           {isAuthenticated && (
             <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
