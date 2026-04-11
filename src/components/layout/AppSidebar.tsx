@@ -184,7 +184,7 @@ export function AppSidebar() {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-sidebar-border space-y-3">
+        <div className="p-4 pb-12 border-t border-sidebar-border space-y-3">
           {isAuthenticated && (
             <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
@@ -224,18 +224,8 @@ export function AppSidebar() {
             </div>
           )}
 
-          <button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              window.location.href = '/login';
-            }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 group"
-          >
-            <LogOut className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
-            <span className="text-sm font-medium">Sign Out</span>
-          </button>
         </div>
-        <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }} style={{position:'absolute', bottom:'20px', left:'20px', color:'red', cursor:'pointer'}}>Logout</button>
+        <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }} style={{position:'absolute', bottom:'8px', left:'20px', color:'red', cursor:'pointer', zIndex: 50}}>Logout</button>
       </motion.aside>
     </>
   );
