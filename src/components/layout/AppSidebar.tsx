@@ -183,30 +183,6 @@ export function AppSidebar() {
           })}
         </nav>
 
-        {/* Logout - always visible, pinned to bottom */}
-        <div className="mt-auto p-4 border-t border-sidebar-border">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                window.location.href = '/login';
-              }}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full",
-                "group relative overflow-hidden",
-                "text-sidebar-foreground hover:bg-sidebar-accent hover:text-primary"
-              )}
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-primary/5 to-transparent" />
-              <LogOut className="w-5 h-5 relative z-10 transition-transform duration-200 group-hover:scale-110" />
-              <span className="relative z-10 font-medium">Logout</span>
-            </button>
-          </motion.div>
-        </div>
-
         {/* User Section */}
         <div className="p-4 border-t border-sidebar-border space-y-3">
           {isAuthenticated && (
@@ -247,7 +223,25 @@ export function AppSidebar() {
               </Link>
             </div>
           )}
+        </div>
 
+        {/* Logout - always visible, pinned to bottom */}
+        <div className="mt-auto p-4 border-t border-sidebar-border">
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }}
+            className={cn(
+              "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full",
+              "group relative overflow-hidden",
+              "text-sidebar-foreground hover:bg-sidebar-accent hover:text-primary"
+            )}
+          >
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-primary/5 to-transparent" />
+            <LogOut className="w-5 h-5 relative z-10 transition-transform duration-200 group-hover:scale-110" />
+            <span className="relative z-10 font-medium">Logout</span>
+          </button>
         </div>
         
       </motion.aside>
