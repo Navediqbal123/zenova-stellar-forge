@@ -98,7 +98,7 @@ export function AppSidebar() {
           x: isMobileOpen ? 0 : typeof window !== 'undefined' && window.innerWidth < 1024 ? -300 : 0 
         }}
         className={cn(
-          "fixed left-0 top-0 h-full w-72 z-50 lg:z-30",
+          "fixed left-0 top-0 h-screen w-72 z-50 lg:z-30",
           "bg-sidebar border-r border-sidebar-border",
           "flex flex-col",
           "lg:translate-x-0"
