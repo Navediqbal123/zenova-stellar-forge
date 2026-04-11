@@ -181,10 +181,32 @@ export function AppSidebar() {
               </motion.div>
             );
           })}
+          {/* Logout */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: filteredNavItems.length * 0.05 }}
+          >
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = '/login';
+              }}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full",
+                "group relative overflow-hidden",
+                "text-sidebar-foreground hover:bg-sidebar-accent hover:text-primary"
+              )}
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-primary/5 to-transparent" />
+              <LogOut className="w-5 h-5 relative z-10 transition-transform duration-200 group-hover:scale-110" />
+              <span className="relative z-10 font-medium">Logout</span>
+            </button>
+          </motion.div>
         </nav>
 
         {/* User Section */}
-        <div className="p-4 pb-12 border-t border-sidebar-border space-y-3">
+        <div className="p-4 border-t border-sidebar-border space-y-3">
           {isAuthenticated && (
             <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
@@ -225,7 +247,7 @@ export function AppSidebar() {
           )}
 
         </div>
-        <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }} style={{position:'absolute', bottom:'8px', left:'20px', color:'red', cursor:'pointer', zIndex: 50}}>Logout</button>
+        
       </motion.aside>
     </>
   );
