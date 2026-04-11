@@ -181,11 +181,13 @@ export function AppSidebar() {
               </motion.div>
             );
           })}
-          {/* Logout */}
+        </nav>
+
+        {/* Logout - always visible, pinned to bottom */}
+        <div className="mt-auto p-4 border-t border-sidebar-border">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: filteredNavItems.length * 0.05 }}
           >
             <button
               onClick={async () => {
@@ -203,7 +205,7 @@ export function AppSidebar() {
               <span className="relative z-10 font-medium">Logout</span>
             </button>
           </motion.div>
-        </nav>
+        </div>
 
         {/* User Section */}
         <div className="p-4 border-t border-sidebar-border space-y-3">
