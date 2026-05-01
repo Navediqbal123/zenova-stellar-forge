@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Search, Menu, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Gamepad2, AppWindow, Star, Download } from 'lucide-react';
+import { Search, Menu, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Gamepad2, AppWindow, Star, Download, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppCard } from '@/components/storefront/AppCard';
+import { supabase } from '@/lib/supabase';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -143,6 +144,11 @@ export default function Index() {
     : null;
   const displayApps = filteredBySearch || (bottomTab === 'games' ? gameApps : bottomTab === 'apps' ? nonGameApps : approvedApps);
   const [showSearch, setShowSearch] = useState(false);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
 
   return (
     <>
@@ -298,16 +304,16 @@ export default function Index() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed top-0 left-0 bottom-0 w-72 z-[70] bg-card border-r border-border flex flex-col"
+              className="fixed top-0 left-0 bottom-0 h-[100dvh] max-h-[100dvh] w-72 z-[70] bg-card border-r border-border flex flex-col overflow-hidden"
             >
-              <div className="flex items-center justify-between p-5 border-b border-border">
+              <div className="shrink-0 flex items-center justify-between p-5 border-b border-border">
                 <h2 className="text-lg font-bold gradient-text">EloraX</h2>
                 <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
                   <X className="w-5 h-5 text-muted-foreground" />
                 </button>
               </div>
 
-              <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+              <nav className="flex-1 min-h-0 p-4 space-y-1 overflow-y-auto">
                 {[
                   { name: 'Home', path: '/', icon: Home, show: true },
                   { name: 'Become a Developer', path: isAuthenticated ? '/developer/register' : '/register', icon: Code, show: !developerProfile },
@@ -326,7 +332,14 @@ export default function Index() {
                 ))}
               </nav>
 
-              <div className="p-4 border-t border-border space-y-2">
+              <div className="shrink-0 mt-auto p-4 border-t border-border space-y-2 bg-card">
+                <Button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full justify-start gap-2 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20"
+                >
+                  <LogOut className="w-4 h-4" /> Logout
+                </Button>
                 {!isAuthenticated && (
                   <>
                     <Link to="/login" onClick={() => setDrawerOpen(false)}>
