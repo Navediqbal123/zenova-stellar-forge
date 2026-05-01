@@ -69,6 +69,11 @@ export function AppSidebar() {
 
   const closeMobile = () => setIsMobileOpen(false);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
+
 
   return (
     <>
@@ -98,14 +103,14 @@ export function AppSidebar() {
           x: isMobileOpen ? 0 : typeof window !== 'undefined' && window.innerWidth < 1024 ? -300 : 0 
         }}
         className={cn(
-          "fixed left-0 top-0 h-screen w-72 z-50 lg:z-30",
+          "fixed left-0 top-0 h-screen max-h-screen w-72 z-50 lg:z-30",
           "bg-sidebar border-r border-sidebar-border",
-          "flex flex-col",
+          "flex flex-col overflow-hidden",
           "lg:translate-x-0"
         )}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-sidebar-border">
+        <div className="shrink-0 p-6 border-b border-sidebar-border">
           <Link to="/" onClick={closeMobile} className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center animate-pulse-glow">
               <span className="text-2xl">⚡</span>
@@ -124,27 +129,8 @@ export function AppSidebar() {
           </button>
         </div>
 
-        {/* TEMP DEBUG LOGOUT - top of sidebar, plain styling */}
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            window.location.href = '/login';
-          }}
-          style={{
-            background: 'red',
-            color: 'white',
-            padding: '12px',
-            margin: '8px',
-            border: '2px solid yellow',
-            fontWeight: 'bold',
-            fontSize: '16px',
-          }}
-        >
-          🚪 TEMP LOGOUT (DEBUG)
-        </button>
-
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 min-h-0 p-4 space-y-1 overflow-y-auto">
           {filteredNavItems.map((item, index) => {
             const active = isActive(item.path);
             const locked = isAdmin ? false : item.locked;
@@ -203,7 +189,7 @@ export function AppSidebar() {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-sidebar-border space-y-3">
+        <div className="shrink-0 p-4 border-t border-sidebar-border space-y-3">
           {isAuthenticated && (
             <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
@@ -245,19 +231,16 @@ export function AppSidebar() {
         </div>
 
         {/* Logout - always visible, pinned to bottom */}
-        <div className="mt-auto p-4 border-t border-sidebar-border">
+        <div className="shrink-0 mt-auto p-4 border-t border-sidebar-border bg-sidebar">
           <button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              window.location.href = '/login';
-            }}
+            onClick={handleLogout}
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full",
               "group relative overflow-hidden",
-              "text-sidebar-foreground hover:bg-sidebar-accent hover:text-primary"
+              "bg-destructive/10 text-destructive hover:bg-destructive/20"
             )}
           >
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-primary/5 to-transparent" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-destructive/10 to-transparent" />
             <LogOut className="w-5 h-5 relative z-10 transition-transform duration-200 group-hover:scale-110" />
             <span className="relative z-10 font-medium">Logout</span>
           </button>
