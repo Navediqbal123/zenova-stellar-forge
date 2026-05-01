@@ -124,6 +124,25 @@ export function AppSidebar() {
           </button>
         </div>
 
+        {/* TEMP DEBUG LOGOUT - top of sidebar, plain styling */}
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            window.location.href = '/login';
+          }}
+          style={{
+            background: 'red',
+            color: 'white',
+            padding: '12px',
+            margin: '8px',
+            border: '2px solid yellow',
+            fontWeight: 'bold',
+            fontSize: '16px',
+          }}
+        >
+          🚪 TEMP LOGOUT (DEBUG)
+        </button>
+
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {filteredNavItems.map((item, index) => {
