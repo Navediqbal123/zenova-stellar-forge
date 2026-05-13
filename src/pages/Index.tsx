@@ -120,7 +120,7 @@ export default function Index() {
         </header>
 
         {/* Search Bar */}
-        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 mb-6">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border border-slate-200 mb-6">
           <Search className="w-5 h-5 text-slate-400 shrink-0" />
           <input
             type="text"
