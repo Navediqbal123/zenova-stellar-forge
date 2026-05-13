@@ -24,9 +24,9 @@ function FeaturedCarousel() {
   const s = featuredSlides[i];
   return (
     <div
-      className="relative overflow-hidden rounded-3xl h-48 px-6 py-5 flex flex-col justify-between"
+      className="relative overflow-hidden rounded-3xl h-48 px-6 py-5 flex flex-col justify-between shadow-lg"
       style={{
-        background: `linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #7DD3FC 100%)`,
+        background: `linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #0066CC 100%)`,
       }}
     >
       {/* Wave overlay */}
