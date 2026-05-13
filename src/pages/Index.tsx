@@ -44,9 +44,9 @@ function FeaturedCarousel() {
           transition={{ duration: 0.4 }}
           className="relative z-10"
         >
-          <p className="text-xs font-semibold tracking-wider mb-2" style={{ color: ACCENT }}>FEATURED</p>
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">{s.title}</h2>
-          <p className="text-sm text-slate-700">{s.subtitle}</p>
+          <p className="text-xs font-semibold tracking-wider mb-2 text-white/90">FEATURED</p>
+          <h2 className="text-2xl font-bold text-white mb-1">{s.title}</h2>
+          <p className="text-sm text-white/85">{s.subtitle}</p>
         </motion.div>
       </AnimatePresence>
 
