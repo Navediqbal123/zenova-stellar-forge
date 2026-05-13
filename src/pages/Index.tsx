@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, Mic, Star, Gamepad2, AppWindow, Flame, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus } from 'lucide-react';
+import { Search, Bell, Mic, Star, Gamepad2, AppWindow, Flame, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu } from 'lucide-react';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -24,15 +24,15 @@ function FeaturedCarousel() {
   const s = featuredSlides[i];
   return (
     <div
-      className="relative overflow-hidden rounded-3xl h-48 px-6 py-5 flex flex-col justify-between"
+      className="relative overflow-hidden rounded-3xl h-48 px-6 py-5 flex flex-col justify-between shadow-lg"
       style={{
-        background: `linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #7DD3FC 100%)`,
+        background: `linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #0066CC 100%)`,
       }}
     >
       {/* Wave overlay */}
-      <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 400 200" preserveAspectRatio="none">
-        <path d="M0,140 Q100,100 200,130 T400,120 L400,200 L0,200 Z" fill="white" fillOpacity="0.5" />
-        <path d="M0,160 Q120,120 240,150 T400,140 L400,200 L0,200 Z" fill="white" fillOpacity="0.3" />
+      <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 200" preserveAspectRatio="none">
+        <path d="M0,140 Q100,100 200,130 T400,120 L400,200 L0,200 Z" fill="white" fillOpacity="0.4" />
+        <path d="M0,160 Q120,120 240,150 T400,140 L400,200 L0,200 Z" fill="white" fillOpacity="0.25" />
       </svg>
 
       <AnimatePresence mode="wait">
@@ -44,16 +44,15 @@ function FeaturedCarousel() {
           transition={{ duration: 0.4 }}
           className="relative z-10"
         >
-          <p className="text-xs font-semibold tracking-wider mb-2" style={{ color: ACCENT }}>FEATURED</p>
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">{s.title}</h2>
-          <p className="text-sm text-slate-700">{s.subtitle}</p>
+          <p className="text-xs font-semibold tracking-wider mb-2 text-white/90">FEATURED</p>
+          <h2 className="text-2xl font-bold text-white mb-1">{s.title}</h2>
+          <p className="text-sm text-white/85">{s.subtitle}</p>
         </motion.div>
       </AnimatePresence>
 
       <div className="relative z-10 flex items-center justify-between">
         <button
-          className="px-4 py-2 rounded-full text-sm font-semibold border-2 bg-white/40 backdrop-blur-sm transition-all hover:bg-white/60"
-          style={{ borderColor: ACCENT, color: ACCENT }}
+          className="px-4 py-2 rounded-full text-sm font-semibold border-2 border-white/80 bg-white/15 backdrop-blur-sm text-white transition-all hover:bg-white/25"
         >
           See Details
         </button>
@@ -65,7 +64,7 @@ function FeaturedCarousel() {
               className="h-1.5 rounded-full transition-all"
               style={{
                 width: idx === i ? 20 : 6,
-                backgroundColor: idx === i ? ACCENT : 'rgba(15,23,42,0.25)',
+                backgroundColor: idx === i ? '#ffffff' : 'rgba(255,255,255,0.4)',
               }}
             />
           ))}
@@ -101,22 +100,27 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
-      <div className="max-w-2xl mx-auto px-5 pt-6 pb-28">
+    <div className="min-h-screen w-full text-slate-900" style={{ backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
+      <div className="w-full max-w-2xl mx-auto px-5 pt-6 pb-28">
 
         {/* Top Bar */}
         <header className="flex items-center justify-between mb-5">
-          <button onClick={() => setDrawerOpen(true)} className="text-left">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h1>
-          </button>
-          <button className="relative p-2.5 rounded-full hover:bg-slate-100 transition-colors">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setDrawerOpen(true)} className="p-2 -ml-2 rounded-lg hover:bg-slate-200/60 transition-colors" aria-label="Open menu">
+              <Menu className="w-7 h-7 text-slate-900" strokeWidth={2.5} />
+            </button>
+            <button onClick={() => setDrawerOpen(true)} className="text-left">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h1>
+            </button>
+          </div>
+          <button className="relative p-2.5 rounded-full hover:bg-slate-200/60 transition-colors">
             <Bell className="w-6 h-6 text-slate-700" />
             <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: ACCENT }} />
           </button>
         </header>
 
         {/* Search Bar */}
-        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 mb-6">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border border-slate-200 mb-6">
           <Search className="w-5 h-5 text-slate-400 shrink-0" />
           <input
             type="text"
@@ -223,33 +227,35 @@ export default function Index() {
             <motion.div
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed top-0 left-0 bottom-0 w-72 z-[70] bg-white border-r border-slate-200 flex flex-col"
+              className="fixed top-0 left-0 bottom-0 w-72 z-[70] flex flex-col"
+              style={{ backgroundColor: '#1C1C1E', boxShadow: '8px 0 32px rgba(0,0,0,0.45)' }}
             >
-              <div className="flex items-center justify-between p-5 border-b border-slate-200">
-                <h2 className="text-lg font-bold text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h2>
-                <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100">
-                  <X className="w-5 h-5 text-slate-600" />
+              <div className="flex items-center justify-between p-5 border-b border-white/10">
+                <h2 className="text-lg font-bold text-white">Elora <span style={{ color: ACCENT }}>X</span></h2>
+                <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-white/10">
+                  <X className="w-5 h-5 text-white" />
                 </button>
               </div>
 
               <nav className="flex-1 min-h-0 p-4 space-y-1 overflow-y-auto">
                 {[
-                  { name: 'Home', path: '/', icon: Home, show: true },
+                  { name: 'Home', path: '/', icon: Home, show: true, active: true },
                   { name: 'Become a Developer', path: isAuthenticated ? '/developer/register' : '/register', icon: Code, show: !developerProfile },
                   { name: 'Developer Dashboard', path: '/developer/dashboard', icon: LayoutDashboard, show: !!developerProfile },
                   { name: 'Admin Panel', path: '/admin', icon: Shield, show: isAdmin },
                 ].filter(i => i.show).map(item => (
                   <Link key={item.path} to={item.path} onClick={() => setDrawerOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors">
-                    <item.icon className="w-5 h-5" />
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors"
+                    style={item.active ? { backgroundColor: '#2C2C2E' } : undefined}>
+                    <item.icon className="w-5 h-5" style={{ color: ACCENT }} />
                     <span className="font-medium text-sm">{item.name}</span>
                   </Link>
                 ))}
               </nav>
 
-              <div className="p-4 border-t border-slate-200 space-y-2">
+              <div className="p-4 border-t border-white/10 space-y-2">
                 {isAuthenticated ? (
-                  <Button onClick={handleLogout} className="w-full justify-start gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200">
+                  <Button onClick={handleLogout} className="w-full justify-start gap-2 bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30">
                     <LogOut className="w-4 h-4" /> Logout
                   </Button>
                 ) : (
