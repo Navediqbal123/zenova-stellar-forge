@@ -1,123 +1,75 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Search, Menu, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Gamepad2, AppWindow, Star, Download, LogOut } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Bell, Mic, Star, Gamepad2, AppWindow, Flame, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus } from 'lucide-react';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { AppCard } from '@/components/storefront/AppCard';
 import { supabase } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
+const ACCENT = '#0EA5E9';
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
-function ScrollReveal({ children, index = 0 }: { children: React.ReactNode; index?: number }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.5, delay: index * 0.06, ease: [0.25, 0.46, 0.45, 0.94] }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-// Hero carousel promo data
-const heroSlides = [
-  { title: 'Discover Amazing Apps', subtitle: 'Explore thousands of apps curated just for you', gradient: 'from-primary/30 via-card to-secondary/20', emoji: '🚀' },
-  { title: 'Top Games This Week', subtitle: 'Play the most popular mobile games on EloraX', gradient: 'from-secondary/30 via-card to-primary/20', emoji: '🎮' },
-  { title: 'New & Updated', subtitle: 'Fresh apps and updates landing every day', gradient: 'from-success/20 via-card to-primary/20', emoji: '✨' },
+const featuredSlides = [
+  { title: 'Edit Like a Pro', subtitle: 'Powerful tools for creators on the go' },
+  { title: 'Play Without Limits', subtitle: 'Top games handpicked for your device' },
+  { title: 'Boost Your Day', subtitle: 'Productivity apps that actually work' },
 ];
 
-function HeroCarousel() {
-  const [current, setCurrent] = useState(0);
-
+function FeaturedCarousel() {
+  const [i, setI] = useState(0);
   useEffect(() => {
-    const timer = setInterval(() => setCurrent(c => (c + 1) % heroSlides.length), 4000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setI(c => (c + 1) % featuredSlides.length), 4500);
+    return () => clearInterval(t);
   }, []);
-
-  const slide = heroSlides[current];
-
+  const s = featuredSlides[i];
   return (
-    <div className="relative overflow-hidden rounded-2xl h-44">
+    <div
+      className="relative overflow-hidden rounded-3xl h-48 px-6 py-5 flex flex-col justify-between"
+      style={{
+        background: `linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #7DD3FC 100%)`,
+      }}
+    >
+      {/* Wave overlay */}
+      <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 400 200" preserveAspectRatio="none">
+        <path d="M0,140 Q100,100 200,130 T400,120 L400,200 L0,200 Z" fill="white" fillOpacity="0.5" />
+        <path d="M0,160 Q120,120 240,150 T400,140 L400,200 L0,200 Z" fill="white" fillOpacity="0.3" />
+      </svg>
+
       <AnimatePresence mode="wait">
         <motion.div
-          key={current}
-          initial={{ opacity: 0, x: 60 }}
+          key={i}
+          initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -60 }}
+          exit={{ opacity: 0, x: -30 }}
           transition={{ duration: 0.4 }}
-          className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} flex items-center px-6`}
+          className="relative z-10"
         >
-          <div className="flex-1">
-            <p className="text-3xl mb-1">{slide.emoji}</p>
-            <h2 className="text-xl font-bold mb-1">{slide.title}</h2>
-            <p className="text-sm text-muted-foreground">{slide.subtitle}</p>
-          </div>
+          <p className="text-xs font-semibold tracking-wider mb-2" style={{ color: ACCENT }}>FEATURED</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-1">{s.title}</h2>
+          <p className="text-sm text-slate-700">{s.subtitle}</p>
         </motion.div>
       </AnimatePresence>
-      {/* Dots */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-        {heroSlides.map((_, i) => (
-          <button key={i} onClick={() => setCurrent(i)} className={`w-2 h-2 rounded-full transition-all ${i === current ? 'bg-primary w-5' : 'bg-muted-foreground/40'}`} />
-        ))}
-      </div>
-    </div>
-  );
-}
 
-function HorizontalAppRow({ title, apps }: { title: string; apps: any[] }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  if (apps.length === 0) return null;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-bold">{title}</h3>
-        <Link to="/apps" className="text-xs text-primary font-medium">See all</Link>
-      </div>
-      <div ref={scrollRef} className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-        {apps.slice(0, 10).map((app, index) => (
-          <Link key={app.id} to={`/apps/${app.id}`} className="shrink-0 w-28">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.05 }}
-              whileHover={{ scale: 1.05 }}
-              className="flex flex-col items-center text-center group"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-3xl mb-2 group-hover:scale-110 transition-transform overflow-hidden">
-                {app.icon_url && app.icon_url.startsWith('http') ? (
-                  <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover rounded-2xl" />
-                ) : (app.icon || '📱')}
-              </div>
-              <p className="text-xs font-medium truncate w-full group-hover:text-primary transition-colors">{app.name}</p>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <Star className="w-2.5 h-2.5 text-warning fill-current" />
-                <span>{app.rating}</span>
-                <span>•</span>
-                <span>{app.size || 'N/A'}</span>
-              </div>
-            </motion.div>
-          </Link>
-        ))}
+      <div className="relative z-10 flex items-center justify-between">
+        <button
+          className="px-4 py-2 rounded-full text-sm font-semibold border-2 bg-white/40 backdrop-blur-sm transition-all hover:bg-white/60"
+          style={{ borderColor: ACCENT, color: ACCENT }}
+        >
+          See Details
+        </button>
+        <div className="flex gap-1.5">
+          {featuredSlides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setI(idx)}
+              className="h-1.5 rounded-full transition-all"
+              style={{
+                width: idx === i ? 20 : 6,
+                backgroundColor: idx === i ? ACCENT : 'rgba(15,23,42,0.25)',
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -125,25 +77,23 @@ function HorizontalAppRow({ title, apps }: { title: string; apps: any[] }) {
 
 export default function Index() {
   const { apps } = useApps();
-  const { isAuthenticated, isAdmin, developerProfile, isDeveloperApproved } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { isAuthenticated, isAdmin, developerProfile } = useAuth();
+  const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>('apps');
+  const [query, setQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [bottomTab, setBottomTab] = useState<'games' | 'apps' | 'search'>('apps');
 
-  const approvedApps = apps.filter(app => app.status === 'approved');
+  const approved = apps.filter(a => a.status === 'approved');
+  const games = approved.filter(a => (a.category || '').toLowerCase() === 'games');
+  const nonGames = approved.filter(a => (a.category || '').toLowerCase() !== 'games');
+  const trending = [...approved].sort((a, b) => b.downloads - a.downloads);
+  const recommended = approved.slice(0, 8);
 
-  // Sections
-  const suggestedApps = approvedApps.slice(0, 10);
-  const newApps = [...approvedApps].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10);
-  const trendingApps = [...approvedApps].sort((a, b) => b.downloads - a.downloads).slice(0, 10);
-  const gameApps = approvedApps.filter(a => (a.category || '').toLowerCase() === 'games');
-  const nonGameApps = approvedApps.filter(a => (a.category || '').toLowerCase() !== 'games');
-
-  const filteredBySearch = searchQuery
-    ? approvedApps.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : null;
-  const displayApps = filteredBySearch || (bottomTab === 'games' ? gameApps : bottomTab === 'apps' ? nonGameApps : approvedApps);
-  const [showSearch, setShowSearch] = useState(false);
+  const list = query
+    ? approved.filter(a => a.name.toLowerCase().includes(query.toLowerCase()))
+    : tab === 'games' ? games
+    : tab === 'apps' ? nonGames
+    : tab === 'trending' ? trending
+    : approved;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -151,165 +101,134 @@ export default function Index() {
   };
 
   return (
-    <>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-7xl mx-auto space-y-5 pb-24"
-      >
-        {/* Header */}
-        <motion.header variants={itemVariants} className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="p-2 rounded-lg bg-muted/40 border border-border hover:bg-muted/60 transition-colors"
-            >
-              <Menu className="w-5 h-5 text-foreground" />
-            </button>
-            <h1 className="text-xl font-bold gradient-text tracking-tight">EloraX</h1>
-          </div>
-          <button
-            onClick={() => setShowSearch(!showSearch)}
-            className="p-2 rounded-lg bg-muted/40 border border-border hover:bg-muted/60 transition-colors"
-          >
-            <Search className="w-5 h-5 text-foreground" />
+    <div className="min-h-screen bg-white text-slate-900" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
+      <div className="max-w-2xl mx-auto px-5 pt-6 pb-28">
+
+        {/* Top Bar */}
+        <header className="flex items-center justify-between mb-5">
+          <button onClick={() => setDrawerOpen(true)} className="text-left">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h1>
           </button>
-        </motion.header>
+          <button className="relative p-2.5 rounded-full hover:bg-slate-100 transition-colors">
+            <Bell className="w-6 h-6 text-slate-700" />
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: ACCENT }} />
+          </button>
+        </header>
 
-        {/* Search Bar (toggled) */}
-        <AnimatePresence>
-          {showSearch && (
-            <motion.section initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-              <div className="admin-glass-card p-2">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search apps, games..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 pr-24 py-5 bg-transparent border-0 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
-                    autoFocus
-                  />
-                  {searchQuery && (
-                    <Button size="sm" className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary/90"
-                      onClick={() => setShowSearch(false)}
-                    >
-                      Search
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </motion.section>
-          )}
-        </AnimatePresence>
-
-        {/* Hero Carousel */}
-        <motion.section variants={itemVariants}>
-          <HeroCarousel />
-        </motion.section>
-
-        {/* Horizontal Sections */}
-        <motion.section variants={itemVariants} className="space-y-6">
-          <HorizontalAppRow title="Suggested for You" apps={suggestedApps} />
-          <HorizontalAppRow title="New & Updated" apps={newApps} />
-          <HorizontalAppRow title="Trending" apps={trendingApps} />
-        </motion.section>
-
-        {/* Main app list based on bottom tab */}
-        <motion.section variants={itemVariants}>
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-lg font-bold">
-              {bottomTab === 'games' ? 'Games' : bottomTab === 'apps' ? 'Apps' : 'All Apps'}
-            </h2>
-            <span className="text-sm text-muted-foreground">({displayApps.length})</span>
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={bottomTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-3"
-            >
-              {displayApps.length > 0 ? (
-                displayApps.map((app, index) => (
-                  <ScrollReveal key={app.id} index={index}>
-                    <AppCard app={app} index={index} variant="default" />
-                  </ScrollReveal>
-                ))
-              ) : (
-                <div className="admin-glass-card p-8 text-center">
-                  <p className="text-muted-foreground">No apps available yet.</p>
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </motion.section>
-
-        {/* Sticky Bottom Navigation - Games / Apps / Search */}
-        <div className="fixed bottom-0 left-0 right-0 z-50">
-          <div className="bg-background/80 backdrop-blur-xl border-t border-border safe-bottom">
-            <div className="flex justify-around items-center px-4 py-2">
-              <button
-                onClick={() => { setBottomTab('games'); setShowSearch(false); }}
-                className={`flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-200 ${
-                  bottomTab === 'games'
-                    ? 'bg-primary/15 border border-primary/40 shadow-[0_0_12px_hsl(var(--primary)/0.3)]'
-                    : 'border border-transparent hover:bg-muted/50'
-                }`}
-              >
-                <Gamepad2 className={`w-5 h-5 ${bottomTab === 'games' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`text-[10px] font-medium ${bottomTab === 'games' ? 'text-primary' : 'text-muted-foreground'}`}>Games</span>
-              </button>
-              <button
-                onClick={() => { setBottomTab('apps'); setShowSearch(false); }}
-                className={`flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-200 ${
-                  bottomTab === 'apps'
-                    ? 'bg-primary/15 border border-primary/40 shadow-[0_0_12px_hsl(var(--primary)/0.3)]'
-                    : 'border border-transparent hover:bg-muted/50'
-                }`}
-              >
-                <AppWindow className={`w-5 h-5 ${bottomTab === 'apps' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`text-[10px] font-medium ${bottomTab === 'apps' ? 'text-primary' : 'text-muted-foreground'}`}>Apps</span>
-              </button>
-              <button
-                onClick={() => { setShowSearch(true); }}
-                className="flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-200 border border-transparent hover:bg-muted/50"
-              >
-                <Search className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[10px] font-medium text-muted-foreground">Search</span>
-              </button>
-            </div>
-          </div>
+        {/* Search Bar */}
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-100 mb-6">
+          <Search className="w-5 h-5 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search apps, games, and more"
+            className="flex-1 bg-transparent outline-none text-sm placeholder:text-slate-400 text-slate-900"
+          />
+          <button className="shrink-0">
+            <Mic className="w-5 h-5" style={{ color: ACCENT }} />
+          </button>
         </div>
-      </motion.div>
 
-      {/* Drawer Overlay */}
+        {/* Featured */}
+        <section className="mb-8">
+          <FeaturedCarousel />
+        </section>
+
+        {/* Recommended */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-slate-900">
+              {query ? 'Search Results' : tab === 'games' ? 'Top Games' : tab === 'trending' ? 'Trending Now' : 'Recommended for You'}
+            </h3>
+            <button className="text-sm font-semibold" style={{ color: ACCENT }}>See All ›</button>
+          </div>
+
+          <div className="space-y-1">
+            {(query ? list : recommended).length > 0 ? (
+              (query ? list : recommended).map((app, idx) => (
+                <motion.div
+                  key={app.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.04 }}
+                >
+                  <Link to={`/apps/${app.id}`} className="flex items-center gap-3 py-3 group">
+                    {/* Icon */}
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center text-2xl shrink-0">
+                      {app.icon_url && app.icon_url.startsWith('http') ? (
+                        <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                      ) : (app.icon || '📱')}
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-slate-900 truncate">{app.name}</h4>
+                      <p className="text-xs text-slate-500 truncate">{app.category || 'App'}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        <span className="text-xs text-slate-600 font-medium">{app.rating || '4.5'}</span>
+                      </div>
+                    </div>
+                    {/* Get button */}
+                    <button
+                      onClick={(e) => { e.preventDefault(); window.location.href = `/apps/${app.id}`; }}
+                      className="px-5 py-1.5 rounded-full text-sm font-bold transition-all hover:scale-105"
+                      style={{ backgroundColor: '#F1F5F9', color: ACCENT }}
+                    >
+                      Get
+                    </button>
+                  </Link>
+                </motion.div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-slate-400 text-sm">No apps found</div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200">
+        <div className="max-w-2xl mx-auto flex items-center justify-around px-2 py-2 safe-bottom">
+          {[
+            { id: 'games', label: 'Games', Icon: Gamepad2 },
+            { id: 'apps', label: 'Apps', Icon: AppWindow },
+            { id: 'trending', label: 'Trending', Icon: Flame },
+            { id: 'search', label: 'Search', Icon: Search },
+          ].map(({ id, label, Icon }) => {
+            const active = tab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => { setTab(id as any); setQuery(''); }}
+                className="flex flex-col items-center gap-1 px-4 py-1.5 transition-all"
+              >
+                <Icon className="w-6 h-6" style={{ color: active ? ACCENT : '#94A3B8' }} />
+                <span className="text-[11px] font-medium" style={{ color: active ? ACCENT : '#94A3B8' }}>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Drawer (accessed by tapping logo) */}
       <AnimatePresence>
         {drawerOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-background/60 backdrop-blur-sm z-[60]"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setDrawerOpen(false)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]"
             />
             <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
+              initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed top-0 left-0 bottom-0 h-[100dvh] max-h-[100dvh] w-72 z-[70] bg-card border-r border-border flex flex-col overflow-hidden"
+              className="fixed top-0 left-0 bottom-0 w-72 z-[70] bg-white border-r border-slate-200 flex flex-col"
             >
-              <div className="shrink-0 flex items-center justify-between p-5 border-b border-border">
-                <h2 className="text-lg font-bold gradient-text">EloraX</h2>
-                <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
-                  <X className="w-5 h-5 text-muted-foreground" />
+              <div className="flex items-center justify-between p-5 border-b border-slate-200">
+                <h2 className="text-lg font-bold text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h2>
+                <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100">
+                  <X className="w-5 h-5 text-slate-600" />
                 </button>
               </div>
 
@@ -319,36 +238,27 @@ export default function Index() {
                   { name: 'Become a Developer', path: isAuthenticated ? '/developer/register' : '/register', icon: Code, show: !developerProfile },
                   { name: 'Developer Dashboard', path: '/developer/dashboard', icon: LayoutDashboard, show: !!developerProfile },
                   { name: 'Admin Panel', path: '/admin', icon: Shield, show: isAdmin },
-                ].filter(item => item.show).map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setDrawerOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 hover:text-primary transition-colors"
-                  >
+                ].filter(i => i.show).map(item => (
+                  <Link key={item.path} to={item.path} onClick={() => setDrawerOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors">
                     <item.icon className="w-5 h-5" />
                     <span className="font-medium text-sm">{item.name}</span>
                   </Link>
                 ))}
               </nav>
 
-              <div className="shrink-0 mt-auto p-4 border-t border-border space-y-2 bg-card">
-                <Button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-full justify-start gap-2 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20"
-                >
-                  <LogOut className="w-4 h-4" /> Logout
-                </Button>
-                {!isAuthenticated && (
+              <div className="p-4 border-t border-slate-200 space-y-2">
+                {isAuthenticated ? (
+                  <Button onClick={handleLogout} className="w-full justify-start gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200">
+                    <LogOut className="w-4 h-4" /> Logout
+                  </Button>
+                ) : (
                   <>
                     <Link to="/login" onClick={() => setDrawerOpen(false)}>
-                      <Button variant="outline" className="w-full justify-start gap-2">
-                        <LogIn className="w-4 h-4" /> Sign In
-                      </Button>
+                      <Button variant="outline" className="w-full justify-start gap-2"><LogIn className="w-4 h-4" /> Sign In</Button>
                     </Link>
                     <Link to="/register" onClick={() => setDrawerOpen(false)}>
-                      <Button className="w-full justify-start gap-2 bg-primary hover:bg-primary/90">
+                      <Button className="w-full justify-start gap-2 text-white" style={{ backgroundColor: ACCENT }}>
                         <UserPlus className="w-4 h-4" /> Get Started
                       </Button>
                     </Link>
@@ -359,6 +269,6 @@ export default function Index() {
           </>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
