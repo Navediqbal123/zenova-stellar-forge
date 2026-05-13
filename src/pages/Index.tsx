@@ -30,9 +30,9 @@ function FeaturedCarousel() {
       }}
     >
       {/* Wave overlay */}
-      <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 400 200" preserveAspectRatio="none">
-        <path d="M0,140 Q100,100 200,130 T400,120 L400,200 L0,200 Z" fill="white" fillOpacity="0.5" />
-        <path d="M0,160 Q120,120 240,150 T400,140 L400,200 L0,200 Z" fill="white" fillOpacity="0.3" />
+      <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 200" preserveAspectRatio="none">
+        <path d="M0,140 Q100,100 200,130 T400,120 L400,200 L0,200 Z" fill="white" fillOpacity="0.4" />
+        <path d="M0,160 Q120,120 240,150 T400,140 L400,200 L0,200 Z" fill="white" fillOpacity="0.25" />
       </svg>
 
       <AnimatePresence mode="wait">
