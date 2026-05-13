@@ -64,7 +64,7 @@ function FeaturedCarousel() {
               className="h-1.5 rounded-full transition-all"
               style={{
                 width: idx === i ? 20 : 6,
-                backgroundColor: idx === i ? ACCENT : 'rgba(15,23,42,0.25)',
+                backgroundColor: idx === i ? '#ffffff' : 'rgba(255,255,255,0.4)',
               }}
             />
           ))}
