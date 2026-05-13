@@ -227,33 +227,35 @@ export default function Index() {
             <motion.div
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed top-0 left-0 bottom-0 w-72 z-[70] bg-white border-r border-slate-200 flex flex-col"
+              className="fixed top-0 left-0 bottom-0 w-72 z-[70] flex flex-col"
+              style={{ backgroundColor: '#1C1C1E', boxShadow: '8px 0 32px rgba(0,0,0,0.45)' }}
             >
-              <div className="flex items-center justify-between p-5 border-b border-slate-200">
-                <h2 className="text-lg font-bold text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h2>
-                <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100">
-                  <X className="w-5 h-5 text-slate-600" />
+              <div className="flex items-center justify-between p-5 border-b border-white/10">
+                <h2 className="text-lg font-bold text-white">Elora <span style={{ color: ACCENT }}>X</span></h2>
+                <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-white/10">
+                  <X className="w-5 h-5 text-white" />
                 </button>
               </div>
 
               <nav className="flex-1 min-h-0 p-4 space-y-1 overflow-y-auto">
                 {[
-                  { name: 'Home', path: '/', icon: Home, show: true },
+                  { name: 'Home', path: '/', icon: Home, show: true, active: true },
                   { name: 'Become a Developer', path: isAuthenticated ? '/developer/register' : '/register', icon: Code, show: !developerProfile },
                   { name: 'Developer Dashboard', path: '/developer/dashboard', icon: LayoutDashboard, show: !!developerProfile },
                   { name: 'Admin Panel', path: '/admin', icon: Shield, show: isAdmin },
                 ].filter(i => i.show).map(item => (
                   <Link key={item.path} to={item.path} onClick={() => setDrawerOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors">
-                    <item.icon className="w-5 h-5" />
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors"
+                    style={item.active ? { backgroundColor: '#2C2C2E' } : undefined}>
+                    <item.icon className="w-5 h-5" style={{ color: ACCENT }} />
                     <span className="font-medium text-sm">{item.name}</span>
                   </Link>
                 ))}
               </nav>
 
-              <div className="p-4 border-t border-slate-200 space-y-2">
+              <div className="p-4 border-t border-white/10 space-y-2">
                 {isAuthenticated ? (
-                  <Button onClick={handleLogout} className="w-full justify-start gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200">
+                  <Button onClick={handleLogout} className="w-full justify-start gap-2 bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30">
                     <LogOut className="w-4 h-4" /> Logout
                   </Button>
                 ) : (
