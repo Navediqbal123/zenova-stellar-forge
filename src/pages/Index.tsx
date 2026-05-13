@@ -52,8 +52,7 @@ function FeaturedCarousel() {
 
       <div className="relative z-10 flex items-center justify-between">
         <button
-          className="px-4 py-2 rounded-full text-sm font-semibold border-2 bg-white/40 backdrop-blur-sm transition-all hover:bg-white/60"
-          style={{ borderColor: ACCENT, color: ACCENT }}
+          className="px-4 py-2 rounded-full text-sm font-semibold border-2 border-white/80 bg-white/15 backdrop-blur-sm text-white transition-all hover:bg-white/25"
         >
           See Details
         </button>
