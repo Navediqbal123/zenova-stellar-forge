@@ -100,15 +100,20 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
-      <div className="max-w-2xl mx-auto px-5 pt-6 pb-28">
+    <div className="min-h-screen w-full text-slate-900" style={{ backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
+      <div className="w-full max-w-2xl mx-auto px-5 pt-6 pb-28">
 
         {/* Top Bar */}
         <header className="flex items-center justify-between mb-5">
-          <button onClick={() => setDrawerOpen(true)} className="text-left">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h1>
-          </button>
-          <button className="relative p-2.5 rounded-full hover:bg-slate-100 transition-colors">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setDrawerOpen(true)} className="p-2 -ml-2 rounded-lg hover:bg-slate-200/60 transition-colors" aria-label="Open menu">
+              <Menu className="w-7 h-7 text-slate-900" strokeWidth={2.5} />
+            </button>
+            <button onClick={() => setDrawerOpen(true)} className="text-left">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h1>
+            </button>
+          </div>
+          <button className="relative p-2.5 rounded-full hover:bg-slate-200/60 transition-colors">
             <Bell className="w-6 h-6 text-slate-700" />
             <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: ACCENT }} />
           </button>
