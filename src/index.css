@@ -7,6 +7,8 @@
 
 @layer base {
   :root {
+    --app-store-background: 240 14% 96%;
+
     /* Core Background - Deep space black with blue undertone */
     --background: 230 25% 5%;
     --foreground: 210 40% 98%;
@@ -115,10 +117,24 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: hsl(var(--app-store-background));
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    background-color: hsl(var(--app-store-background));
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
