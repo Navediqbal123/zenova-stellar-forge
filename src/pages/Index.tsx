@@ -100,7 +100,7 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen w-full text-slate-900" style={{ backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden text-slate-900" style={{ backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
       <div className="w-full max-w-2xl mx-auto px-5 pt-6 pb-28">
 
         {/* Top Bar */}
