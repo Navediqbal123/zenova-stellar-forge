@@ -140,16 +140,16 @@
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 0;
+    height: 0;
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
+    background: hsl(var(--app-store-background));
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted));
+    background: hsl(var(--app-store-background));
     border-radius: 4px;
   }
 
