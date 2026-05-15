@@ -76,6 +76,20 @@ export default function AppDetail() {
           <div className="flex-1 min-w-0 pt-1">
             <h1 className="text-xl font-bold leading-tight text-slate-900 truncate">{app.name}</h1>
             <p className="text-sm text-slate-500 mt-0.5 truncate">{app.category || 'App'}</p>
+            {(app.in_app_purchases || app.contains_ads) && (
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {app.in_app_purchases && (
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    In-App Purchases
+                  </span>
+                )}
+                {app.contains_ads && (
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    Contains Ads
+                  </span>
+                )}
+              </div>
+            )}
             <div className="flex items-center gap-1.5 mt-2">
               <span className="text-sm font-semibold text-slate-900">{app.rating || '4.8'}</span>
               <div className="flex items-center gap-0.5">
@@ -105,12 +119,11 @@ export default function AppDetail() {
         {/* Info row */}
         <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="grid grid-cols-4 gap-2 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
+          className="grid grid-cols-3 gap-2 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
         >
           {[
             { label: 'AGE', value: '4+', Icon: Shield },
             { label: 'CATEGORY', value: app.category || 'App', Icon: Tag },
-            { label: 'DEVELOPER', value: app.developer_name || 'Studio', Icon: User },
             { label: 'SIZE', value: app.size || 'N/A', Icon: HardDrive },
           ].map(({ label, value, Icon }) => (
             <div key={label} className="flex flex-col items-center text-center px-1">

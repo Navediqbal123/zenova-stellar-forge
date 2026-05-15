@@ -258,25 +258,20 @@ export default function InstallButton({ appId, appName }: InstallButtonProps) {
             <Button
               onClick={handleUninstall}
               variant="outline"
-              style={{ backgroundColor: '#FFFFFF', borderColor: '#D1D1D6', color: '#FF3B30' }}
-              className="flex-1 py-6 text-base font-semibold rounded-2xl border hover:bg-[#FFF5F5]"
+              style={{ backgroundColor: '#FFFFFF', borderColor: '#000000', color: '#000000' }}
+              className="flex-1 py-6 text-base font-semibold rounded-2xl border hover:bg-slate-50"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Uninstall
             </Button>
 
-            {/* Divider */}
-            <div className="w-px h-10 bg-border/40" />
-
             {/* Open or Update */}
             {hasUpdate ? (
               <Button
                 onClick={handleUpdate}
-                className={cn(
-                  "flex-1 py-6 text-base font-semibold rounded-2xl relative overflow-hidden transition-all duration-500",
-                  "backdrop-blur-xl border border-white/10",
-                  "bg-primary/90 hover:bg-primary/80 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)]"
-                )}
+                variant="outline"
+                style={{ backgroundColor: '#FFFFFF', borderColor: '#000000', color: '#000000' }}
+                className="flex-1 py-6 text-base font-semibold rounded-2xl border hover:bg-slate-50"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Update
@@ -284,11 +279,9 @@ export default function InstallButton({ appId, appName }: InstallButtonProps) {
             ) : (
               <Button
                 onClick={handleOpen}
-                className={cn(
-                  "flex-1 py-6 text-base font-semibold rounded-2xl relative overflow-hidden transition-all duration-500",
-                  "backdrop-blur-xl border border-white/10",
-                  "bg-[hsl(var(--success)/0.9)] hover:bg-[hsl(var(--success)/0.8)] shadow-[0_0_30px_-5px_hsl(var(--success)/0.5)]"
-                )}
+                variant="outline"
+                style={{ backgroundColor: '#FFFFFF', borderColor: '#000000', color: '#000000' }}
+                className="flex-1 py-6 text-base font-semibold rounded-2xl border hover:bg-slate-50"
               >
                 <Play className="w-4 h-4 mr-2" />
                 Open

@@ -95,6 +95,30 @@ export default function RatingReview({ appId }: RatingReviewProps) {
         </div>
       </div>
 
+      {/* 5-star breakdown */}
+      <div className="space-y-1.5">
+        {[5, 4, 3, 2, 1].map((star) => {
+          const count = reviews.filter((r) => r.rating === star).length;
+          const pct = reviews.length ? (count / reviews.length) * 100 : 0;
+          return (
+            <div key={star} className="flex items-center gap-2">
+              <span className="text-xs font-medium text-slate-600 w-3 text-right">{star}</span>
+              <Star className="w-3 h-3 shrink-0" style={{ color: STAR_COLOR, fill: STAR_COLOR }} />
+              <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#E5E5EA' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 0.6, delay: (5 - star) * 0.05 }}
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: STAR_COLOR }}
+                />
+              </div>
+              <span className="text-xs text-slate-500 w-8 text-right tabular-nums">{count}</span>
+            </div>
+          );
+        })}
+      </div>
+
       <div className="space-y-3">
         <p className="text-sm text-slate-500">Rate this app</p>
         <div className="flex items-center gap-1">
