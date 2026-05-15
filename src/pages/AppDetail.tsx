@@ -119,12 +119,11 @@ export default function AppDetail() {
         {/* Info row */}
         <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="grid grid-cols-4 gap-2 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
+          className="grid grid-cols-3 gap-2 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
         >
           {[
             { label: 'AGE', value: '4+', Icon: Shield },
             { label: 'CATEGORY', value: app.category || 'App', Icon: Tag },
-            { label: 'DEVELOPER', value: app.developer_name || 'Studio', Icon: User },
             { label: 'SIZE', value: app.size || 'N/A', Icon: HardDrive },
           ].map(({ label, value, Icon }) => (
             <div key={label} className="flex flex-col items-center text-center px-1">
