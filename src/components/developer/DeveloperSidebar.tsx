@@ -224,7 +224,7 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed left-0 top-0 h-screen w-72 z-50 lg:hidden"
+              className="fixed left-0 top-0 h-screen w-[85vw] max-w-[280px] z-50 lg:hidden overflow-y-auto overscroll-contain"
             >
               <div className="absolute inset-0 bg-gradient-to-b from-sidebar via-sidebar to-background/95 backdrop-blur-xl border-r border-white/10" />
               {sidebarContent}
