@@ -258,11 +258,8 @@ export default function InstallButton({ appId, appName }: InstallButtonProps) {
             <Button
               onClick={handleUninstall}
               variant="outline"
-              className={cn(
-                "flex-1 py-6 text-base font-semibold rounded-2xl transition-all duration-300",
-                "backdrop-blur-xl border-border/60 hover:border-destructive/50",
-                "hover:bg-destructive/10 hover:text-destructive"
-              )}
+              style={{ backgroundColor: '#FFFFFF', borderColor: '#D1D1D6', color: '#FF3B30' }}
+              className="flex-1 py-6 text-base font-semibold rounded-2xl border hover:bg-[#FFF5F5]"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Uninstall

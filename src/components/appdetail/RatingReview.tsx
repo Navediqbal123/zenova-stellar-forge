@@ -19,6 +19,9 @@ interface RatingReviewProps {
   appId: string;
 }
 
+const STAR_COLOR = '#FFB800';
+const ACCENT = '#0EA5E9';
+
 export default function RatingReview({ appId }: RatingReviewProps) {
   const { toast } = useToast();
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -60,7 +63,6 @@ export default function RatingReview({ appId }: RatingReviewProps) {
     );
 
     if (error) {
-      console.error('Review error:', error);
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: '⭐ Review Submitted', description: 'Thank you for your feedback!' });
@@ -81,20 +83,20 @@ export default function RatingReview({ appId }: RatingReviewProps) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="glass-card p-5 space-y-5"
+      className="p-5 space-y-5"
+      style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5EA', borderRadius: 12 }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold">Ratings & Reviews</h2>
+        <h2 className="text-base font-semibold text-slate-900">Ratings & Reviews</h2>
         <div className="flex items-center gap-1.5">
-          <span className="text-2xl font-bold">{avgRating}</span>
-          <Star className="w-5 h-5 text-warning fill-current" />
-          <span className="text-xs text-muted-foreground">({reviews.length})</span>
+          <span className="text-2xl font-bold text-slate-900">{avgRating}</span>
+          <Star className="w-5 h-5" style={{ color: STAR_COLOR, fill: STAR_COLOR }} />
+          <span className="text-xs text-slate-500">({reviews.length})</span>
         </div>
       </div>
 
-      {/* Star rating input */}
       <div className="space-y-3">
-        <p className="text-sm text-muted-foreground">Rate this app</p>
+        <p className="text-sm text-slate-500">Rate this app</p>
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <motion.button
@@ -104,15 +106,15 @@ export default function RatingReview({ appId }: RatingReviewProps) {
               onMouseEnter={() => setHoverRating(star)}
               onMouseLeave={() => setHoverRating(0)}
               onClick={() => setUserRating(star)}
-              className="p-1 transition-colors"
+              className="p-1"
             >
               <Star
-                className={cn(
-                  "w-8 h-8 transition-all duration-200",
+                className="w-8 h-8 transition-all duration-200"
+                style={
                   star <= displayRating
-                    ? "text-warning fill-warning drop-shadow-[0_0_6px_hsl(var(--warning)/0.5)]"
-                    : "text-muted-foreground/30"
-                )}
+                    ? { color: STAR_COLOR, fill: STAR_COLOR }
+                    : { color: '#D1D1D6' }
+                }
               />
             </motion.button>
           ))}
@@ -122,23 +124,24 @@ export default function RatingReview({ appId }: RatingReviewProps) {
           placeholder="Write a review (optional)..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          className="bg-background/50 backdrop-blur-sm border-white/10 resize-none min-h-[70px] text-sm"
+          className="resize-none min-h-[70px] text-sm border-0 text-slate-900 placeholder:text-slate-400"
+          style={{ backgroundColor: '#F2F2F7' }}
         />
 
         <Button
           onClick={handleSubmit}
           disabled={submitting || userRating === 0}
           size="sm"
-          className="rounded-xl gap-2 bg-primary/80 backdrop-blur-sm hover:bg-primary/70"
+          className="rounded-xl gap-2 text-white hover:opacity-90"
+          style={{ backgroundColor: ACCENT }}
         >
           <Send className="w-4 h-4" />
           Submit Review
         </Button>
       </div>
 
-      {/* Reviews list */}
       {reviews.length > 0 && (
-        <div className="space-y-3 pt-2 border-t border-white/5">
+        <div className="space-y-3 pt-2 border-t" style={{ borderColor: '#E5E5EA' }}>
           {reviews.slice(0, 5).map((review, i) => (
             <motion.div
               key={review.id}
@@ -151,18 +154,16 @@ export default function RatingReview({ appId }: RatingReviewProps) {
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star
                     key={s}
-                    className={cn(
-                      "w-3 h-3",
-                      s <= review.rating ? "text-warning fill-warning" : "text-muted-foreground/20"
-                    )}
+                    className="w-3 h-3"
+                    style={s <= review.rating ? { color: STAR_COLOR, fill: STAR_COLOR } : { color: '#D1D1D6' }}
                   />
                 ))}
-                <span className="text-[10px] text-muted-foreground ml-2">
+                <span className="text-[10px] text-slate-400 ml-2">
                   {new Date(review.created_at).toLocaleDateString()}
                 </span>
               </div>
               {review.comment && (
-                <p className="text-xs text-muted-foreground/80 leading-relaxed">{review.comment}</p>
+                <p className="text-xs text-slate-600 leading-relaxed">{review.comment}</p>
               )}
             </motion.div>
           ))}
