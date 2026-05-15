@@ -79,12 +79,12 @@ export default function AppDetail() {
             {(app.in_app_purchases || app.contains_ads) && (
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {app.in_app_purchases && (
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-black border border-slate-200">
                     In-App Purchases
                   </span>
                 )}
                 {app.contains_ads && (
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-black border border-slate-200">
                     Contains Ads
                   </span>
                 )}
