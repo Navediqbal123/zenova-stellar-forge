@@ -150,25 +150,25 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
                 <button
                   onClick={() => handleNavClick(item.tab)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group",
+                    "w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl transition-all duration-200 group text-sm",
                     isActive
                       ? "bg-primary/15 text-primary border border-primary/30"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   )}
                 >
                   <item.icon className={cn(
-                    "w-5 h-5 transition-all",
+                    "w-5 h-5 shrink-0 transition-all",
                     isActive
                       ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]"
                       : "group-hover:text-primary"
                   )} />
                   {!collapsed && (
-                    <span className="font-medium">{item.label}</span>
+                    <span className="font-medium text-sm truncate">{item.label}</span>
                   )}
                   {isActive && !collapsed && (
                     <motion.div
                       layoutId="activeIndicator"
-                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
+                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shrink-0"
                     />
                   )}
                 </button>
