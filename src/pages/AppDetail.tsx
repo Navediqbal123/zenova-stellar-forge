@@ -112,27 +112,26 @@ export default function AppDetail() {
             <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/90 pointer-events-none" />
           </div>
         </motion.div>
-        {app.in_app_purchases && (
-          <p className="text-xs text-slate-500 text-right mb-6">In-app purchases</p>
-        )}
 
         {/* Info row */}
         <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="grid grid-cols-3 gap-2 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
+          className="grid grid-cols-4 gap-1 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
         >
           {[
             { label: 'AGE', value: '4+', Icon: Shield },
             { label: 'CATEGORY', value: app.category || 'App', Icon: Tag },
-            { label: 'SIZE', value: app.size || 'N/A', Icon: HardDrive },
+            { label: 'DEVELOPER', value: app.developer_name || 'Unknown', Icon: User },
+            { label: `${reviewCount} REVIEWS`, value: `${app.rating || '4.8'} ★`, Icon: Star },
           ].map(({ label, value, Icon }) => (
-            <div key={label} className="flex flex-col items-center text-center px-1">
-              <p className="text-[9px] font-bold tracking-wider text-slate-400 mb-1">{label}</p>
+            <div key={label} className="flex flex-col items-center text-center px-1 border-r border-slate-200 last:border-r-0">
+              <p className="text-[8px] font-bold tracking-wider text-slate-400 mb-1 truncate w-full">{label}</p>
               <Icon className="w-4 h-4 text-slate-500 mb-1" />
               <p className="text-[11px] font-semibold text-slate-800 truncate w-full">{value}</p>
             </div>
           ))}
         </motion.section>
+
 
         {/* Screenshot banner */}
         <motion.section
