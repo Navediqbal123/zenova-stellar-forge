@@ -48,7 +48,10 @@ export default function AppDetail() {
   ];
 
   return (
-    <div
+    <motion.div
+      initial={{ x: '100%', opacity: 0.6 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ type: 'tween', ease: [0.32, 0.72, 0, 1], duration: 0.35 }}
       className="min-h-screen w-full max-w-[100vw] overflow-x-hidden text-slate-900"
       style={{ backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}
     >
