@@ -77,6 +77,7 @@ function FeaturedCarousel() {
 export default function Index() {
   const { apps } = useApps();
   const { isAuthenticated, isAdmin, developerProfile } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>('apps');
   const [query, setQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
