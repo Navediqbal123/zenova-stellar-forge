@@ -57,10 +57,12 @@ export default function RatingReview({ appId }: RatingReviewProps) {
     }
 
     setSubmitting(true);
-    const { error } = await supabase.from('reviews').upsert(
-      { app_id: appId, user_id: userId, rating: userRating, comment: comment || null },
-      { onConflict: 'app_id,user_id' }
-    );
+    const { error } = await supabase.from('reviews').insert({
+      app_id: appId,
+      user_id: userId,
+      rating: userRating,
+      comment: comment || null,
+    });
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
