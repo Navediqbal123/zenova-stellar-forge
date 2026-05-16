@@ -113,23 +113,35 @@ export default function AppDetail() {
           </div>
         </motion.div>
 
-        {/* Info row */}
+        {/* Info rows */}
         <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="grid grid-cols-4 gap-1 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
+          className="grid grid-cols-4 gap-1 py-4 mb-3 bg-white rounded-2xl border border-slate-200"
         >
           {[
             { label: 'AGE', value: '4+', Icon: Shield },
             { label: 'CATEGORY', value: app.category || 'App', Icon: Tag },
-            { label: 'DEVELOPER', value: app.developer_name || 'Unknown', Icon: User },
+            { label: 'SIZE', value: app.size ? (String(app.size).toLowerCase().includes('mb') ? app.size : `${app.size} MB`) : 'N/A', Icon: HardDrive },
             { label: `${reviewCount} REVIEWS`, value: `${app.rating || '4.8'} ★`, Icon: Star },
           ].map(({ label, value, Icon }) => (
             <div key={label} className="flex flex-col items-center text-center px-1 border-r border-slate-200 last:border-r-0">
-              <p className="text-[8px] font-bold tracking-wider text-slate-400 mb-1 truncate w-full">{label}</p>
-              <Icon className="w-4 h-4 text-slate-500 mb-1" />
-              <p className="text-[11px] font-semibold text-slate-800 truncate w-full">{value}</p>
+              <p className="text-[11px] font-bold tracking-wider mb-1 truncate w-full" style={{ color: '#666666' }}>{label}</p>
+              <Icon className="w-4 h-4 mb-1" style={{ color: '#666666' }} />
+              <p className="text-[15px] font-semibold truncate w-full" style={{ color: '#000000' }}>{value}</p>
             </div>
           ))}
+        </motion.section>
+
+        <motion.section
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+          className="grid grid-cols-1 gap-1 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
+        >
+          <div className="flex flex-col items-center text-center px-1">
+            <p className="text-[11px] font-bold tracking-wider mb-1" style={{ color: '#666666' }}>DOWNLOADS</p>
+            <p className="text-[15px] font-semibold" style={{ color: '#000000' }}>
+              {(app.downloads || 0).toLocaleString()}
+            </p>
+          </div>
         </motion.section>
 
 
