@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, Mic, Star, Gamepad2, AppWindow, Flame, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu } from 'lucide-react';
 import { useApps } from '@/contexts/AppsContext';
@@ -77,6 +77,7 @@ function FeaturedCarousel() {
 export default function Index() {
   const { apps } = useApps();
   const { isAuthenticated, isAdmin, developerProfile } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>('apps');
   const [query, setQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -174,13 +175,16 @@ export default function Index() {
                       </div>
                     </div>
                     {/* Get button */}
-                    <button
-                      onClick={(e) => { e.preventDefault(); window.location.href = `/apps/${app.id}`; }}
-                      className="px-5 py-1.5 rounded-full text-sm font-bold transition-all hover:scale-105"
+                    <motion.button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/apps/${app.id}`); }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                      className="px-5 py-1.5 rounded-full text-sm font-bold"
                       style={{ backgroundColor: '#F1F5F9', color: ACCENT }}
                     >
                       Get
-                    </button>
+                    </motion.button>
                   </Link>
                 </motion.div>
               ))
