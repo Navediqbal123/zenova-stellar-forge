@@ -175,13 +175,16 @@ export default function Index() {
                       </div>
                     </div>
                     {/* Get button */}
-                    <button
-                      onClick={(e) => { e.preventDefault(); window.location.href = `/apps/${app.id}`; }}
-                      className="px-5 py-1.5 rounded-full text-sm font-bold transition-all hover:scale-105"
+                    <motion.button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/apps/${app.id}`); }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                      className="px-5 py-1.5 rounded-full text-sm font-bold"
                       style={{ backgroundColor: '#F1F5F9', color: ACCENT }}
                     >
                       Get
-                    </button>
+                    </motion.button>
                   </Link>
                 </motion.div>
               ))
