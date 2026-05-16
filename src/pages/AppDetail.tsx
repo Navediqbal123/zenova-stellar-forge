@@ -113,48 +113,64 @@ export default function AppDetail() {
           </div>
         </motion.div>
 
-        {/* Info row */}
+        {/* Info rows */}
         <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="grid grid-cols-4 gap-1 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
+          className="grid grid-cols-4 gap-1 py-4 mb-3 bg-white rounded-2xl border border-slate-200"
         >
           {[
             { label: 'AGE', value: '4+', Icon: Shield },
             { label: 'CATEGORY', value: app.category || 'App', Icon: Tag },
-            { label: 'DEVELOPER', value: app.developer_name || 'Unknown', Icon: User },
+            { label: 'SIZE', value: app.size ? (String(app.size).toLowerCase().includes('mb') ? app.size : `${app.size} MB`) : 'N/A', Icon: HardDrive },
             { label: `${reviewCount} REVIEWS`, value: `${app.rating || '4.8'} ★`, Icon: Star },
           ].map(({ label, value, Icon }) => (
             <div key={label} className="flex flex-col items-center text-center px-1 border-r border-slate-200 last:border-r-0">
-              <p className="text-[8px] font-bold tracking-wider text-slate-400 mb-1 truncate w-full">{label}</p>
-              <Icon className="w-4 h-4 text-slate-500 mb-1" />
-              <p className="text-[11px] font-semibold text-slate-800 truncate w-full">{value}</p>
+              <p className="text-[11px] font-bold tracking-wider mb-1 truncate w-full" style={{ color: '#666666' }}>{label}</p>
+              <Icon className="w-4 h-4 mb-1" style={{ color: '#666666' }} />
+              <p className="text-[15px] font-semibold truncate w-full" style={{ color: '#000000' }}>{value}</p>
             </div>
           ))}
         </motion.section>
 
-
-        {/* Screenshot banner */}
         <motion.section
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="relative overflow-hidden rounded-3xl mb-6 h-48 flex items-center"
-          style={{ background: 'linear-gradient(135deg, #DBEAFE 0%, #93C5FD 60%, #60A5FA 100%)' }}
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+          className="grid grid-cols-1 gap-1 py-4 mb-6 bg-white rounded-2xl border border-slate-200"
         >
-          <div className="relative z-10 flex-1 px-5">
-            <p className="text-xs font-bold tracking-wider text-blue-900/70 mb-2">PREVIEW</p>
-            <h2 className="text-2xl font-bold text-slate-900 leading-tight">
-              {app.short_description?.slice(0, 40) || 'Made for the way you live'}
-            </h2>
-          </div>
-          <div className="relative z-10 w-28 h-44 mr-4 shrink-0">
-            <div className="absolute inset-0 rounded-[1.5rem] bg-slate-900 p-1.5 shadow-2xl rotate-6">
-              <div className="w-full h-full rounded-[1.2rem] overflow-hidden bg-white">
-                {screenshot
-                  ? <img src={screenshot} alt="screenshot" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-3xl">{app.icon || '📱'}</div>}
-              </div>
-            </div>
+          <div className="flex flex-col items-center text-center px-1">
+            <p className="text-[11px] font-bold tracking-wider mb-1" style={{ color: '#666666' }}>DOWNLOADS</p>
+            <p className="text-[15px] font-semibold" style={{ color: '#000000' }}>
+              {(app.downloads || 0).toLocaleString()}
+            </p>
           </div>
         </motion.section>
+
+
+        {/* Screenshot banner — only when a valid screenshot URL exists */}
+        {screenshot && typeof screenshot === 'string' && /^https?:\/\//i.test(screenshot) && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            className="relative overflow-hidden rounded-3xl mb-6 h-48 flex items-center"
+            style={{ background: 'linear-gradient(135deg, #DBEAFE 0%, #93C5FD 60%, #60A5FA 100%)' }}
+          >
+            <div className="relative z-10 flex-1 px-5">
+              <p className="text-xs font-bold tracking-wider text-blue-900/70 mb-2">PREVIEW</p>
+              <h2 className="text-2xl font-bold text-slate-900 leading-tight line-clamp-3 break-words">
+                {(() => {
+                  const t = app.short_description?.trim() || '';
+                  if (!t || /^https?:\/\//i.test(t)) return 'Made for the way you live';
+                  return t.slice(0, 40);
+                })()}
+              </h2>
+            </div>
+            <div className="relative z-10 w-28 h-44 mr-4 shrink-0">
+              <div className="absolute inset-0 rounded-[1.5rem] bg-slate-900 p-1.5 shadow-2xl rotate-6">
+                <div className="w-full h-full rounded-[1.2rem] overflow-hidden bg-white">
+                  <img src={screenshot} alt="screenshot" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        )}
 
         {/* About */}
         <motion.section
