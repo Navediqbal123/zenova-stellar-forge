@@ -205,6 +205,6 @@ export default function AppDetail() {
           ))}
         </div>
       </nav>
-    </div>
+    </motion.div>
   );
 }
