@@ -555,36 +555,36 @@ export default function DeveloperDashboard() {
 
             {/* Analytics Tab */}
             {activeTab === 'analytics' && (
-              <motion.div key="analytics" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                <h2 className="text-xl font-bold">Analytics</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="admin-glass-card p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 rounded-xl bg-primary/15"><Download className="w-5 h-5 text-primary" /></div>
-                      <span className="text-sm text-muted-foreground">Total Downloads</span>
+              <motion.div key="analytics" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4 sm:space-y-6">
+                <h2 className="text-lg sm:text-xl font-bold">Analytics</h2>
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+                  <div className="admin-glass-card p-3 sm:p-6 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/15 shrink-0"><Download className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /></div>
+                      <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Total Downloads</span>
                     </div>
-                    <p className="text-3xl font-bold">{stats.totalDownloads.toLocaleString()}</p>
+                    <p className="text-xl sm:text-3xl font-bold truncate">{stats.totalDownloads.toLocaleString()}</p>
                   </div>
-                  <div className="admin-glass-card p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 rounded-xl bg-secondary/15"><Eye className="w-5 h-5 text-secondary" /></div>
-                      <span className="text-sm text-muted-foreground">Total Views</span>
+                  <div className="admin-glass-card p-3 sm:p-6 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-secondary/15 shrink-0"><Eye className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" /></div>
+                      <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Total Views</span>
                     </div>
-                    <p className="text-3xl font-bold">{stats.totalViews.toLocaleString()}</p>
+                    <p className="text-xl sm:text-3xl font-bold truncate">{stats.totalViews.toLocaleString()}</p>
                   </div>
-                  <div className="admin-glass-card p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 rounded-xl bg-success/15"><CheckCircle className="w-5 h-5 text-success" /></div>
-                      <span className="text-sm text-muted-foreground">Approved Apps</span>
+                  <div className="admin-glass-card p-3 sm:p-6 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-success/15 shrink-0"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-success" /></div>
+                      <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Approved Apps</span>
                     </div>
-                    <p className="text-3xl font-bold">{stats.approvedApps}</p>
+                    <p className="text-xl sm:text-3xl font-bold truncate">{stats.approvedApps}</p>
                   </div>
-                  <div className="admin-glass-card p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 rounded-xl bg-warning/15"><Star className="w-5 h-5 text-warning" /></div>
-                      <span className="text-sm text-muted-foreground">Avg Rating</span>
+                  <div className="admin-glass-card p-3 sm:p-6 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-warning/15 shrink-0"><Star className="w-4 h-4 sm:w-5 sm:h-5 text-warning" /></div>
+                      <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Avg Rating</span>
                     </div>
-                    <p className="text-3xl font-bold">
+                    <p className="text-xl sm:text-3xl font-bold truncate">
                       {myApps.length > 0 ? (myApps.reduce((s, a) => s + a.rating, 0) / myApps.length).toFixed(1) : '—'}
                     </p>
                   </div>
@@ -592,18 +592,18 @@ export default function DeveloperDashboard() {
 
                 {/* Per-app breakdown */}
                 {myApps.length > 0 && (
-                  <div className="admin-glass-card p-6">
-                    <h3 className="text-lg font-semibold mb-4">Per-App Breakdown</h3>
-                    <div className="space-y-3">
+                  <div className="admin-glass-card p-3 sm:p-6">
+                    <h3 className="text-sm sm:text-lg font-semibold mb-3 sm:mb-4">Per-App Breakdown</h3>
+                    <div className="space-y-2 sm:space-y-3">
                       {myApps.map(app => (
-                        <div key={app.id} className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.03] border border-white/5">
-                          <span className="text-xl">{app.icon || '📱'}</span>
+                        <div key={app.id} className="flex items-center gap-2 sm:gap-4 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                          <span className="text-lg sm:text-xl shrink-0">{app.icon || '📱'}</span>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{app.name}</p>
+                            <p className="font-medium text-xs sm:text-sm truncate">{app.name}</p>
                           </div>
-                          <div className="text-right text-sm">
+                          <div className="text-right text-xs sm:text-sm shrink-0">
                             <p className="font-semibold">{app.downloads.toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground">downloads</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">downloads</p>
                           </div>
                         </div>
                       ))}
