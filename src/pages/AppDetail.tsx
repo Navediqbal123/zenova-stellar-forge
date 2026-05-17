@@ -80,28 +80,19 @@ export default function AppDetail() {
             <h1 className="text-xl font-bold leading-tight text-slate-900 truncate">{app.name}</h1>
             <p className="text-sm text-slate-500 mt-0.5 truncate">{app.category || 'App'}</p>
             {(app.in_app_purchases || app.contains_ads) && (
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {app.in_app_purchases && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-black border border-slate-200">
+                  <span className="text-[13px] font-bold px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200" style={{ color: '#000000' }}>
                     In-App Purchases
                   </span>
                 )}
                 {app.contains_ads && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-black border border-slate-200">
+                  <span className="text-[13px] font-bold px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200" style={{ color: '#000000' }}>
                     Contains Ads
                   </span>
                 )}
               </div>
             )}
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-sm font-semibold text-slate-900">{app.rating || '4.8'}</span>
-              <div className="flex items-center gap-0.5">
-                {[0, 1, 2, 3, 4].map(i => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <span className="text-xs text-slate-500 ml-1">({reviewCount})</span>
-            </div>
           </div>
         </motion.section>
 
