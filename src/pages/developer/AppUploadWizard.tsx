@@ -181,6 +181,9 @@ export default function AppUploadWizard() {
         price: monetization.is_paid ? Number(monetization.price) : null,
         apk_url: apkUrl,
         aab_url: aabUrl,
+        contains_ads: monetization.contains_ads,
+        in_app_purchases: monetization.in_app_purchases,
+        privacy_policy_url: monetization.privacy_policy_url,
       } as any);
 
       triggerConfetti();
