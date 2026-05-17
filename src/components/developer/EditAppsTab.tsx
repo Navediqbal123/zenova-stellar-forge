@@ -159,48 +159,48 @@ export function EditAppsTab() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Pencil className="w-4 h-4 text-primary" /> Edit Apps
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
+            <Pencil className="w-4 h-4 text-primary shrink-0" /> Edit Apps
           </h2>
-          <p className="text-xs text-muted-foreground">{myApps.length} apps available to edit</p>
+          <p className="text-[11px] sm:text-xs text-muted-foreground">{myApps.length} apps available to edit</p>
         </div>
       </div>
 
       {myApps.length === 0 ? (
-        <div className="admin-glass-card p-12 text-center">
-          <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-          <p className="text-muted-foreground">No apps to edit. Upload an app first.</p>
+        <div className="admin-glass-card p-8 sm:p-12 text-center">
+          <Package className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground/50" />
+          <p className="text-sm text-muted-foreground">No apps to edit. Upload an app first.</p>
         </div>
       ) : (
-        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-4">
+        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-3 sm:space-y-4">
           {myApps.map(app => {
             const isEditing = editingAppId === app.id;
             return (
               <motion.div key={app.id} variants={staggerItem} className="admin-glass-card overflow-hidden">
                 {/* App Header */}
-                <div className="p-3 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl shrink-0 overflow-hidden">
+                <div className="p-2.5 sm:p-3 flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl shrink-0 overflow-hidden">
                     {app.icon_url && app.icon_url.startsWith('http') ? (
                       <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                     ) : (app.icon || '📱')}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="font-semibold text-sm truncate">{app.name}</h3>
+                      <h3 className="font-semibold text-xs sm:text-sm truncate max-w-[140px] sm:max-w-none">{app.name}</h3>
                       <StatusBadge status={app.status} size="sm" />
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">{app.short_description}</p>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground truncate">{app.short_description}</p>
                   </div>
                   {!isEditing ? (
-                    <Button size="sm" variant="outline" className="border-primary/30 text-primary h-8 text-xs px-2.5" onClick={() => startEditing(app)}>
-                      <Pencil className="w-3 h-3 mr-1" /> Edit
+                    <Button size="sm" variant="outline" className="border-primary/30 text-primary h-8 text-xs px-2 shrink-0" onClick={() => startEditing(app)}>
+                      <Pencil className="w-3 h-3 sm:mr-1" /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                   ) : (
-                    <Button size="sm" variant="ghost" className="h-8 text-xs px-2.5" onClick={() => setEditingAppId(null)}>
-                      <X className="w-3.5 h-3.5 mr-1" /> Cancel
+                    <Button size="sm" variant="ghost" className="h-8 text-xs px-2 shrink-0" onClick={() => setEditingAppId(null)}>
+                      <X className="w-3.5 h-3.5 sm:mr-1" /> <span className="hidden sm:inline">Cancel</span>
                     </Button>
                   )}
                 </div>
