@@ -335,7 +335,7 @@ export function EditAppsTab() {
 
                         {/* Save Button */}
                         <Button
-                          className="w-full bg-primary hover:bg-primary/90 h-9 text-sm"
+                          className="w-full bg-primary hover:bg-primary/90 h-11 text-sm"
                           disabled={isSaving || !editForm.name.trim()}
                           onClick={handleSave}
                         >
