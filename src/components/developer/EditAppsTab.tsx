@@ -259,11 +259,11 @@ export function EditAppsTab() {
                         </div>
 
                         {/* Category & Version - stacked on mobile */}
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
                           <div className="space-y-1.5">
                             <Label className="text-xs">Category</Label>
                             <Select value={editForm.category} onValueChange={v => setEditForm(prev => ({ ...prev, category: v }))}>
-                              <SelectTrigger className="bg-white/5 border-white/10 h-9 text-sm">
+                              <SelectTrigger className="bg-white/5 border-white/10 h-10 text-sm min-w-0">
                                 <SelectValue placeholder="Select category" />
                               </SelectTrigger>
                               <SelectContent className="bg-popover border-border z-50">
@@ -276,32 +276,32 @@ export function EditAppsTab() {
 
                           <div className="space-y-1.5">
                             <Label className="text-xs">Version</Label>
-                            <Input value={editForm.version} onChange={e => setEditForm(prev => ({ ...prev, version: e.target.value }))} className="bg-white/5 border-white/10 h-9 text-sm" placeholder="1.0.0" />
+                            <Input value={editForm.version} onChange={e => setEditForm(prev => ({ ...prev, version: e.target.value }))} className="bg-white/5 border-white/10 h-10 text-sm w-full min-w-0" placeholder="1.0.0" />
                           </div>
                         </div>
 
                         {/* Tags - Disabled */}
                         <div className="space-y-1.5 opacity-50 pointer-events-none">
                           <Label className="flex items-center gap-2 text-xs">Tags <Badge variant="outline" className="text-[10px]">Disabled</Badge></Label>
-                          <Input disabled placeholder="Tags are auto-generated" className="bg-white/5 border-white/10 h-9 text-sm" />
+                          <Input disabled placeholder="Tags are auto-generated" className="bg-white/5 border-white/10 h-10 text-sm w-full min-w-0" />
                         </div>
 
                         {/* Ads & IAP - Enabled */}
-                        <div className="grid grid-cols-1 gap-3">
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
-                            <div className="flex items-center gap-2">
+                        <div className="grid grid-cols-1 gap-2.5 sm:gap-3 min-w-0">
+                          <div className="flex items-center justify-between gap-3 min-h-[52px] p-3 rounded-xl bg-muted/30 border border-border min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
                               <Megaphone className="w-4 h-4 text-muted-foreground" />
-                              <Label className="text-xs cursor-pointer">Contains Ads</Label>
+                              <Label className="text-xs cursor-pointer truncate">Contains Ads</Label>
                             </div>
                             <Switch
                               checked={editForm.contains_ads}
                               onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, contains_ads: checked }))}
                             />
                           </div>
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
-                            <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-between gap-3 min-h-[52px] p-3 rounded-xl bg-muted/30 border border-border min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
                               <ShoppingCart className="w-4 h-4 text-muted-foreground" />
-                              <Label className="text-xs cursor-pointer">In-App Purchases</Label>
+                              <Label className="text-xs cursor-pointer truncate">In-App Purchases</Label>
                             </div>
                             <Switch
                               checked={editForm.in_app_purchases}
@@ -313,9 +313,9 @@ export function EditAppsTab() {
                         {/* Screenshots Upload */}
                         <div className="space-y-1.5">
                           <Label className="text-xs">Screenshots</Label>
-                          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                          <div className="flex gap-2 overflow-x-auto overflow-y-hidden pb-2 -mx-1 px-1 snap-x">
                             {editForm.screenshots.map((url, i) => (
-                              <div key={i} className="relative shrink-0 w-20 h-36 rounded-lg overflow-hidden border border-border group">
+                              <div key={i} className="relative shrink-0 w-20 h-36 rounded-lg overflow-hidden border border-border group snap-start">
                                 <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
                                 <button
                                   onClick={() => removeScreenshot(i)}
@@ -325,7 +325,7 @@ export function EditAppsTab() {
                                 </button>
                               </div>
                             ))}
-                            <label className="shrink-0 w-20 h-36 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
+                            <label className="shrink-0 w-20 h-36 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors snap-start">
                               <input type="file" accept="image/*" multiple className="hidden" onChange={handleScreenshotUpload} disabled={uploadingScreenshot} />
                               {uploadingScreenshot ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> : <ImagePlus className="w-5 h-5 text-muted-foreground" />}
                               <span className="text-[10px] text-muted-foreground mt-1">Add</span>
