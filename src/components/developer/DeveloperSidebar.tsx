@@ -118,7 +118,7 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 font-semibold">Navigate</p>
         )}
         <nav className="space-y-1">
-          {generalNavItems.map((item, index) => (
+          {generalNavItems.map((item) => (
             <div key={item.path}>
               <button
                 onClick={() => { navigate(item.path); onMobileClose?.(); }}
@@ -142,7 +142,7 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 font-semibold">Developer</p>
         )}
         <nav className="space-y-1">
-          {devNavItems.map((item, index) => {
+          {devNavItems.map((item) => {
             const isActive = activeTab === item.tab;
             return (
               <div key={item.tab}>
