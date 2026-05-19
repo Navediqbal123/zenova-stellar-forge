@@ -46,10 +46,10 @@ interface EditForm {
 
 const staggerContainer = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.03 } },
 };
 const staggerItem = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 8 },
   show: { opacity: 1, y: 0 },
 };
 
@@ -159,7 +159,7 @@ export function EditAppsTab() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
+    <div className="space-y-3 sm:space-y-6 max-w-full min-w-0 overflow-x-hidden">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
@@ -175,31 +175,31 @@ export function EditAppsTab() {
           <p className="text-sm text-muted-foreground">No apps to edit. Upload an app first.</p>
         </div>
       ) : (
-        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-3 sm:space-y-4">
+        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-2.5 sm:space-y-4 min-w-0">
           {myApps.map(app => {
             const isEditing = editingAppId === app.id;
             return (
-              <motion.div key={app.id} variants={staggerItem} className="admin-glass-card overflow-hidden">
+              <motion.div key={app.id} variants={staggerItem} className="admin-glass-card rounded-xl sm:rounded-2xl overflow-hidden min-w-0">
                 {/* App Header */}
-                <div className="p-2.5 sm:p-3 flex items-center gap-2 sm:gap-3">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-xl shrink-0 overflow-hidden">
+                <div className="p-2 sm:p-3 flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-lg sm:text-xl shrink-0 overflow-hidden">
                     {app.icon_url && app.icon_url.startsWith('http') ? (
                       <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                     ) : (app.icon || '📱')}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="font-semibold text-xs sm:text-sm truncate max-w-[140px] sm:max-w-none">{app.name}</h3>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <h3 className="font-semibold text-xs sm:text-sm truncate min-w-0 max-w-[120px] sm:max-w-none">{app.name}</h3>
                       <StatusBadge status={app.status} size="sm" />
                     </div>
                     <p className="text-[11px] sm:text-xs text-muted-foreground truncate">{app.short_description}</p>
                   </div>
                   {!isEditing ? (
-                    <Button size="sm" variant="outline" className="border-primary/30 text-primary h-8 text-xs px-2 shrink-0" onClick={() => startEditing(app)}>
+                    <Button size="sm" variant="outline" className="border-primary/30 text-primary h-11 w-11 sm:w-auto text-xs px-0 sm:px-3 shrink-0" onClick={() => startEditing(app)}>
                       <Pencil className="w-3 h-3 sm:mr-1" /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                   ) : (
-                    <Button size="sm" variant="ghost" className="h-8 text-xs px-2 shrink-0" onClick={() => setEditingAppId(null)}>
+                    <Button size="sm" variant="ghost" className="h-11 w-11 sm:w-auto text-xs px-0 sm:px-3 shrink-0" onClick={() => setEditingAppId(null)}>
                       <X className="w-3.5 h-3.5 sm:mr-1" /> <span className="hidden sm:inline">Cancel</span>
                     </Button>
                   )}
@@ -212,24 +212,25 @@ export function EditAppsTab() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.18, ease: 'easeOut' }}
                       className="overflow-hidden"
                     >
-                      <div className="px-3 pb-4 pt-2 border-t border-border/30 space-y-4">
+                      <div className="px-2.5 sm:px-3 pb-3 sm:pb-4 pt-2 border-t border-border/30 space-y-3 sm:space-y-4 min-w-0">
                         {/* Icon Upload */}
                         <div className="space-y-2">
                           <Label className="text-xs">App Icon</Label>
-                          <div className="flex items-center gap-3">
-                            <div className="w-16 h-16 rounded-xl bg-muted/50 border border-border flex items-center justify-center overflow-hidden shrink-0">
+                          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-muted/50 border border-border flex items-center justify-center overflow-hidden shrink-0">
                               {editForm.icon_url && editForm.icon_url.startsWith('http') ? (
                                 <img src={editForm.icon_url} alt="icon" className="w-full h-full object-cover" />
                               ) : (
                                 <ImagePlus className="w-6 h-6 text-muted-foreground" />
                               )}
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <label className="cursor-pointer">
                                 <input type="file" accept="image/*" className="hidden" onChange={handleIconUpload} disabled={uploadingIcon} />
-                                <Button variant="outline" size="sm" className="border-primary/30 h-8 text-xs" asChild>
+                                <Button variant="outline" size="sm" className="border-primary/30 h-10 text-xs px-3" asChild>
                                   <span>{uploadingIcon ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> Uploading...</> : <><Upload className="w-3.5 h-3.5 mr-1" /> Upload Icon</>}</span>
                                 </Button>
                               </label>
@@ -241,28 +242,28 @@ export function EditAppsTab() {
                         {/* Name */}
                         <div className="space-y-1.5">
                           <Label className="text-xs">App Name <span className="text-destructive">*</span></Label>
-                          <Input value={editForm.name} onChange={e => setEditForm(prev => ({ ...prev, name: e.target.value.slice(0, 30) }))} className="bg-white/5 border-white/10 h-9 text-sm" maxLength={30} />
+                          <Input value={editForm.name} onChange={e => setEditForm(prev => ({ ...prev, name: e.target.value.slice(0, 30) }))} className="bg-white/5 border-white/10 h-10 text-sm w-full min-w-0" maxLength={30} />
                           <p className="text-[10px] text-muted-foreground text-right">{editForm.name.length}/30</p>
                         </div>
 
                         {/* Short Description */}
                         <div className="space-y-1.5">
                           <Label className="text-xs">Short Description</Label>
-                          <Input value={editForm.short_description} onChange={e => setEditForm(prev => ({ ...prev, short_description: e.target.value.slice(0, 80) }))} className="bg-white/5 border-white/10 h-9 text-sm" maxLength={80} />
+                          <Input value={editForm.short_description} onChange={e => setEditForm(prev => ({ ...prev, short_description: e.target.value.slice(0, 80) }))} className="bg-white/5 border-white/10 h-10 text-sm w-full min-w-0" maxLength={80} />
                         </div>
 
                         {/* Full Description */}
                         <div className="space-y-1.5">
                           <Label className="text-xs">Full Description</Label>
-                          <Textarea value={editForm.description} onChange={e => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="bg-white/5 border-white/10 min-h-[100px] text-sm" />
+                          <Textarea value={editForm.description} onChange={e => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="bg-white/5 border-white/10 min-h-[96px] text-sm w-full min-w-0" />
                         </div>
 
                         {/* Category & Version - stacked on mobile */}
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
                           <div className="space-y-1.5">
                             <Label className="text-xs">Category</Label>
                             <Select value={editForm.category} onValueChange={v => setEditForm(prev => ({ ...prev, category: v }))}>
-                              <SelectTrigger className="bg-white/5 border-white/10 h-9 text-sm">
+                              <SelectTrigger className="bg-white/5 border-white/10 h-10 text-sm min-w-0">
                                 <SelectValue placeholder="Select category" />
                               </SelectTrigger>
                               <SelectContent className="bg-popover border-border z-50">
@@ -275,32 +276,32 @@ export function EditAppsTab() {
 
                           <div className="space-y-1.5">
                             <Label className="text-xs">Version</Label>
-                            <Input value={editForm.version} onChange={e => setEditForm(prev => ({ ...prev, version: e.target.value }))} className="bg-white/5 border-white/10 h-9 text-sm" placeholder="1.0.0" />
+                            <Input value={editForm.version} onChange={e => setEditForm(prev => ({ ...prev, version: e.target.value }))} className="bg-white/5 border-white/10 h-10 text-sm w-full min-w-0" placeholder="1.0.0" />
                           </div>
                         </div>
 
                         {/* Tags - Disabled */}
                         <div className="space-y-1.5 opacity-50 pointer-events-none">
                           <Label className="flex items-center gap-2 text-xs">Tags <Badge variant="outline" className="text-[10px]">Disabled</Badge></Label>
-                          <Input disabled placeholder="Tags are auto-generated" className="bg-white/5 border-white/10 h-9 text-sm" />
+                          <Input disabled placeholder="Tags are auto-generated" className="bg-white/5 border-white/10 h-10 text-sm w-full min-w-0" />
                         </div>
 
                         {/* Ads & IAP - Enabled */}
-                        <div className="grid grid-cols-1 gap-3">
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
-                            <div className="flex items-center gap-2">
+                        <div className="grid grid-cols-1 gap-2.5 sm:gap-3 min-w-0">
+                          <div className="flex items-center justify-between gap-3 min-h-[52px] p-3 rounded-xl bg-muted/30 border border-border min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
                               <Megaphone className="w-4 h-4 text-muted-foreground" />
-                              <Label className="text-xs cursor-pointer">Contains Ads</Label>
+                              <Label className="text-xs cursor-pointer truncate">Contains Ads</Label>
                             </div>
                             <Switch
                               checked={editForm.contains_ads}
                               onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, contains_ads: checked }))}
                             />
                           </div>
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
-                            <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-between gap-3 min-h-[52px] p-3 rounded-xl bg-muted/30 border border-border min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
                               <ShoppingCart className="w-4 h-4 text-muted-foreground" />
-                              <Label className="text-xs cursor-pointer">In-App Purchases</Label>
+                              <Label className="text-xs cursor-pointer truncate">In-App Purchases</Label>
                             </div>
                             <Switch
                               checked={editForm.in_app_purchases}
@@ -312,9 +313,9 @@ export function EditAppsTab() {
                         {/* Screenshots Upload */}
                         <div className="space-y-1.5">
                           <Label className="text-xs">Screenshots</Label>
-                          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                          <div className="flex gap-2 overflow-x-auto overflow-y-hidden pb-2 -mx-1 px-1 snap-x">
                             {editForm.screenshots.map((url, i) => (
-                              <div key={i} className="relative shrink-0 w-20 h-36 rounded-lg overflow-hidden border border-border group">
+                              <div key={i} className="relative shrink-0 w-20 h-36 rounded-lg overflow-hidden border border-border group snap-start">
                                 <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
                                 <button
                                   onClick={() => removeScreenshot(i)}
@@ -324,7 +325,7 @@ export function EditAppsTab() {
                                 </button>
                               </div>
                             ))}
-                            <label className="shrink-0 w-20 h-36 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
+                            <label className="shrink-0 w-20 h-36 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors snap-start">
                               <input type="file" accept="image/*" multiple className="hidden" onChange={handleScreenshotUpload} disabled={uploadingScreenshot} />
                               {uploadingScreenshot ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> : <ImagePlus className="w-5 h-5 text-muted-foreground" />}
                               <span className="text-[10px] text-muted-foreground mt-1">Add</span>
@@ -334,7 +335,7 @@ export function EditAppsTab() {
 
                         {/* Save Button */}
                         <Button
-                          className="w-full bg-primary hover:bg-primary/90 h-9 text-sm"
+                          className="w-full bg-primary hover:bg-primary/90 h-11 text-sm"
                           disabled={isSaving || !editForm.name.trim()}
                           onClick={handleSave}
                         >

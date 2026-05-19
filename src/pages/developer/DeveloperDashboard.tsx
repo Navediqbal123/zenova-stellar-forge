@@ -226,7 +226,7 @@ export default function DeveloperDashboard() {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Background Orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none hidden lg:block">
         <div className="gradient-orb gradient-orb-primary w-[600px] h-[600px] -top-48 -left-48" />
         <div className="gradient-orb gradient-orb-secondary w-[500px] h-[500px] top-1/2 -right-64" />
       </div>
@@ -242,7 +242,7 @@ export default function DeveloperDashboard() {
       {/* Mobile Hamburger Button */}
       <button
         onClick={() => setMobileSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 p-2.5 rounded-xl glass-card lg:hidden hover-glow"
+        className="fixed top-3 left-3 z-40 min-h-[44px] min-w-[44px] rounded-xl bg-card/95 border border-border shadow-lg lg:hidden flex items-center justify-center active:scale-95 transition-transform"
       >
         <Menu className="w-5 h-5 text-primary" />
       </button>
@@ -251,9 +251,9 @@ export default function DeveloperDashboard() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex-1 lg:ml-64 p-4 pt-16 lg:p-8 lg:pt-8 pb-24 lg:pb-8"
+        className="relative z-10 flex-1 min-w-0 w-full overflow-x-hidden lg:ml-64 px-3 sm:px-4 pt-16 pb-24 lg:p-8"
       >
-        <div className="max-w-6xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto space-y-5 sm:space-y-8 min-w-0">
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -548,39 +548,39 @@ export default function DeveloperDashboard() {
 
             {/* Edit Apps Tab */}
             {activeTab === 'edit-apps' && (
-              <motion.div key="edit-apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <motion.div key="edit-apps" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="min-w-0 overflow-x-hidden">
                 <EditAppsTab />
               </motion.div>
             )}
 
             {/* Analytics Tab */}
             {activeTab === 'analytics' && (
-              <motion.div key="analytics" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4 sm:space-y-6">
-                <h2 className="text-lg sm:text-xl font-bold">Analytics</h2>
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-                  <div className="admin-glass-card p-3 sm:p-6 min-w-0">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <motion.div key="analytics" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="space-y-3 sm:space-y-6 min-w-0 overflow-x-hidden">
+                <h2 className="text-base sm:text-xl font-bold">Analytics</h2>
+                <div className="grid grid-cols-2 gap-2 sm:gap-4 min-w-0">
+                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
                       <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/15 shrink-0"><Download className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /></div>
                       <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Total Downloads</span>
                     </div>
                     <p className="text-xl sm:text-3xl font-bold truncate">{stats.totalDownloads.toLocaleString()}</p>
                   </div>
-                  <div className="admin-glass-card p-3 sm:p-6 min-w-0">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
                       <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-secondary/15 shrink-0"><Eye className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" /></div>
                       <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Total Views</span>
                     </div>
                     <p className="text-xl sm:text-3xl font-bold truncate">{stats.totalViews.toLocaleString()}</p>
                   </div>
-                  <div className="admin-glass-card p-3 sm:p-6 min-w-0">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
                       <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-success/15 shrink-0"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-success" /></div>
                       <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Approved Apps</span>
                     </div>
                     <p className="text-xl sm:text-3xl font-bold truncate">{stats.approvedApps}</p>
                   </div>
-                  <div className="admin-glass-card p-3 sm:p-6 min-w-0">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
                       <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-warning/15 shrink-0"><Star className="w-4 h-4 sm:w-5 sm:h-5 text-warning" /></div>
                       <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Avg Rating</span>
                     </div>
@@ -592,12 +592,16 @@ export default function DeveloperDashboard() {
 
                 {/* Per-app breakdown */}
                 {myApps.length > 0 && (
-                  <div className="admin-glass-card p-3 sm:p-6">
+                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0 overflow-hidden">
                     <h3 className="text-sm sm:text-lg font-semibold mb-3 sm:mb-4">Per-App Breakdown</h3>
                     <div className="space-y-2 sm:space-y-3">
                       {myApps.map(app => (
-                        <div key={app.id} className="flex items-center gap-2 sm:gap-4 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/5">
-                          <span className="text-lg sm:text-xl shrink-0">{app.icon || '📱'}</span>
+                        <div key={app.id} className="flex items-center gap-2 sm:gap-4 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/5 min-w-0">
+                          <span className="w-8 h-8 rounded-lg bg-muted/40 flex items-center justify-center text-lg sm:text-xl shrink-0 overflow-hidden">
+                            {app.icon_url && app.icon_url.startsWith('http') ? (
+                              <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                            ) : (app.icon || '📱')}
+                          </span>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-xs sm:text-sm truncate">{app.name}</p>
                           </div>

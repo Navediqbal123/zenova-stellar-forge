@@ -17,7 +17,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +35,15 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [mobileOpen]);
 
   const generalNavItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -56,9 +65,9 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
   };
 
   const sidebarContent = (
-    <div className="relative z-10 h-full flex flex-col p-4">
+    <div className="relative z-10 h-full flex flex-col p-3 sm:p-4 overflow-x-hidden">
       {/* Logo */}
-      <div className="flex items-center justify-between mb-6 px-2">
+      <div className="flex items-center justify-between mb-4 sm:mb-6 px-1 sm:px-2 shrink-0">
         {!collapsed && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -69,8 +78,8 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg gradient-text">EloraX</h1>
-              <p className="text-xs text-muted-foreground">Developer Console</p>
+              <h1 className="font-bold text-base sm:text-lg gradient-text">EloraX</h1>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">Developer Console</p>
             </div>
           </motion.div>
         )}
@@ -104,28 +113,23 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
       </Button>
 
       {/* General Navigation */}
-      <div className="mb-2">
+      <div className="mb-2 shrink-0">
         {!collapsed && (
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 font-semibold">Navigate</p>
         )}
         <nav className="space-y-1">
-          {generalNavItems.map((item, index) => (
-            <motion.div
-              key={item.path}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
+          {generalNavItems.map((item) => (
+            <div key={item.path}>
               <button
                 onClick={() => { navigate(item.path); onMobileClose?.(); }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group text-muted-foreground hover:text-foreground hover:bg-white/5"
+                className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-150 group text-muted-foreground hover:text-foreground hover:bg-white/5 text-sm"
               >
-                <item.icon className="w-5 h-5 transition-all group-hover:text-primary" />
+                <item.icon className="w-5 h-5 shrink-0 transition-colors group-hover:text-primary" />
                 {!collapsed && (
-                  <span className="font-medium text-sm">{item.label}</span>
+                  <span className="font-medium text-sm truncate">{item.label}</span>
                 )}
               </button>
-            </motion.div>
+            </div>
           ))}
         </nav>
       </div>
@@ -133,31 +137,26 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
       <div className="border-t border-white/10 my-2" />
 
       {/* Developer Navigation */}
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         {!collapsed && (
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 font-semibold">Developer</p>
         )}
         <nav className="space-y-1">
-          {devNavItems.map((item, index) => {
+          {devNavItems.map((item) => {
             const isActive = activeTab === item.tab;
             return (
-              <motion.div
-                key={item.tab}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
+              <div key={item.tab}>
                 <button
                   onClick={() => handleNavClick(item.tab)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl transition-all duration-200 group text-sm",
+                    "w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl transition-colors duration-150 group text-sm",
                     isActive
                       ? "bg-primary/15 text-primary border border-primary/30"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   )}
                 >
                   <item.icon className={cn(
-                    "w-5 h-5 shrink-0 transition-all",
+                    "w-5 h-5 shrink-0 transition-colors",
                     isActive
                       ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]"
                       : "group-hover:text-primary"
@@ -166,25 +165,22 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
                     <span className="font-medium text-sm truncate">{item.label}</span>
                   )}
                   {isActive && !collapsed && (
-                    <motion.div
-                      layoutId="activeIndicator"
-                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shrink-0"
-                    />
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                   )}
                 </button>
-              </motion.div>
+              </div>
             );
           })}
         </nav>
       </div>
 
       {/* Help */}
-      <div className="border-t border-white/10 pt-4 mt-4">
+      <div className="border-t border-white/10 pt-3 mt-3 shrink-0">
         <button
           onClick={() => { onMobileClose?.(); }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-muted-foreground hover:text-foreground hover:bg-white/5"
+          className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 text-muted-foreground hover:text-foreground hover:bg-white/5"
         >
-          <HelpCircle className="w-5 h-5" />
+          <HelpCircle className="w-5 h-5 shrink-0" />
           {!collapsed && <span className="text-sm">Help Center</span>}
         </button>
       </div>
@@ -209,24 +205,25 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
       </motion.aside>
 
       {/* Mobile Overlay Drawer */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {mobileOpen && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="fixed inset-0 bg-background/70 z-50 lg:hidden"
               onClick={onMobileClose}
             />
             <motion.aside
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed left-0 top-0 h-screen w-[85vw] max-w-[280px] z-50 lg:hidden overflow-y-auto overscroll-contain"
+              transition={{ type: 'tween', duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed left-0 top-0 h-[100dvh] w-[82vw] max-w-[280px] z-50 lg:hidden overflow-y-auto overflow-x-hidden overscroll-contain transform-gpu will-change-transform"
             >
-              <div className="absolute inset-0 bg-gradient-to-b from-sidebar via-sidebar to-background/95 backdrop-blur-xl border-r border-white/10" />
+              <div className="absolute inset-0 bg-gradient-to-b from-sidebar via-sidebar to-background/95 border-r border-white/10" />
               {sidebarContent}
             </motion.aside>
           </>
