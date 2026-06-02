@@ -328,6 +328,13 @@ export function AdminEditAppsTab() {
                             <Label className="text-xs">Trending</Label>
                             <Switch checked={editForm.trending} onCheckedChange={v => setEditForm(prev => ({ ...prev, trending: v }))} />
                           </div>
+                          <div className="flex items-center justify-between p-2.5 rounded-xl bg-primary/10 border border-primary/30">
+                            <Label className="text-xs font-semibold flex items-center gap-1.5">
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary text-primary-foreground">PROMOTED</span>
+                              Pin to top
+                            </Label>
+                            <Switch checked={editForm.is_promoted} onCheckedChange={v => setEditForm(prev => ({ ...prev, is_promoted: v }))} />
+                          </div>
                           <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
                             <Label className="text-xs">Paid App</Label>
                             <Switch checked={editForm.is_paid} onCheckedChange={v => setEditForm(prev => ({ ...prev, is_paid: v }))} />
