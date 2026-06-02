@@ -44,6 +44,7 @@ interface AdminEditForm {
   in_app_purchases: boolean;
   featured: boolean;
   trending: boolean;
+  is_promoted: boolean;
   status: string;
 }
 
