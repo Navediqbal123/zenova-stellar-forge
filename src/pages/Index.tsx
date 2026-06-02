@@ -84,17 +84,38 @@ export default function Index() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const approved = apps.filter(a => a.status === 'approved');
-  const games = approved.filter(a => (a.category || '').toLowerCase() === 'games');
-  const nonGames = approved.filter(a => (a.category || '').toLowerCase() !== 'games');
-  const trending = [...approved].sort((a, b) => b.downloads - a.downloads);
-  const recommended = approved.slice(0, 8);
+
+  // Promoted-first sorting helper
+  const promotedFirst = <T extends { is_promoted?: boolean }>(arr: T[], rest?: (a: T, b: T) => number) =>
+    [...arr].sort((a, b) => {
+      const ap = (a as any).is_promoted ? 1 : 0;
+      const bp = (b as any).is_promoted ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      return rest ? rest(a, b) : 0;
+    });
+
+  const games = promotedFirst(approved.filter(a => (a.category || '').toLowerCase() === 'games'));
+  const nonGames = promotedFirst(approved);
+  const trending = promotedFirst(approved, (a, b) => b.downloads - a.downloads);
+
+  const searchResults = query
+    ? promotedFirst(
+        approved.filter(a =>
+          a.name.toLowerCase().includes(query.toLowerCase()) ||
+          (a.category || '').toLowerCase().includes(query.toLowerCase()) ||
+          (a.short_description || '').toLowerCase().includes(query.toLowerCase())
+        )
+      )
+    : [];
 
   const list = query
-    ? approved.filter(a => a.name.toLowerCase().includes(query.toLowerCase()))
+    ? searchResults
     : tab === 'games' ? games
     : tab === 'apps' ? nonGames
     : tab === 'trending' ? trending
-    : approved;
+    : promotedFirst(approved);
+
+  const recommended = nonGames.slice(0, 8);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
