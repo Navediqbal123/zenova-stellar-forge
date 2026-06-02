@@ -379,6 +379,7 @@ function AdminDevelopers() {
     setIsProcessing(true);
     try {
       await updateStatus(developer.id, 'approved');
+      if (developer.user_id) await notifyDeveloperApproved(developer.user_id);
       
       // Trigger real confetti animation
       triggerCelebrationConfetti();
