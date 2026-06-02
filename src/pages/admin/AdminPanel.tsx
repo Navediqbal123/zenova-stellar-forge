@@ -46,6 +46,7 @@ import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { StatsChart, TrendIndicator, MiniChart } from '@/components/admin/AdminStatsChart';
 import { triggerConfetti, triggerCelebrationConfetti } from '@/lib/confetti';
 import { LiveIndicator, DataFreshIndicator } from '@/components/ui/LiveIndicator';
+import { notifyDeveloperApproved, notifyAppApproved, getDeveloperUserIdById } from '@/lib/notifications';
 
 // Animation variants
 const staggerContainer = {
@@ -378,6 +379,7 @@ function AdminDevelopers() {
     setIsProcessing(true);
     try {
       await updateStatus(developer.id, 'approved');
+      if (developer.user_id) await notifyDeveloperApproved(developer.user_id);
       
       // Trigger real confetti animation
       triggerCelebrationConfetti();
@@ -628,6 +630,10 @@ function AdminApps() {
     setIsProcessing(true);
     try {
       await updateStatus(app.id, 'approved');
+      if (app.developer_id) {
+        const ownerUserId = await getDeveloperUserIdById(app.developer_id);
+        if (ownerUserId) await notifyAppApproved(ownerUserId, app.name);
+      }
       
       triggerConfetti();
       setShowConfetti(true);

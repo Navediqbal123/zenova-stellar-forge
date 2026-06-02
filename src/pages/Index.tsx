@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, Mic, Star, Gamepad2, AppWindow, Flame, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu } from 'lucide-react';
+import { NotificationBell } from '@/components/NotificationBell';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -114,10 +115,7 @@ export default function Index() {
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h1>
             </button>
           </div>
-          <button className="relative p-2.5 rounded-full hover:bg-slate-200/60 transition-colors">
-            <Bell className="w-6 h-6 text-slate-700" />
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: ACCENT }} />
-          </button>
+          <NotificationBell />
         </header>
 
         {/* Search Bar */}
