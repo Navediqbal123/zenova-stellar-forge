@@ -630,6 +630,10 @@ function AdminApps() {
     setIsProcessing(true);
     try {
       await updateStatus(app.id, 'approved');
+      if (app.developer_id) {
+        const ownerUserId = await getDeveloperUserIdById(app.developer_id);
+        if (ownerUserId) await notifyAppApproved(ownerUserId, app.name);
+      }
       
       triggerConfetti();
       setShowConfetti(true);
