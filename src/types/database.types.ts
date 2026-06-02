@@ -76,6 +76,7 @@ export interface Database {
           status: AppStatus
           featured: boolean
           trending: boolean
+          is_promoted: boolean
           is_paid: boolean
           price: number | null
           apk_url: string | null

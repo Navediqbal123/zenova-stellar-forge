@@ -44,6 +44,7 @@ interface AdminEditForm {
   in_app_purchases: boolean;
   featured: boolean;
   trending: boolean;
+  is_promoted: boolean;
   status: string;
 }
 
@@ -65,7 +66,7 @@ export function AdminEditAppsTab() {
   const [editForm, setEditForm] = useState<AdminEditForm>({
     name: '', short_description: '', description: '', category: '', version: '',
     icon_url: '', screenshots: [], is_paid: false, price: null, contains_ads: false,
-    in_app_purchases: false, featured: false, trending: false, status: 'pending',
+    in_app_purchases: false, featured: false, trending: false, is_promoted: false, status: 'pending',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingIcon, setUploadingIcon] = useState(false);
@@ -92,6 +93,7 @@ export function AdminEditAppsTab() {
       in_app_purchases: app.in_app_purchases || false,
       featured: app.featured || false,
       trending: app.trending || false,
+      is_promoted: (app as any).is_promoted || false,
       status: app.status,
     });
   };
@@ -157,9 +159,10 @@ export function AdminEditAppsTab() {
         in_app_purchases: editForm.in_app_purchases,
         featured: editForm.featured,
         trending: editForm.trending,
+        is_promoted: editForm.is_promoted,
         status: editForm.status as any,
         updated_at: new Date().toISOString(),
-      }).eq('id', editingAppId);
+      } as any).eq('id', editingAppId);
       if (error) throw error;
       await refreshApps();
       setEditingAppId(null);
@@ -324,6 +327,13 @@ export function AdminEditAppsTab() {
                           <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
                             <Label className="text-xs">Trending</Label>
                             <Switch checked={editForm.trending} onCheckedChange={v => setEditForm(prev => ({ ...prev, trending: v }))} />
+                          </div>
+                          <div className="flex items-center justify-between p-2.5 rounded-xl bg-primary/10 border border-primary/30">
+                            <Label className="text-xs font-semibold flex items-center gap-1.5">
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary text-primary-foreground">PROMOTED</span>
+                              Pin to top
+                            </Label>
+                            <Switch checked={editForm.is_promoted} onCheckedChange={v => setEditForm(prev => ({ ...prev, is_promoted: v }))} />
                           </div>
                           <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
                             <Label className="text-xs">Paid App</Label>

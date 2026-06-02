@@ -84,17 +84,38 @@ export default function Index() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const approved = apps.filter(a => a.status === 'approved');
-  const games = approved.filter(a => (a.category || '').toLowerCase() === 'games');
-  const nonGames = approved.filter(a => (a.category || '').toLowerCase() !== 'games');
-  const trending = [...approved].sort((a, b) => b.downloads - a.downloads);
-  const recommended = approved.slice(0, 8);
+
+  // Promoted-first sorting helper
+  const promotedFirst = <T extends { is_promoted?: boolean }>(arr: T[], rest?: (a: T, b: T) => number) =>
+    [...arr].sort((a, b) => {
+      const ap = (a as any).is_promoted ? 1 : 0;
+      const bp = (b as any).is_promoted ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      return rest ? rest(a, b) : 0;
+    });
+
+  const games = promotedFirst(approved.filter(a => (a.category || '').toLowerCase() === 'games'));
+  const nonGames = promotedFirst(approved);
+  const trending = promotedFirst(approved, (a, b) => b.downloads - a.downloads);
+
+  const searchResults = query
+    ? promotedFirst(
+        approved.filter(a =>
+          a.name.toLowerCase().includes(query.toLowerCase()) ||
+          (a.category || '').toLowerCase().includes(query.toLowerCase()) ||
+          (a.short_description || '').toLowerCase().includes(query.toLowerCase())
+        )
+      )
+    : [];
 
   const list = query
-    ? approved.filter(a => a.name.toLowerCase().includes(query.toLowerCase()))
+    ? searchResults
     : tab === 'games' ? games
     : tab === 'apps' ? nonGames
     : tab === 'trending' ? trending
-    : approved;
+    : promotedFirst(approved);
+
+  const recommended = nonGames.slice(0, 8);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -138,41 +159,65 @@ export default function Index() {
           <FeaturedCarousel />
         </section>
 
-        {/* Recommended */}
+        {/* Recommended / Tab Results */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold text-slate-900">
-              {query ? 'Search Results' : tab === 'games' ? 'Top Games' : tab === 'trending' ? 'Trending Now' : 'Recommended for You'}
+              {query
+                ? 'Search Results'
+                : tab === 'games' ? 'Top Games'
+                : tab === 'trending' ? 'Trending Now'
+                : tab === 'search' ? 'Search'
+                : 'Recommended for You'}
             </h3>
-            <button className="text-sm font-semibold" style={{ color: ACCENT }}>See All ›</button>
+            {!query && tab === 'apps' && (
+              <button className="text-sm font-semibold" style={{ color: ACCENT }}>See All ›</button>
+            )}
           </div>
 
           <div className="space-y-1">
-            {(query ? list : recommended).length > 0 ? (
-              (query ? list : recommended).map((app, idx) => (
+            {(() => {
+              const display = query
+                ? list
+                : tab === 'apps' ? recommended
+                : tab === 'search' ? []
+                : list;
+              if (tab === 'search' && !query) {
+                return <div className="py-12 text-center text-slate-400 text-sm">Type above to search apps</div>;
+              }
+              if (display.length === 0) {
+                return <div className="py-12 text-center text-slate-400 text-sm">No apps found</div>;
+              }
+              return display.map((app, idx) => {
+                const isPromoted = !!(app as any).is_promoted;
+                return (
                 <motion.div
                   key={app.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.04 }}
+                  transition={{ delay: Math.min(idx, 8) * 0.04 }}
                 >
                   <Link to={`/apps/${app.id}`} className="flex items-center gap-3 py-3 group">
-                    {/* Icon */}
                     <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center text-2xl shrink-0">
                       {app.icon_url && app.icon_url.startsWith('http') ? (
                         <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                       ) : (app.icon || '📱')}
                     </div>
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-slate-900 truncate">{app.name}</h4>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-semibold text-slate-900 truncate">{app.name}</h4>
+                        {isPromoted && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white tracking-wide" style={{ backgroundColor: ACCENT }}>
+                            PROMOTED
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-500 truncate">{app.category || 'App'}</p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                         <span className="text-xs text-slate-600 font-medium">{app.rating || '4.5'}</span>
                       </div>
                     </div>
-                    {/* Get button */}
                     <motion.button
                       type="button"
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/apps/${app.id}`); }}
@@ -185,10 +230,9 @@ export default function Index() {
                     </motion.button>
                   </Link>
                 </motion.div>
-              ))
-            ) : (
-              <div className="py-12 text-center text-slate-400 text-sm">No apps found</div>
-            )}
+              );
+              });
+            })()}
           </div>
         </section>
       </div>
