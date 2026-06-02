@@ -114,10 +114,7 @@ export default function Index() {
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h1>
             </button>
           </div>
-          <button className="relative p-2.5 rounded-full hover:bg-slate-200/60 transition-colors">
-            <Bell className="w-6 h-6 text-slate-700" />
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: ACCENT }} />
-          </button>
+          <NotificationBell />
         </header>
 
         {/* Search Bar */}
