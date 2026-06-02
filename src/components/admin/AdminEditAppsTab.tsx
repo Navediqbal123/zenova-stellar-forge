@@ -93,6 +93,7 @@ export function AdminEditAppsTab() {
       in_app_purchases: app.in_app_purchases || false,
       featured: app.featured || false,
       trending: app.trending || false,
+      is_promoted: (app as any).is_promoted || false,
       status: app.status,
     });
   };
