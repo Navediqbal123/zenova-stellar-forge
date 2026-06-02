@@ -46,6 +46,7 @@ import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { StatsChart, TrendIndicator, MiniChart } from '@/components/admin/AdminStatsChart';
 import { triggerConfetti, triggerCelebrationConfetti } from '@/lib/confetti';
 import { LiveIndicator, DataFreshIndicator } from '@/components/ui/LiveIndicator';
+import { notifyDeveloperApproved, notifyAppApproved, getDeveloperUserIdById } from '@/lib/notifications';
 
 // Animation variants
 const staggerContainer = {
