@@ -159,9 +159,10 @@ export function AdminEditAppsTab() {
         in_app_purchases: editForm.in_app_purchases,
         featured: editForm.featured,
         trending: editForm.trending,
+        is_promoted: editForm.is_promoted,
         status: editForm.status as any,
         updated_at: new Date().toISOString(),
-      }).eq('id', editingAppId);
+      } as any).eq('id', editingAppId);
       if (error) throw error;
       await refreshApps();
       setEditingAppId(null);
