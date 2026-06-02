@@ -66,7 +66,7 @@ export function AdminEditAppsTab() {
   const [editForm, setEditForm] = useState<AdminEditForm>({
     name: '', short_description: '', description: '', category: '', version: '',
     icon_url: '', screenshots: [], is_paid: false, price: null, contains_ads: false,
-    in_app_purchases: false, featured: false, trending: false, status: 'pending',
+    in_app_purchases: false, featured: false, trending: false, is_promoted: false, status: 'pending',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingIcon, setUploadingIcon] = useState(false);
