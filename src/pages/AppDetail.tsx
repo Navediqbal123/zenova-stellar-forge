@@ -1,9 +1,9 @@
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Share2, Star, Shield, Tag, User, HardDrive, ChevronDown, Gamepad2, AppWindow, Flame, Search } from 'lucide-react';
+import { ArrowLeft, Share2, Star, Shield, Tag, HardDrive, Gamepad2, AppWindow, Flame, Search } from 'lucide-react';
 import { useApps } from '@/contexts/AppsContext';
 import { Button } from '@/components/ui/button';
-import InstallButton from '@/components/appdetail/InstallButton';
+import { useToast } from '@/hooks/use-toast';
 import RatingReview from '@/components/appdetail/RatingReview';
 
 const ACCENT = '#0EA5E9';
@@ -13,6 +13,7 @@ export default function AppDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { getAppById } = useApps();
+  const { toast } = useToast();
 
   const app = appId ? getAppById(appId) : undefined;
 
@@ -35,6 +36,21 @@ export default function AppDetail() {
       if (navigator.share) await navigator.share({ title: app.name, url });
       else await navigator.clipboard.writeText(url);
     } catch {}
+  };
+
+  const handleGet = () => {
+    const url = (app as any).apk_url || (app as any).aab_url;
+    if (!url) {
+      toast({ title: 'No File Available', description: 'This app does not have a downloadable file yet.', variant: 'destructive' });
+      return;
+    }
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = app.name || 'app';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: '⬇️ Downloading', description: `${app.name} is downloading.` });
   };
 
   const reviewCount = (app.review_count || 0).toLocaleString();
@@ -66,7 +82,7 @@ export default function AppDetail() {
           </button>
         </header>
 
-        {/* App header */}
+        {/* App header with right-side Get button */}
         <motion.section
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="flex items-start gap-4 mb-5"
@@ -76,18 +92,30 @@ export default function AppDetail() {
               ? <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
               : (app.icon || '📱')}
           </div>
-          <div className="flex-1 min-w-0 pt-1">
-            <h1 className="text-xl font-bold leading-tight text-slate-900 truncate">{app.name}</h1>
-            <p className="text-sm text-slate-500 mt-0.5 truncate">{app.category || 'App'}</p>
+          <div className="flex-1 min-w-0 pt-1 flex flex-col">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl font-bold leading-tight text-slate-900 truncate">{app.name}</h1>
+                <p className="text-sm text-slate-500 mt-0.5 truncate">{app.category || 'App'}</p>
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleGet}
+                className="shrink-0 px-6 py-2 rounded-full text-sm font-bold shadow-sm"
+                style={{ backgroundColor: ACCENT, color: '#FFFFFF' }}
+              >
+                Get
+              </motion.button>
+            </div>
             {(app.in_app_purchases || app.contains_ads) && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {app.in_app_purchases && (
-                  <span className="text-[13px] font-bold px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200" style={{ color: '#000000' }}>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200" style={{ color: '#000000' }}>
                     In-App Purchases
                   </span>
                 )}
                 {app.contains_ads && (
-                  <span className="text-[13px] font-bold px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200" style={{ color: '#000000' }}>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200" style={{ color: '#000000' }}>
                     Contains Ads
                   </span>
                 )}
@@ -95,17 +123,6 @@ export default function AppDetail() {
             )}
           </div>
         </motion.section>
-
-        {/* Get button + in-app purchases */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="mb-3"
-        >
-          <div className="relative rounded-2xl overflow-hidden">
-            <InstallButton appId={app.id} appName={app.name} />
-            <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/90 pointer-events-none" />
-          </div>
-        </motion.div>
 
         {/* Info rows */}
         <motion.section

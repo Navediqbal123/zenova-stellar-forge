@@ -18,6 +18,7 @@ import DeveloperDashboard from "./pages/developer/DeveloperDashboard";
 import AppUploadWizard from "./pages/developer/AppUploadWizard";
 import AIUploadPage from "./pages/developer/AIUploadPage";
 import AdminPanel from "./pages/admin/AdminPanel";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/developer/register" element={<DeveloperRegister />} />
+                        <Route path="/notifications" element={<Notifications />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </MainLayout>
