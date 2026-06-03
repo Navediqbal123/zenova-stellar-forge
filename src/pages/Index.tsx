@@ -99,13 +99,16 @@ export default function Index() {
   const trending = promotedFirst(approved, (a, b) => b.downloads - a.downloads);
 
   const searchResults = query
-    ? promotedFirst(
-        approved.filter(a =>
-          a.name.toLowerCase().includes(query.toLowerCase()) ||
-          (a.category || '').toLowerCase().includes(query.toLowerCase()) ||
-          (a.short_description || '').toLowerCase().includes(query.toLowerCase())
-        )
-      )
+    ? [
+        ...approved.filter(a => (a as any).is_promoted),
+        ...approved.filter(a =>
+          !(a as any).is_promoted && (
+            a.name.toLowerCase().includes(query.toLowerCase()) ||
+            (a.category || '').toLowerCase().includes(query.toLowerCase()) ||
+            (a.short_description || '').toLowerCase().includes(query.toLowerCase())
+          )
+        ),
+      ]
     : [];
 
   const list = query
