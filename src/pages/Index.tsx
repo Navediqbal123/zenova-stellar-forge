@@ -206,16 +206,21 @@ export default function Index() {
                       transition={{ delay: Math.min(idx, 8) * 0.04 }}
                     >
                       <Link to={`/apps/${app.id}`} className="block py-4 group">
+                        {sponsored && (
+                          <div className="mb-1.5 ml-1">
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase"
+                              style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+                            >
+                              Sponsored
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-start gap-3">
-                          <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center text-2xl shrink-0">
+                          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center text-2xl shrink-0">
                             {app.icon_url && app.icon_url.startsWith('http') ? (
                               <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
                             ) : (app.icon || '📱')}
-                            {sponsored && (
-                              <span className="absolute top-0 left-0 px-1.5 py-0.5 text-[9px] font-bold text-white bg-black/70 rounded-br-md leading-tight">
-                                Sponsored
-                              </span>
-                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
@@ -230,7 +235,7 @@ export default function Index() {
                                 className="shrink-0 px-5 py-1.5 rounded-full text-sm font-bold"
                                 style={{ backgroundColor: '#E0EAFF', color: ACCENT }}
                               >
-                                Install
+                                Get
                               </motion.button>
                             </div>
                             <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-600">
