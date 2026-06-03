@@ -191,9 +191,7 @@ export default function Index() {
               if (display.length === 0) {
                 return <div className="py-12 text-center text-slate-400 text-sm">No apps found</div>;
               }
-              return display.map((app, idx) => {
-                const isPromoted = !!(app as any).is_promoted;
-                return (
+              return display.map((app, idx) => (
                 <motion.div
                   key={app.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -207,14 +205,7 @@ export default function Index() {
                       ) : (app.icon || '📱')}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className="font-semibold text-slate-900 truncate">{app.name}</h4>
-                        {isPromoted && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white tracking-wide" style={{ backgroundColor: ACCENT }}>
-                            PROMOTED
-                          </span>
-                        )}
-                      </div>
+                      <h4 className="font-semibold text-slate-900 truncate">{app.name}</h4>
                       <p className="text-xs text-slate-500 truncate">{app.category || 'App'}</p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
@@ -234,7 +225,6 @@ export default function Index() {
                   </Link>
                 </motion.div>
               );
-              });
             })()}
           </div>
         </section>
