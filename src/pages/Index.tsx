@@ -178,7 +178,7 @@ export default function Index() {
             )}
           </div>
 
-          <div className="space-y-1">
+          <div className={query ? 'divide-y divide-slate-200' : 'space-y-1'}>
             {(() => {
               const display = query
                 ? list
@@ -191,6 +191,69 @@ export default function Index() {
               if (display.length === 0) {
                 return <div className="py-12 text-center text-slate-400 text-sm">No apps found</div>;
               }
+
+              if (query) {
+                // Google Play Store style search result cards
+                return display.map((app, idx) => {
+                  const sponsored = (app as any).is_sponsored || (app as any).is_promoted;
+                  const ageRating = (app as any).age_rating || (app as any).content_rating || '3+';
+                  const size = app.size || 'N/A';
+                  return (
+                    <motion.div
+                      key={app.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(idx, 8) * 0.04 }}
+                    >
+                      <Link to={`/apps/${app.id}`} className="block py-4 group">
+                        <div className="flex items-start gap-3">
+                          <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center text-2xl shrink-0">
+                            {app.icon_url && app.icon_url.startsWith('http') ? (
+                              <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                            ) : (app.icon || '📱')}
+                            {sponsored && (
+                              <span className="absolute top-0 left-0 px-1.5 py-0.5 text-[9px] font-bold text-white bg-black/70 rounded-br-md leading-tight">
+                                Sponsored
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-bold text-slate-900 truncate text-[15px] leading-tight">{app.name}</h4>
+                                <p className="text-xs text-slate-500 truncate mt-0.5">{app.developer_name || app.category || 'Developer'}</p>
+                              </div>
+                              <motion.button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/apps/${app.id}`); }}
+                                whileTap={{ scale: 0.95 }}
+                                className="shrink-0 px-5 py-1.5 rounded-full text-sm font-bold"
+                                style={{ backgroundColor: '#E0EAFF', color: ACCENT }}
+                              >
+                                Install
+                              </motion.button>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-600">
+                              <span className="flex items-center gap-0.5">
+                                <span className="font-medium">{app.rating || '4.5'}</span>
+                                <Star className="w-3 h-3 fill-slate-600 text-slate-600" />
+                              </span>
+                              <span className="w-px h-3 bg-slate-300" />
+                              <span>{ageRating}</span>
+                              <span className="w-px h-3 bg-slate-300" />
+                              <span>{size}</span>
+                            </div>
+                            {app.short_description && (
+                              <p className="text-xs text-slate-500 mt-1.5 line-clamp-2">{app.short_description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                });
+              }
+
               return display.map((app, idx) => (
                 <motion.div
                   key={app.id}
@@ -227,6 +290,7 @@ export default function Index() {
                 ));
             })()}
           </div>
+
         </section>
       </div>
 
