@@ -222,9 +222,9 @@ export default function Index() {
                     >
                       Get
                     </motion.button>
-                  </Link>
-                </motion.div>
-              );
+                    </Link>
+                  </motion.div>
+                ));
             })()}
           </div>
         </section>
