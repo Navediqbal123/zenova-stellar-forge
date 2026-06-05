@@ -19,6 +19,7 @@ import AppUploadWizard from "./pages/developer/AppUploadWizard";
 import AIUploadPage from "./pages/developer/AIUploadPage";
 import AdminPanel from "./pages/admin/AdminPanel";
 import Notifications from "./pages/Notifications";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
