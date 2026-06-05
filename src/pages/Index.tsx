@@ -115,7 +115,6 @@ export default function Index() {
     ? searchResults
     : tab === 'games' ? games
     : tab === 'apps' ? nonGames
-    : tab === 'trending' ? trending
     : promotedFirst(approved);
 
   const recommended = nonGames.slice(0, 8);
