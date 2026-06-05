@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, Mic, Star, Gamepad2, AppWindow, Flame, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu } from 'lucide-react';
+import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu } from 'lucide-react';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -79,7 +79,7 @@ export default function Index() {
   const { apps } = useApps();
   const { isAuthenticated, isAdmin, developerProfile } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>('apps');
+  const [tab, setTab] = useState<'games' | 'apps' | 'search'>('apps');
   const [query, setQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -95,8 +95,9 @@ export default function Index() {
     });
 
   const games = promotedFirst(approved.filter(a => (a.category || '').toLowerCase() === 'games'));
-  const nonGames = promotedFirst(approved);
-  const trending = promotedFirst(approved, (a, b) => b.downloads - a.downloads);
+  // Apps tab now shows ALL approved apps with trending order (promoted first, then by downloads)
+  const nonGames = promotedFirst(approved, (a, b) => b.downloads - a.downloads);
+  const trending = nonGames;
 
   const searchResults = query
     ? [
@@ -115,7 +116,6 @@ export default function Index() {
     ? searchResults
     : tab === 'games' ? games
     : tab === 'apps' ? nonGames
-    : tab === 'trending' ? trending
     : promotedFirst(approved);
 
   const recommended = nonGames.slice(0, 8);
@@ -181,7 +181,6 @@ export default function Index() {
               <h3 className="text-xl font-bold text-slate-900">
                 {query
                   ? 'Search Results'
-                  : tab === 'trending' ? 'Trending Now'
                   : tab === 'search' ? 'Search'
                   : 'Recommended for You'}
               </h3>
@@ -318,14 +317,21 @@ export default function Index() {
           {[
             { id: 'games', label: 'Games', Icon: Gamepad2 },
             { id: 'apps', label: 'Apps', Icon: AppWindow },
-            { id: 'trending', label: 'Trending', Icon: Flame },
             { id: 'search', label: 'Search', Icon: Search },
+            { id: 'profile', label: 'Profile', Icon: User },
           ].map(({ id, label, Icon }) => {
             const active = tab === id;
             return (
               <button
                 key={id}
-                onClick={() => { setTab(id as any); setQuery(''); }}
+                onClick={() => {
+                  if (id === 'profile') {
+                    navigate('/profile');
+                    return;
+                  }
+                  setTab(id as any);
+                  setQuery('');
+                }}
                 className="flex flex-col items-center gap-1 px-4 py-1.5 transition-all"
               >
                 <Icon className="w-6 h-6" style={{ color: active ? ACCENT : '#94A3B8' }} />
