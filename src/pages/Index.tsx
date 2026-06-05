@@ -176,19 +176,20 @@ export default function Index() {
 
         {/* Recommended / Tab Results */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-slate-900">
-              {query
-                ? 'Search Results'
-                : tab === 'games' ? 'Top Games'
-                : tab === 'trending' ? 'Trending Now'
-                : tab === 'search' ? 'Search'
-                : 'Recommended for You'}
-            </h3>
-            {!query && tab === 'apps' && (
-              <button className="text-sm font-semibold" style={{ color: ACCENT }}>See All ›</button>
-            )}
-          </div>
+          {tab !== 'games' && (
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-slate-900">
+                {query
+                  ? 'Search Results'
+                  : tab === 'trending' ? 'Trending Now'
+                  : tab === 'search' ? 'Search'
+                  : 'Recommended for You'}
+              </h3>
+              {!query && tab === 'apps' && (
+                <button className="text-sm font-semibold" style={{ color: ACCENT }}>See All ›</button>
+              )}
+            </div>
+          )}
 
           <div className={query ? 'divide-y divide-slate-200' : 'space-y-1'}>
             {(() => {
