@@ -316,14 +316,21 @@ export default function Index() {
           {[
             { id: 'games', label: 'Games', Icon: Gamepad2 },
             { id: 'apps', label: 'Apps', Icon: AppWindow },
-            { id: 'trending', label: 'Trending', Icon: Flame },
             { id: 'search', label: 'Search', Icon: Search },
+            { id: 'profile', label: 'Profile', Icon: User },
           ].map(({ id, label, Icon }) => {
             const active = tab === id;
             return (
               <button
                 key={id}
-                onClick={() => { setTab(id as any); setQuery(''); }}
+                onClick={() => {
+                  if (id === 'profile') {
+                    navigate('/profile');
+                    return;
+                  }
+                  setTab(id as any);
+                  setQuery('');
+                }}
                 className="flex flex-col items-center gap-1 px-4 py-1.5 transition-all"
               >
                 <Icon className="w-6 h-6" style={{ color: active ? ACCENT : '#94A3B8' }} />
