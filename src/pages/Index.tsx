@@ -95,8 +95,9 @@ export default function Index() {
     });
 
   const games = promotedFirst(approved.filter(a => (a.category || '').toLowerCase() === 'games'));
-  const nonGames = promotedFirst(approved);
-  const trending = promotedFirst(approved, (a, b) => b.downloads - a.downloads);
+  // Apps tab now shows ALL approved apps with trending order (promoted first, then by downloads)
+  const nonGames = promotedFirst(approved, (a, b) => b.downloads - a.downloads);
+  const trending = nonGames;
 
   const searchResults = query
     ? [
