@@ -142,41 +142,54 @@ export default function Index() {
           <NotificationBell />
         </header>
 
-        {/* Search Bar */}
-        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border border-slate-200 mb-6">
-          <Search className="w-5 h-5 text-slate-400 shrink-0" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search apps, games, and more"
-            className="flex-1 bg-transparent outline-none text-sm placeholder:text-slate-400 text-slate-900"
-          />
-          <button className="shrink-0">
-            <Mic className="w-5 h-5" style={{ color: ACCENT }} />
-          </button>
-        </div>
+        {/* Search Bar — hide on Games tab */}
+        {tab !== 'games' && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border border-slate-200 mb-6">
+            <Search className="w-5 h-5 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search apps, games, and more"
+              className="flex-1 bg-transparent outline-none text-sm placeholder:text-slate-400 text-slate-900"
+            />
+            <button className="shrink-0">
+              <Mic className="w-5 h-5" style={{ color: ACCENT }} />
+            </button>
+          </div>
+        )}
 
-        {/* Featured */}
-        <section className="mb-8">
-          <FeaturedCarousel />
-        </section>
+        {/* Featured — hide on Games tab */}
+        {tab !== 'games' && (
+          <section className="mb-8">
+            <FeaturedCarousel />
+          </section>
+        )}
+
+        {/* Games-only header */}
+        {tab === 'games' && (
+          <div className="mb-4">
+            <h3 className="text-2xl font-bold text-slate-900">Top Games</h3>
+            <p className="text-sm text-slate-500 mt-1">Handpicked games for you</p>
+          </div>
+        )}
 
         {/* Recommended / Tab Results */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-slate-900">
-              {query
-                ? 'Search Results'
-                : tab === 'games' ? 'Top Games'
-                : tab === 'trending' ? 'Trending Now'
-                : tab === 'search' ? 'Search'
-                : 'Recommended for You'}
-            </h3>
-            {!query && tab === 'apps' && (
-              <button className="text-sm font-semibold" style={{ color: ACCENT }}>See All ›</button>
-            )}
-          </div>
+          {tab !== 'games' && (
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-slate-900">
+                {query
+                  ? 'Search Results'
+                  : tab === 'trending' ? 'Trending Now'
+                  : tab === 'search' ? 'Search'
+                  : 'Recommended for You'}
+              </h3>
+              {!query && tab === 'apps' && (
+                <button className="text-sm font-semibold" style={{ color: ACCENT }}>See All ›</button>
+              )}
+            </div>
+          )}
 
           <div className={query ? 'divide-y divide-slate-200' : 'space-y-1'}>
             {(() => {
