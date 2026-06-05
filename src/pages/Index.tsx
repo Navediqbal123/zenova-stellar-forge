@@ -180,7 +180,6 @@ export default function Index() {
               <h3 className="text-xl font-bold text-slate-900">
                 {query
                   ? 'Search Results'
-                  : tab === 'trending' ? 'Trending Now'
                   : tab === 'search' ? 'Search'
                   : 'Recommended for You'}
               </h3>
