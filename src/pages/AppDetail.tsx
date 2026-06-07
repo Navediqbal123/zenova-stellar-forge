@@ -78,9 +78,12 @@ export default function AppDetail() {
           <button onClick={() => navigate('/')} className="p-2 -ml-2 rounded-full hover:bg-slate-200/60 transition" aria-label="Back">
             <ArrowLeft className="w-6 h-6 text-slate-900" strokeWidth={2.5} />
           </button>
-          <button onClick={handleShare} className="p-2 -mr-2 rounded-full hover:bg-slate-200/60 transition" aria-label="Share">
-            <Share2 className="w-6 h-6 text-slate-900" strokeWidth={2} />
-          </button>
+          <div className="flex items-center gap-1">
+            <WishlistButton appId={app.id} />
+            <button onClick={handleShare} className="p-2 -mr-2 rounded-full hover:bg-slate-200/60 transition" aria-label="Share">
+              <Share2 className="w-6 h-6 text-slate-900" strokeWidth={2} />
+            </button>
+          </div>
         </header>
 
         {/* App header with right-side Get button */}
