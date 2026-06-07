@@ -220,3 +220,34 @@ export default function AppDetail() {
     </motion.div>
   );
 }
+
+function WishlistButton({ appId }: { appId: string }) {
+  const [saved, setSaved] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    try {
+      const ids: string[] = JSON.parse(localStorage.getItem('elorax_wishlist') || '[]');
+      setSaved(ids.includes(appId));
+    } catch {}
+  }, [appId]);
+  const toggle = () => {
+    try {
+      const ids: string[] = JSON.parse(localStorage.getItem('elorax_wishlist') || '[]');
+      let next: string[];
+      if (ids.includes(appId)) {
+        next = ids.filter((x) => x !== appId);
+        toast({ title: 'Removed from Wishlist' });
+      } else {
+        next = [...ids, appId];
+        toast({ title: 'Saved to Wishlist' });
+      }
+      localStorage.setItem('elorax_wishlist', JSON.stringify(next));
+      setSaved(!saved);
+    } catch {}
+  };
+  return (
+    <button onClick={toggle} className="p-2 rounded-full hover:bg-slate-200/60 transition" aria-label="Save">
+      <Bookmark className="w-6 h-6 text-slate-900" strokeWidth={2} fill={saved ? '#0EA5E9' : 'none'} color={saved ? '#0EA5E9' : '#0F172A'} />
+    </button>
+  );
+}
