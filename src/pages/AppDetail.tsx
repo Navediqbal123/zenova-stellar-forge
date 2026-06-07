@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Share2, Star, Shield, Tag, HardDrive, Gamepad2, AppWindow, Flame, Search } from 'lucide-react';
+import { ArrowLeft, Share2, Star, Shield, Tag, HardDrive, Gamepad2, AppWindow, Flame, Search, Bookmark } from 'lucide-react';
 import { useApps } from '@/contexts/AppsContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -77,9 +78,12 @@ export default function AppDetail() {
           <button onClick={() => navigate('/')} className="p-2 -ml-2 rounded-full hover:bg-slate-200/60 transition" aria-label="Back">
             <ArrowLeft className="w-6 h-6 text-slate-900" strokeWidth={2.5} />
           </button>
-          <button onClick={handleShare} className="p-2 -mr-2 rounded-full hover:bg-slate-200/60 transition" aria-label="Share">
-            <Share2 className="w-6 h-6 text-slate-900" strokeWidth={2} />
-          </button>
+          <div className="flex items-center gap-1">
+            <WishlistButton appId={app.id} />
+            <button onClick={handleShare} className="p-2 -mr-2 rounded-full hover:bg-slate-200/60 transition" aria-label="Share">
+              <Share2 className="w-6 h-6 text-slate-900" strokeWidth={2} />
+            </button>
+          </div>
         </header>
 
         {/* App header with right-side Get button */}
@@ -214,5 +218,36 @@ export default function AppDetail() {
         </div>
       </nav>
     </motion.div>
+  );
+}
+
+function WishlistButton({ appId }: { appId: string }) {
+  const [saved, setSaved] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    try {
+      const ids: string[] = JSON.parse(localStorage.getItem('elorax_wishlist') || '[]');
+      setSaved(ids.includes(appId));
+    } catch {}
+  }, [appId]);
+  const toggle = () => {
+    try {
+      const ids: string[] = JSON.parse(localStorage.getItem('elorax_wishlist') || '[]');
+      let next: string[];
+      if (ids.includes(appId)) {
+        next = ids.filter((x) => x !== appId);
+        toast({ title: 'Removed from Wishlist' });
+      } else {
+        next = [...ids, appId];
+        toast({ title: 'Saved to Wishlist' });
+      }
+      localStorage.setItem('elorax_wishlist', JSON.stringify(next));
+      setSaved(!saved);
+    } catch {}
+  };
+  return (
+    <button onClick={toggle} className="p-2 rounded-full hover:bg-slate-200/60 transition" aria-label="Save">
+      <Bookmark className="w-6 h-6 text-slate-900" strokeWidth={2} fill={saved ? '#0EA5E9' : 'none'} color={saved ? '#0EA5E9' : '#0F172A'} />
+    </button>
   );
 }
