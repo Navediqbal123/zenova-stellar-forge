@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Share2, Star, Shield, Tag, HardDrive, Gamepad2, AppWindow, Flame, Search } from 'lucide-react';
+import { ArrowLeft, Share2, Star, Shield, Tag, HardDrive, Gamepad2, AppWindow, Flame, Search, Bookmark } from 'lucide-react';
 import { useApps } from '@/contexts/AppsContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
