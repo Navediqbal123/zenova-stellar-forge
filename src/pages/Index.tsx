@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu } from 'lucide-react';
+import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu, TrendingUp } from 'lucide-react';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -79,7 +79,7 @@ export default function Index() {
   const { apps } = useApps();
   const { isAuthenticated, isAdmin, developerProfile } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'games' | 'apps' | 'search'>('apps');
+  const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>('apps');
   const [query, setQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -116,6 +116,7 @@ export default function Index() {
     ? searchResults
     : tab === 'games' ? games
     : tab === 'apps' ? nonGames
+    : tab === 'trending' ? trending
     : promotedFirst(approved);
 
   const recommended = nonGames.slice(0, 8);
@@ -182,6 +183,7 @@ export default function Index() {
                 {query
                   ? 'Search Results'
                   : tab === 'search' ? 'Search'
+                  : tab === 'trending' ? 'Trending Now'
                   : 'Recommended for You'}
               </h3>
               {!query && tab === 'apps' && (
@@ -317,6 +319,7 @@ export default function Index() {
           {[
             { id: 'games', label: 'Games', Icon: Gamepad2 },
             { id: 'apps', label: 'Apps', Icon: AppWindow },
+            { id: 'trending', label: 'Trending', Icon: TrendingUp },
             { id: 'search', label: 'Search', Icon: Search },
             { id: 'profile', label: 'Profile', Icon: User },
           ].map(({ id, label, Icon }) => {
