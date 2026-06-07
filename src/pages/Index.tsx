@@ -183,6 +183,7 @@ export default function Index() {
                 {query
                   ? 'Search Results'
                   : tab === 'search' ? 'Search'
+                  : tab === 'trending' ? 'Trending Now'
                   : 'Recommended for You'}
               </h3>
               {!query && tab === 'apps' && (
