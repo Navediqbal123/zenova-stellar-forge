@@ -319,6 +319,7 @@ export default function Index() {
           {[
             { id: 'games', label: 'Games', Icon: Gamepad2 },
             { id: 'apps', label: 'Apps', Icon: AppWindow },
+            { id: 'trending', label: 'Trending', Icon: TrendingUp },
             { id: 'search', label: 'Search', Icon: Search },
             { id: 'profile', label: 'Profile', Icon: User },
           ].map(({ id, label, Icon }) => {
