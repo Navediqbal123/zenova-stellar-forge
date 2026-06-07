@@ -144,7 +144,7 @@ export default function Index() {
         </header>
 
         {/* Search Bar — hide on Games tab */}
-        {tab !== 'games' && (
+        {tab !== 'games' && tab !== 'trending' && (
           <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border border-slate-200 mb-6">
             <Search className="w-5 h-5 text-slate-400 shrink-0" />
             <input
