@@ -71,17 +71,17 @@ function SafeImagePreview({ file }: { file: File }) {
     );
   }
 
-  return (
-    <img
-      src={src}
-      alt="ID preview"
-      className="w-10 h-10 rounded-lg object-cover border border-primary/30"
-      onError={() => {
-        setFailed(true);
-        URL.revokeObjectURL(src);
-      }}
-    />
-  );
+    return (
+      <img
+        src={src}
+        alt="ID preview"
+        className="w-10 h-10 rounded-lg object-cover border border-[#E5E5E5]"
+        onError={() => {
+          setFailed(true);
+          URL.revokeObjectURL(src);
+        }}
+      />
+    );
 }
 
 function DeveloperRegisterForm() {
@@ -344,22 +344,22 @@ function DeveloperRegisterForm() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFFFF' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 max-w-md text-center"
+          className="bg-white rounded-2xl shadow-sm border border-[#E5E5E5] p-8 max-w-md text-center"
         >
           <Rocket className="w-16 h-16 mx-auto mb-4" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
-          <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
-          <p className="text-muted-foreground mb-6">
+          <h2 className="text-2xl font-bold mb-2" style={{ color: '#0A0A0A' }}>Sign In Required</h2>
+          <p className="mb-6" style={{ color: '#666666' }}>
             You need to be signed in to become a developer
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={() => navigate('/login')}>
               Sign In
             </Button>
-            <Button onClick={() => navigate('/register')} className="bg-primary hover:bg-primary/90">
+            <Button onClick={() => navigate('/register')} className="text-white font-semibold" style={{ backgroundColor: '#0EA5E9' }}>
               Create Account
             </Button>
           </div>
@@ -370,55 +370,55 @@ function DeveloperRegisterForm() {
 
   if (developerProfile) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFFFFF' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 max-w-md text-center"
+          className="bg-white rounded-2xl shadow-sm border border-[#E5E5E5] p-8 max-w-md text-center"
         >
           {developerProfile.status === 'pending' ? (
             <>
-              <div className="w-16 h-16 rounded-full bg-warning/20 flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-warning" />
+              <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-8 h-8" style={{ color: '#D97706' }} />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Application Under Review</h2>
-              <p className="text-muted-foreground mb-6">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: '#0A0A0A' }}>Application Under Review</h2>
+              <p className="mb-6" style={{ color: '#666666' }}>
                 Your developer application is being reviewed by our team. We'll notify you once it's approved.
               </p>
-              <div className="p-4 rounded-lg bg-muted/50 text-left">
-                <p className="text-sm"><strong>Name:</strong> {developerProfile.developer_name}</p>
-                <p className="text-sm"><strong>Type:</strong> {developerProfile.developer_type}</p>
-                <p className="text-sm"><strong>Status:</strong> <span className="text-warning">Pending</span></p>
+              <div className="p-4 rounded-lg bg-gray-50 text-left">
+                <p className="text-sm" style={{ color: '#0A0A0A' }}><strong>Name:</strong> {developerProfile.developer_name}</p>
+                <p className="text-sm" style={{ color: '#0A0A0A' }}><strong>Type:</strong> {developerProfile.developer_type}</p>
+                <p className="text-sm" style={{ color: '#0A0A0A' }}><strong>Status:</strong> <span style={{ color: '#D97706' }}>Pending</span></p>
               </div>
             </>
           ) : developerProfile.status === 'approved' ? (
             <>
-              <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-success" />
+              <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8" style={{ color: '#10B981' }} />
               </div>
-              <h2 className="text-2xl font-bold mb-2">You're a Developer!</h2>
-              <p className="text-muted-foreground mb-6">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: '#0A0A0A' }}>You're a Developer!</h2>
+              <p className="mb-6" style={{ color: '#666666' }}>
                 Your account is approved. Start publishing your apps!
               </p>
-              <Button onClick={() => navigate('/developer/dashboard')} className="bg-primary hover:bg-primary/90">
+              <Button onClick={() => navigate('/developer/dashboard')} className="text-white font-semibold" style={{ backgroundColor: '#0EA5E9' }}>
                 Go to Dashboard
               </Button>
             </>
           ) : (
             <>
-              <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">❌</span>
               </div>
-              <h2 className="text-2xl font-bold mb-2">Application Rejected</h2>
-              <p className="text-muted-foreground mb-4">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: '#0A0A0A' }}>Application Rejected</h2>
+              <p className="mb-4" style={{ color: '#666666' }}>
                 Unfortunately, your application was not approved.
               </p>
               {developerProfile.rejection_reason && (
-                <div className="p-4 rounded-lg bg-destructive/10 text-left mb-6">
-                  <p className="text-sm text-destructive"><strong>Reason:</strong> {developerProfile.rejection_reason}</p>
+                <div className="p-4 rounded-lg bg-red-50 text-left mb-6">
+                  <p className="text-sm" style={{ color: '#DC2626' }}><strong>Reason:</strong> {developerProfile.rejection_reason}</p>
                 </div>
               )}
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm" style={{ color: '#666666' }}>
                 Please contact support for more information.
               </p>
             </>
@@ -432,16 +432,17 @@ function DeveloperRegisterForm() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto"
+      className="max-w-2xl mx-auto min-h-screen py-8 px-4"
+      style={{ backgroundColor: '#FFFFFF' }}
     >
-      <div className="glass-card p-8">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#E5E5E5] p-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-white border border-[#E5E5E5] shadow-sm flex items-center justify-center mx-auto mb-4">
             <Rocket className="w-8 h-8" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Become a Developer</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold mb-2" style={{ color: '#0A0A0A' }}>Become a Developer</h1>
+          <p style={{ color: '#666666' }}>
             Join our developer program and publish your apps
           </p>
         </div>
@@ -450,24 +451,24 @@ function DeveloperRegisterForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Developer Type */}
           <div className="space-y-3">
-            <Label>Developer Type *</Label>
+            <Label style={{ color: '#0A0A0A' }}>Developer Type *</Label>
             <RadioGroup
               value={formData.developer_type}
               onValueChange={(value: 'individual' | 'company') => 
                 setFormData(prev => ({ ...prev, developer_type: value }))
               }
-              className="flex gap-4"
+              className="grid grid-cols-2 gap-4"
             >
-              <div className="flex items-center space-x-2">
+              <div className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.developer_type === 'individual' ? 'border-[#0EA5E9] bg-blue-50' : 'border-[#E5E5E5] bg-white'}`}>
                 <RadioGroupItem value="individual" id="individual" />
-                <Label htmlFor="individual" className="flex items-center gap-2 cursor-pointer">
+                <Label htmlFor="individual" className="flex items-center gap-2 cursor-pointer m-0" style={{ color: '#0A0A0A' }}>
                   <User className="w-6 h-6" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                   Individual
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.developer_type === 'company' ? 'border-[#0EA5E9] bg-blue-50' : 'border-[#E5E5E5] bg-white'}`}>
                 <RadioGroupItem value="company" id="company" />
-                <Label htmlFor="company" className="flex items-center gap-2 cursor-pointer">
+                <Label htmlFor="company" className="flex items-center gap-2 cursor-pointer m-0" style={{ color: '#0A0A0A' }}>
                   <Building className="w-6 h-6" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                   Company
                 </Label>
@@ -478,14 +479,14 @@ function DeveloperRegisterForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name *</Label>
+              <Label htmlFor="fullName" style={{ color: '#0A0A0A' }}>Full Name *</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Input
                   id="fullName"
                   value={formData.full_name}
                   onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                  className="pl-12 bg-muted/50 border-muted"
+                  className="pl-12 bg-white border-[#E5E5E5] text-[#0A0A0A] placeholder:text-gray-400"
                   placeholder="Your full name"
                 />
               </div>
@@ -493,7 +494,7 @@ function DeveloperRegisterForm() {
 
             {/* Developer/Company Name */}
             <div className="space-y-2">
-              <Label htmlFor="developerName">
+              <Label htmlFor="developerName" style={{ color: '#0A0A0A' }}>
                 {formData.developer_type === 'company' ? 'Company Name' : 'Developer Name'} *
               </Label>
               <div className="relative">
@@ -502,7 +503,7 @@ function DeveloperRegisterForm() {
                   id="developerName"
                   value={formData.developer_name}
                   onChange={(e) => setFormData(prev => ({ ...prev, developer_name: e.target.value }))}
-                  className="pl-12 bg-muted/50 border-muted"
+                  className="pl-12 bg-white border-[#E5E5E5] text-[#0A0A0A] placeholder:text-gray-400"
                   placeholder={formData.developer_type === 'company' ? 'Company name' : 'Display name'}
                 />
               </div>
@@ -510,7 +511,7 @@ function DeveloperRegisterForm() {
 
             {/* Email (readonly) */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" style={{ color: '#0A0A0A' }}>Email</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Input
@@ -518,21 +519,21 @@ function DeveloperRegisterForm() {
                   type="email"
                   value={user?.email || ''}
                   disabled
-                  className="pl-12 bg-muted/30 border-muted"
+                  className="pl-12 bg-white border-[#E5E5E5] text-[#0A0A0A]"
                 />
               </div>
             </div>
 
             {/* Phone */}
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number *</Label>
+              <Label htmlFor="phone" style={{ color: '#0A0A0A' }}>Phone Number *</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="pl-12 bg-muted/50 border-muted"
+                  className="pl-12 bg-white border-[#E5E5E5] text-[#0A0A0A] placeholder:text-gray-400"
                   placeholder="+1 (555) 000-0000"
                 />
               </div>
@@ -540,14 +541,14 @@ function DeveloperRegisterForm() {
 
             {/* Country */}
             <div className="space-y-2">
-              <Label htmlFor="country">Country *</Label>
+              <Label htmlFor="country" style={{ color: '#0A0A0A' }}>Country *</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none z-10" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Select
                   value={formData.country}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
                 >
-                  <SelectTrigger className="bg-muted/50 border-muted pl-12">
+                  <SelectTrigger className="bg-white border-[#E5E5E5] pl-12 text-[#0A0A0A]">
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
@@ -561,14 +562,14 @@ function DeveloperRegisterForm() {
 
             {/* Website */}
             <div className="space-y-2">
-              <Label htmlFor="website">Website (Optional)</Label>
+              <Label htmlFor="website" style={{ color: '#0A0A0A' }}>Website (Optional)</Label>
               <div className="relative">
                 <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Input
                   id="website"
                   value={formData.website}
                   onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                  className="pl-12 bg-muted/50 border-muted"
+                  className="pl-12 bg-white border-[#E5E5E5] text-[#0A0A0A] placeholder:text-gray-400"
                   placeholder="https://yourwebsite.com"
                 />
               </div>
@@ -577,14 +578,14 @@ function DeveloperRegisterForm() {
 
           {/* Bio */}
           <div className="space-y-2">
-            <Label htmlFor="bio">Bio (Optional)</Label>
+            <Label htmlFor="bio" style={{ color: '#0A0A0A' }}>Bio (Optional)</Label>
             <div className="relative">
               <FileText className="absolute left-3 top-3 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
               <Textarea
                 id="bio"
                 value={formData.bio}
                 onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                className="pl-12 bg-muted/50 border-muted min-h-[100px]"
+                className="pl-12 bg-white border-[#E5E5E5] text-[#0A0A0A] placeholder:text-gray-400 min-h-[100px]"
                 placeholder="Tell us about yourself or your company..."
               />
             </div>
@@ -592,11 +593,11 @@ function DeveloperRegisterForm() {
 
           {/* Government ID Upload */}
           <div className="space-y-3">
-            <Label className="flex items-center gap-2">
+            <Label className="flex items-center gap-2" style={{ color: '#0A0A0A' }}>
               <CreditCard className="w-6 h-6" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
               Government-Issued ID *
             </Label>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs" style={{ color: '#666666' }}>
               Upload a clear photo or scan of your ID (Passport, Driver's License, or National ID)
             </p>
             
@@ -613,13 +614,13 @@ function DeveloperRegisterForm() {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 onClick={() => idFileRef.current?.click()}
-                className="border-2 border-dashed border-muted rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+                className="border-2 border-dashed border-[#E5E5E5] rounded-xl p-8 text-center cursor-pointer hover:border-[#0EA5E9]/50 hover:bg-gray-50 transition-all"
               >
                 <Upload className="w-10 h-10 mx-auto mb-3" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
-                <p className="text-sm text-muted-foreground mb-1">
+                <p className="text-sm mb-1" style={{ color: '#666666' }}>
                   Click to upload your ID
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs" style={{ color: '#666666' }}>
                   JPG, PNG, or PDF (under 1MB recommended, images auto-compressed)
                 </p>
               </motion.div>
@@ -627,23 +628,23 @@ function DeveloperRegisterForm() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative p-4 rounded-xl bg-primary/10 border border-primary/30"
+                className="relative p-4 rounded-xl bg-blue-50 border border-[#0EA5E9]/30"
               >
                 <div className="flex items-center gap-3">
                   {/* Safe image preview — falls back to icon on error */}
                   {idFile.type.startsWith('image/') ? (
                     <SafeImagePreview file={idFile} />
                   ) : (
-                    <div className="p-2 rounded-lg bg-slate-100">
+                    <div className="p-2 rounded-lg bg-white">
                       <CreditCard className="w-5 h-5" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{idFile.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium truncate" style={{ color: '#0A0A0A' }}>{idFile.name}</p>
+                    <p className="text-xs" style={{ color: '#666666' }}>
                       {(idFile.size / 1024 / 1024).toFixed(2)} MB
                       {idFile.size > MAX_FILE_SIZE && idFile.type.startsWith('image/') && (
-                        <span className="ml-1 text-warning"> — will be compressed</span>
+                        <span className="ml-1" style={{ color: '#D97706' }}> — will be compressed</span>
                       )}
                     </p>
                   </div>
@@ -672,8 +673,8 @@ function DeveloperRegisterForm() {
               className="space-y-2"
             >
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Uploading...</span>
-                <span className="text-primary font-medium">{uploadProgress}%</span>
+                <span style={{ color: '#666666' }}>Uploading...</span>
+                <span className="font-medium" style={{ color: '#0EA5E9' }}>{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="h-2" />
             </motion.div>
@@ -682,7 +683,8 @@ function DeveloperRegisterForm() {
           {/* Submit */}
           <Button 
             type="submit" 
-            className="w-full bg-primary hover:bg-primary/90"
+            className="w-full text-white font-semibold"
+            style={{ backgroundColor: '#0EA5E9' }}
             disabled={isSubmitting || isLoading}
           >
             {isSubmitting ? (
@@ -695,7 +697,7 @@ function DeveloperRegisterForm() {
             )}
           </Button>
 
-          <p className="text-xs text-center text-muted-foreground">
+          <p className="text-xs text-center" style={{ color: '#666666' }}>
             By submitting, you agree to our Developer Terms of Service and Privacy Policy
           </p>
         </form>
