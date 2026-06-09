@@ -65,7 +65,7 @@ function SafeImagePreview({ file }: { file: File }) {
 
   if (failed || !src) {
     return (
-      <div className="p-2 rounded-lg bg-slate-100">
+      <div className="p-2 rounded-lg bg-gray-100">
         <CreditCard className="w-5 h-5" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
       </div>
     );
