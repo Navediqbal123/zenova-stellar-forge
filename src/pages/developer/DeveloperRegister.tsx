@@ -461,14 +461,14 @@ function DeveloperRegisterForm() {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="individual" id="individual" />
                 <Label htmlFor="individual" className="flex items-center gap-2 cursor-pointer">
-                  <User className="w-4 h-4" />
+                  <User className="w-6 h-6" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                   Individual
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="company" id="company" />
                 <Label htmlFor="company" className="flex items-center gap-2 cursor-pointer">
-                  <Building className="w-4 h-4" />
+                  <Building className="w-6 h-6" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                   Company
                 </Label>
               </div>
@@ -480,12 +480,12 @@ function DeveloperRegisterForm() {
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name *</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Input
                   id="fullName"
                   value={formData.full_name}
                   onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                  className="pl-10 bg-muted/50 border-muted"
+                  className="pl-12 bg-muted/50 border-muted"
                   placeholder="Your full name"
                 />
               </div>
@@ -497,12 +497,12 @@ function DeveloperRegisterForm() {
                 {formData.developer_type === 'company' ? 'Company Name' : 'Developer Name'} *
               </Label>
               <div className="relative">
-                <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Code className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Input
                   id="developerName"
                   value={formData.developer_name}
                   onChange={(e) => setFormData(prev => ({ ...prev, developer_name: e.target.value }))}
-                  className="pl-10 bg-muted/50 border-muted"
+                  className="pl-12 bg-muted/50 border-muted"
                   placeholder={formData.developer_type === 'company' ? 'Company name' : 'Display name'}
                 />
               </div>
