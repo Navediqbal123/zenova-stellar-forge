@@ -511,25 +511,28 @@ function DeveloperRegisterForm() {
             {/* Email (readonly) */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="bg-muted/30 border-muted"
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
+                <Input
+                  id="email"
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="pl-12 bg-muted/30 border-muted"
+                />
+              </div>
             </div>
 
             {/* Phone */}
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number *</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="pl-10 bg-muted/50 border-muted"
+                  className="pl-12 bg-muted/50 border-muted"
                   placeholder="+1 (555) 000-0000"
                 />
               </div>
@@ -538,31 +541,34 @@ function DeveloperRegisterForm() {
             {/* Country */}
             <div className="space-y-2">
               <Label htmlFor="country">Country *</Label>
-              <Select
-                value={formData.country}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
-              >
-                <SelectTrigger className="bg-muted/50 border-muted">
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country} value={country}>{country}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none z-10" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
+                <Select
+                  value={formData.country}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                >
+                  <SelectTrigger className="bg-muted/50 border-muted pl-12">
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>{country}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Website */}
             <div className="space-y-2">
               <Label htmlFor="website">Website (Optional)</Label>
               <div className="relative">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <Input
                   id="website"
                   value={formData.website}
                   onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                  className="pl-10 bg-muted/50 border-muted"
+                  className="pl-12 bg-muted/50 border-muted"
                   placeholder="https://yourwebsite.com"
                 />
               </div>
@@ -573,12 +579,12 @@ function DeveloperRegisterForm() {
           <div className="space-y-2">
             <Label htmlFor="bio">Bio (Optional)</Label>
             <div className="relative">
-              <FileText className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
+              <FileText className="absolute left-3 top-3 w-6 h-6 pointer-events-none" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
               <Textarea
                 id="bio"
                 value={formData.bio}
                 onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                className="pl-10 bg-muted/50 border-muted min-h-[100px]"
+                className="pl-12 bg-muted/50 border-muted min-h-[100px]"
                 placeholder="Tell us about yourself or your company..."
               />
             </div>
@@ -587,7 +593,7 @@ function DeveloperRegisterForm() {
           {/* Government ID Upload */}
           <div className="space-y-3">
             <Label className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
+              <CreditCard className="w-6 h-6" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
               Government-Issued ID *
             </Label>
             <p className="text-xs text-muted-foreground">
@@ -609,7 +615,7 @@ function DeveloperRegisterForm() {
                 onClick={() => idFileRef.current?.click()}
                 className="border-2 border-dashed border-muted rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
               >
-                <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+                <Upload className="w-10 h-10 mx-auto mb-3" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                 <p className="text-sm text-muted-foreground mb-1">
                   Click to upload your ID
                 </p>
@@ -628,8 +634,8 @@ function DeveloperRegisterForm() {
                   {idFile.type.startsWith('image/') ? (
                     <SafeImagePreview file={idFile} />
                   ) : (
-                    <div className="p-2 rounded-lg bg-primary/20">
-                      <CreditCard className="w-5 h-5 text-primary" />
+                    <div className="p-2 rounded-lg bg-slate-100">
+                      <CreditCard className="w-5 h-5" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -651,7 +657,7 @@ function DeveloperRegisterForm() {
                     }}
                     className="shrink-0"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
                   </Button>
                 </div>
               </motion.div>
