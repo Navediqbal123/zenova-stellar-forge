@@ -13,7 +13,10 @@ import {
   Clock,
   Upload,
   CreditCard,
-  X
+  X,
+  Rocket,
+  Lock,
+  Link,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -62,8 +65,8 @@ function SafeImagePreview({ file }: { file: File }) {
 
   if (failed || !src) {
     return (
-      <div className="p-2 rounded-lg bg-primary/20">
-        <CreditCard className="w-5 h-5 text-primary" />
+      <div className="p-2 rounded-lg bg-slate-100">
+        <CreditCard className="w-5 h-5" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
       </div>
     );
   }
@@ -347,7 +350,7 @@ function DeveloperRegisterForm() {
           animate={{ opacity: 1, y: 0 }}
           className="glass-card p-8 max-w-md text-center"
         >
-          <Code className="w-16 h-16 mx-auto mb-4 text-primary" />
+          <Rocket className="w-16 h-16 mx-auto mb-4" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
           <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
           <p className="text-muted-foreground mb-6">
             You need to be signed in to become a developer
@@ -435,7 +438,7 @@ function DeveloperRegisterForm() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4">
-            <Code className="w-8 h-8 text-primary" />
+            <Rocket className="w-8 h-8" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
           </div>
           <h1 className="text-2xl font-bold mb-2">Become a Developer</h1>
           <p className="text-muted-foreground">
