@@ -11,7 +11,6 @@ import {
   X,
   User,
   ChevronRight,
-  LogOut
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useState } from 'react';

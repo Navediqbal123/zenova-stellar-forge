@@ -276,12 +276,6 @@ export default function Profile() {
             <SectionTitle>Preferences</SectionTitle>
             <div className="bg-white rounded-2xl overflow-hidden divide-y divide-slate-100">
               <Row
-                icon={Moon}
-                label="Dark Mode"
-                onClick={() => toggleDark(!darkMode)}
-                trailing={<Switch checked={darkMode} onCheckedChange={toggleDark} />}
-              />
-              <Row
                 icon={Globe}
                 label="Language"
                 onClick={() => toast.info('More languages coming soon')}
