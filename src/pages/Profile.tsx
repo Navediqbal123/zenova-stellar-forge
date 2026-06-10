@@ -14,7 +14,6 @@ import {
   Star,
   Bookmark,
   DownloadCloud,
-  Moon,
   Globe,
   Clock,
   XCircle,
@@ -25,7 +24,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useApps } from '@/contexts/AppsContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Switch } from '@/components/ui/switch';
 
 const ACCENT = '#0A84FF';
 const PAGE_BG = '#F2F2F7';
