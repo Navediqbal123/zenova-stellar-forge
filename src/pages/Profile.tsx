@@ -90,9 +90,6 @@ export default function Profile() {
   const [editOpen, setEditOpen] = useState(false);
   const [editingName, setEditingName] = useState(name);
   const [savingName, setSavingName] = useState(false);
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    try { return localStorage.getItem('elorax_dark') === '1'; } catch { return false; }
-  });
   const [reviewCount, setReviewCount] = useState<number>(0);
   const [savedCount, setSavedCount] = useState<number>(0);
 
