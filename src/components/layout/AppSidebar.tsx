@@ -222,22 +222,6 @@ export function AppSidebar() {
             </div>
           )}
         </div>
-
-        {/* Logout - always visible, pinned to bottom */}
-        <div className="shrink-0 mt-auto p-4 border-t border-sidebar-border bg-sidebar">
-          <button
-            onClick={handleLogout}
-            className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 w-full",
-              "group relative overflow-hidden",
-              "bg-destructive/10 text-destructive hover:bg-destructive/20"
-            )}
-          >
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-destructive/10 to-transparent" />
-            <LogOut className="w-5 h-5 relative z-10 transition-transform duration-200 group-hover:scale-110" />
-            <span className="relative z-10 font-medium">Logout</span>
-          </button>
-        </div>
         
       </motion.aside>
     </>
