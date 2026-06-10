@@ -378,11 +378,7 @@ export default function Index() {
               </nav>
 
               <div className="p-4 border-t border-white/10 space-y-2">
-                {isAuthenticated ? (
-                  <Button onClick={handleLogout} className="w-full justify-start gap-2 bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30">
-                    <LogOut className="w-4 h-4" /> Logout
-                  </Button>
-                ) : (
+                {!isAuthenticated && (
                   <>
                     <Link to="/login" onClick={() => setDrawerOpen(false)}>
                       <Button variant="outline" className="w-full justify-start gap-2"><LogIn className="w-4 h-4" /> Sign In</Button>
