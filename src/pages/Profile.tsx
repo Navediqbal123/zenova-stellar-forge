@@ -173,13 +173,6 @@ export default function Profile() {
     }
   };
 
-  const toggleDark = (v: boolean) => {
-    setDarkMode(v);
-    try { localStorage.setItem('elorax_dark', v ? '1' : '0'); } catch {}
-    if (v) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  };
-
   const initials = (name || user?.email || '?').slice(0, 1).toUpperCase();
   const devStatus = developerProfile?.status;
   const isApprovedDev = devStatus === 'approved';
