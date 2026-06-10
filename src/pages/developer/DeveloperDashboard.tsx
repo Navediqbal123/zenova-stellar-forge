@@ -19,17 +19,17 @@ import {
   ArrowRight,
   ChevronDown,
   Menu,
-  Megaphone,
-  DollarSign,
   Bell,
   Settings,
-  User,
   Save,
   Pencil,
   X,
+  BadgeCheck,
+  Info,
+  TrendingUp,
+  MoreHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,21 +43,41 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { EditAppsTab } from '@/components/developer/EditAppsTab';
 
-// Animation variants
+// Design tokens
+const ACCENT = '#0EA5E9';
+const TEXT = '#0A0A0A';
+const MUTED = '#6B7280';
+const BORDER = '#E5E7EB';
+const PAGE_BG = '#F5F5F7';
+
+const cardBase =
+  'bg-white rounded-3xl border border-[#E5E7EB] shadow-[0_2px_12px_rgba(15,23,42,0.04)]';
+
 const staggerContainer = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } }
+  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
+const staggerItem = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
-const staggerItem = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-};
+// Tiny inline sparkline
+function Sparkline({ color = ACCENT, points = [4, 9, 6, 12, 8, 14, 11] }: { color?: string; points?: number[] }) {
+  const max = Math.max(...points, 1);
+  const w = 60, h = 22;
+  const step = w / (points.length - 1);
+  const d = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${i * step} ${h - (p / max) * h}`)
+    .join(' ');
+  return (
+    <svg width={w} height={h} className="overflow-visible">
+      <path d={d} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export default function DeveloperDashboard() {
   const navigate = useNavigate();
   const { user, isAuthenticated, developerProfile, isDeveloperApproved } = useAuth();
-  const { apps, getAppsByDeveloper, refreshApps } = useApps();
+  const { getAppsByDeveloper, refreshApps } = useApps();
   const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState<DeveloperTab>('dashboard');
@@ -71,7 +91,7 @@ export default function DeveloperDashboard() {
   const myApps = developerProfile ? getAppsByDeveloper(developerProfile.id) : [];
 
   useEffect(() => {
-    myApps.forEach(app => {
+    myApps.forEach((app) => {
       const prevStatus = prevStatusesRef.current[app.id];
       if (prevStatus && prevStatus !== 'approved' && app.status === 'approved') {
         triggerCelebrationConfetti();
@@ -80,97 +100,64 @@ export default function DeveloperDashboard() {
     });
   }, [myApps]);
 
-  // Auth guards
+  // ============ Auth Guards (Light Theme) ============
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-8 max-w-md text-center">
-          <Lock className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground mb-6">Please sign in to access the Developer Dashboard</p>
-          <Button onClick={() => navigate('/login')} className="bg-primary hover:bg-primary/90">Sign In</Button>
-        </motion.div>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: PAGE_BG }}>
+        <div className={cn(cardBase, 'p-8 max-w-md text-center')}>
+          <Lock className="w-14 h-14 mx-auto mb-4" style={{ color: TEXT }} strokeWidth={1.5} />
+          <h2 className="text-2xl font-bold mb-2" style={{ color: TEXT }}>Access Denied</h2>
+          <p className="mb-6" style={{ color: MUTED }}>Please sign in to access the Developer Dashboard</p>
+          <Button onClick={() => navigate('/login')} className="rounded-full text-white" style={{ background: ACCENT }}>Sign In</Button>
+        </div>
       </div>
     );
   }
 
   if (!developerProfile) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card p-8 max-w-md text-center">
-          <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-2xl font-bold mb-2">Become a Developer</h2>
-          <p className="text-muted-foreground mb-6">Register as a developer to publish your apps</p>
-          <Button onClick={() => navigate('/developer/register')} className="bg-primary hover:bg-primary/90">Register Now</Button>
-        </motion.div>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: PAGE_BG }}>
+        <div className={cn(cardBase, 'p-8 max-w-md text-center')}>
+          <Package className="w-14 h-14 mx-auto mb-4" style={{ color: TEXT }} strokeWidth={1.5} />
+          <h2 className="text-2xl font-bold mb-2" style={{ color: TEXT }}>Become a Developer</h2>
+          <p className="mb-6" style={{ color: MUTED }}>Register as a developer to publish your apps</p>
+          <Button onClick={() => navigate('/developer/register')} className="rounded-full text-white" style={{ background: ACCENT }}>Register Now</Button>
+        </div>
       </div>
     );
   }
 
   if (!isDeveloperApproved) {
+    const isPending = developerProfile.status === 'pending';
     return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="admin-glass-card p-8 max-w-lg w-full text-center relative overflow-visible">
-          {developerProfile.status === 'pending' ? (
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: PAGE_BG }}>
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cn(cardBase, 'p-8 max-w-lg w-full text-center')}>
+          {isPending ? (
             <>
-              <div className="relative mx-auto w-24 h-24 mb-6">
-                <motion.div className="absolute inset-0 rounded-full border-2 border-warning/30" style={{ borderStyle: 'dashed' }} animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' }} />
-                <motion.div className="absolute inset-2 rounded-full bg-warning/10" animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} />
-                <div className="absolute inset-4 rounded-full bg-warning/20 flex items-center justify-center">
-                  <Lock className="w-8 h-8 text-warning drop-shadow-[0_0_10px_hsla(35,100%,55%,0.5)]" />
-                </div>
+              <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-5">
+                <Loader2 className="w-9 h-9 text-amber-500 animate-spin" strokeWidth={1.8} />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Dashboard Locked</h2>
-              <p className="text-muted-foreground mb-6">Your developer application is under review. The dashboard will unlock automatically once approved.</p>
-              <div className="mb-6">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}>
-                    <Loader2 className="w-4 h-4 text-warning" />
-                  </motion.div>
-                  <span className="text-sm text-warning font-medium">Review in progress...</span>
-                </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <motion.div className="h-full bg-gradient-to-r from-warning via-warning/80 to-warning" initial={{ width: '0%' }} animate={{ width: ['0%', '70%', '40%', '90%', '60%'] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
-                </div>
-              </div>
-              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-left space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Developer</span>
-                  <span className="font-medium">{developerProfile.developer_name}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Type</span>
-                  <span className="capitalize text-sm px-2 py-0.5 rounded-lg bg-white/5 border border-white/10">{developerProfile.developer_type}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <StatusBadge status="pending" showIcon />
-                </div>
-              </div>
-              <div className="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/20 text-left">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-primary mb-1">What happens next?</p>
-                    <p className="text-xs text-muted-foreground">Our team typically reviews applications within 24-48 hours. Once approved, you'll have instant access to upload and manage your apps.</p>
-                  </div>
-                </div>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: TEXT }}>Dashboard Locked</h2>
+              <p className="mb-6" style={{ color: MUTED }}>Your application is under review. The dashboard will unlock automatically once approved.</p>
+              <div className="p-4 rounded-2xl bg-[#F5F5F7] text-left space-y-2">
+                <div className="flex justify-between text-sm"><span style={{ color: MUTED }}>Developer</span><span className="font-medium" style={{ color: TEXT }}>{developerProfile.developer_name}</span></div>
+                <div className="flex justify-between text-sm"><span style={{ color: MUTED }}>Type</span><span className="font-medium capitalize" style={{ color: TEXT }}>{developerProfile.developer_type}</span></div>
+                <div className="flex justify-between text-sm items-center"><span style={{ color: MUTED }}>Status</span><StatusBadge status="pending" showIcon /></div>
               </div>
             </>
           ) : (
             <>
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} className="w-20 h-20 rounded-full bg-destructive/20 flex items-center justify-center mx-auto mb-6">
-                <XCircle className="w-10 h-10 text-destructive" />
-              </motion.div>
-              <h2 className="text-2xl font-bold mb-2">Application Rejected</h2>
-              <p className="text-muted-foreground mb-4">Your developer application was not approved.</p>
+              <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-5">
+                <XCircle className="w-10 h-10 text-red-500" strokeWidth={1.8} />
+              </div>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: TEXT }}>Application Rejected</h2>
+              <p className="mb-4" style={{ color: MUTED }}>Your developer application was not approved.</p>
               {developerProfile.rejection_reason && (
-                <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-left mb-6">
-                  <p className="text-sm font-medium text-destructive mb-1">Reason:</p>
-                  <p className="text-sm text-destructive/80">{developerProfile.rejection_reason}</p>
+                <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-left mb-4">
+                  <p className="text-sm font-medium text-red-600 mb-1">Reason</p>
+                  <p className="text-sm text-red-500">{developerProfile.rejection_reason}</p>
                 </div>
               )}
-              <p className="text-sm text-muted-foreground">Please contact support for more information or to appeal this decision.</p>
             </>
           )}
         </motion.div>
@@ -178,60 +165,40 @@ export default function DeveloperDashboard() {
     );
   }
 
+  // ============ Stats ============
   const stats = {
     totalApps: myApps.length,
-    pendingApps: myApps.filter(a => a.status === 'pending').length,
-    approvedApps: myApps.filter(a => a.status === 'approved').length,
+    pendingApps: myApps.filter((a) => a.status === 'pending').length,
+    approvedApps: myApps.filter((a) => a.status === 'approved').length,
     totalDownloads: myApps.reduce((sum, app) => sum + app.downloads, 0),
-    totalViews: myApps.reduce((sum, app) => sum + (app.downloads * 3), 0),
+    totalViews: myApps.reduce((sum, app) => sum + app.downloads * 3, 0),
   };
 
-  const statCards = [
-    { label: 'Total Apps', value: stats.totalApps, icon: Package, color: 'primary' },
-    { label: 'Approved', value: stats.approvedApps, icon: CheckCircle, color: 'success' },
-    { label: 'Total Views', value: stats.totalViews >= 1000 ? `${(stats.totalViews / 1000).toFixed(1)}K` : stats.totalViews, icon: Eye, color: 'secondary' },
-    { label: 'Downloads', value: stats.totalDownloads >= 1000000 ? `${(stats.totalDownloads / 1000000).toFixed(1)}M` : stats.totalDownloads >= 1000 ? `${(stats.totalDownloads / 1000).toFixed(1)}K` : stats.totalDownloads, icon: Download, color: 'primary' },
+  const headerStats = [
+    { icon: Package, label: 'Total Apps', value: stats.totalApps },
+    { icon: CheckCircle, label: 'Approved', value: stats.approvedApps },
+    { icon: Download, label: 'Downloads', value: stats.totalDownloads },
+    { icon: Eye, label: 'Views', value: stats.totalViews },
   ];
 
-  const uploadMethods = [
-    {
-      id: 'manual' as const,
-      title: 'Manual Upload',
-      description: 'Full control over all app details. Perfect for experienced developers.',
-      icon: UploadCloud,
-      secondaryIcon: UploadCloud,
-      color: 'secondary',
-      features: ['Complete field control', 'Custom descriptions', 'Manual tagging'],
-    },
-    {
-      id: 'ai' as const,
-      title: 'Upload with AI',
-      description: 'Let AI generate descriptions and tags automatically. Fast and smart.',
-      icon: Wand2,
-      secondaryIcon: Sparkles,
-      color: 'primary',
-      features: ['AI-powered descriptions', 'Auto-generated tags', 'One-click setup'],
-      premium: true,
-    },
+  const overviewCards = [
+    { icon: Package, label: 'Total Apps', value: stats.totalApps, trend: '+20%', color: ACCENT, bg: '#E0F2FE' },
+    { icon: CheckCircle, label: 'Approved Apps', value: stats.approvedApps, trend: '+20%', color: '#10B981', bg: '#D1FAE5' },
+    { icon: Download, label: 'Total Downloads', value: stats.totalDownloads, trend: '+0%', color: '#8B5CF6', bg: '#EDE9FE' },
+    { icon: Eye, label: 'Total Views', value: stats.totalViews, trend: '+0%', color: '#F59E0B', bg: '#FEF3C7' },
   ];
 
   const handleUploadMethodSelect = (method: 'manual' | 'ai') => {
-    if (method === 'ai') {
-      navigate('/developer/ai-upload');
-    } else {
-      navigate('/developer/upload');
-    }
+    if (method === 'ai') navigate('/developer/ai-upload');
+    else navigate('/developer/upload');
   };
 
-  return (
-    <div className="flex min-h-screen bg-background">
-      {/* Background Orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none hidden lg:block">
-        <div className="gradient-orb gradient-orb-primary w-[600px] h-[600px] -top-48 -left-48" />
-        <div className="gradient-orb gradient-orb-secondary w-[500px] h-[500px] top-1/2 -right-64" />
-      </div>
+  const displayName = developerProfile.developer_name || user?.email?.split('@')[0] || 'there';
+  const avatarLetter = displayName.charAt(0).toUpperCase();
 
-      {/* Sidebar */}
+  return (
+    <div className="flex min-h-screen" style={{ background: PAGE_BG }}>
+      {/* Sidebar (existing) */}
       <DeveloperSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -239,190 +206,267 @@ export default function DeveloperDashboard() {
         onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Mobile Hamburger Button */}
+      {/* Mobile Menu */}
       <button
         onClick={() => setMobileSidebarOpen(true)}
-        className="fixed top-3 left-3 z-40 min-h-[44px] min-w-[44px] rounded-xl bg-card/95 border border-border shadow-lg lg:hidden flex items-center justify-center active:scale-95 transition-transform"
+        className="fixed top-3 left-3 z-40 w-11 h-11 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.06)] lg:hidden flex items-center justify-center active:scale-95 transition-transform"
       >
-        <Menu className="w-5 h-5 text-primary" />
+        <Menu className="w-5 h-5" style={{ color: TEXT }} />
       </button>
 
-      {/* Main Content */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative z-10 flex-1 min-w-0 w-full overflow-x-hidden lg:ml-64 px-3 sm:px-4 pt-16 pb-24 lg:p-8"
+        className="relative z-10 flex-1 min-w-0 w-full overflow-x-hidden lg:ml-64 px-4 sm:px-6 pt-16 pb-28 lg:p-8"
       >
-        <div className="max-w-6xl mx-auto space-y-5 sm:space-y-8 min-w-0">
-          {/* Header */}
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20">
-                  <LayoutDashboard className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
-                </div>
-                <h1 className="text-xl sm:text-3xl font-bold">Developer Console</h1>
-              </div>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                Welcome back, <span className="text-primary font-medium">{developerProfile.developer_name}</span>
+        <div className="max-w-6xl mx-auto space-y-6 min-w-0">
+          {/* ============ Header ============ */}
+          <motion.header
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start justify-between gap-4"
+          >
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: TEXT }}>
+                Developer Console
+              </h1>
+              <p className="mt-1 text-sm sm:text-base" style={{ color: MUTED }}>
+                Welcome back, <span className="font-semibold" style={{ color: ACCENT }}>{displayName} 👋</span>
               </p>
+              <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-white border border-[#E5E7EB] shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+                <BadgeCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} fill={ACCENT + '20'} />
+                <span className="text-[11px] font-medium" style={{ color: TEXT }}>Verified Developer</span>
+              </div>
             </div>
-          </motion.div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setActiveTab('notifications')}
+                className="relative w-11 h-11 rounded-full bg-white border border-[#E5E7EB] shadow-[0_1px_4px_rgba(0,0,0,0.04)] flex items-center justify-center"
+              >
+                <Bell className="w-5 h-5" style={{ color: TEXT }} strokeWidth={1.8} />
+                <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full" style={{ background: ACCENT }} />
+              </button>
+              <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-bold shadow-[0_2px_8px_rgba(14,165,233,0.3)]">
+                {avatarLetter}
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+              </div>
+            </div>
+          </motion.header>
 
           <AnimatePresence mode="wait">
-            {/* Dashboard Tab */}
+            {/* ============ DASHBOARD TAB ============ */}
             {activeTab === 'dashboard' && (
-              <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+              <motion.div
+                key="dashboard"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="space-y-6"
+              >
                 {/* Upload Method Cards */}
-                <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                  {uploadMethods.map((method, index) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: 'manual' as const, icon: UploadCloud, title: 'Manual Upload', desc: 'Full control over all app details and settings.', recommended: false },
+                    { id: 'ai' as const, icon: Wand2, title: 'Upload with AI', desc: 'Let AI generate descriptions, tags and more for your app.', recommended: true },
+                  ].map((m, i) => (
                     <motion.button
-                      key={method.id}
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: index * 0.1, type: 'spring', stiffness: 200 }}
-                      whileHover={{ scale: 1.03, y: -4 }}
+                      key={m.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.08 }}
+                      whileHover={{ y: -3 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => handleUploadMethodSelect(method.id)}
-                      className={cn(
-                        "relative p-4 sm:p-8 rounded-2xl text-left transition-all duration-300",
-                        "border-2 border-transparent admin-glass-card group overflow-hidden",
-                        method.color === 'primary' && "hover:border-primary/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.2)]",
-                        method.color === 'secondary' && "hover:border-secondary/50 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.2)]"
-                      )}
+                      onClick={() => handleUploadMethodSelect(m.id)}
+                      className={cn(cardBase, 'relative p-5 text-left overflow-hidden')}
                     >
-                      {method.premium && (
-                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-gradient-to-r from-secondary to-primary text-[10px] sm:text-xs font-semibold text-primary-foreground">
+                      {m.recommended && (
+                        <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white" style={{ background: ACCENT }}>
                           Recommended
-                        </div>
+                        </span>
                       )}
-                      <div className={cn(
-                        "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                        method.color === 'primary' && "bg-gradient-to-br from-primary/15 via-transparent to-transparent",
-                        method.color === 'secondary' && "bg-gradient-to-br from-secondary/15 via-transparent to-transparent"
-                      )} />
-                      <div className="relative z-10">
-                        <div className={cn(
-                          "w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-6 transition-all duration-300 group-hover:scale-110",
-                          method.color === 'primary' && "bg-primary/15 group-hover:bg-primary/25",
-                          method.color === 'secondary' && "bg-secondary/15 group-hover:bg-secondary/25"
-                        )}>
-                          <method.icon className={cn(
-                            "w-6 h-6 sm:w-8 sm:h-8 transition-all duration-300",
-                            method.color === 'primary' && "text-primary",
-                            method.color === 'secondary' && "text-secondary"
-                          )} />
-                        </div>
-                        <h3 className="text-sm sm:text-xl font-bold mb-1 sm:mb-2 flex items-center gap-2">
-                          {method.title}
-                          <ArrowRight className={cn(
-                            "w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block",
-                            method.color === 'primary' && "text-primary",
-                            method.color === 'secondary' && "text-secondary"
-                          )} />
-                        </h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-6 line-clamp-2">{method.description}</p>
-                        <ul className="space-y-1.5 hidden sm:block">
-                          {method.features.map((feature, i) => (
-                            <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <div className={cn("w-1.5 h-1.5 rounded-full", method.color === 'primary' && "bg-primary", method.color === 'secondary' && "bg-secondary")} />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ background: '#E0F2FE' }}>
+                        <m.icon className="w-6 h-6" style={{ color: ACCENT }} strokeWidth={1.8} />
                       </div>
-                      <motion.div
-                        className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity"
-                        animate={{ rotate: [0, 10, 0] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                      >
-                        <method.secondaryIcon className="w-24 h-24 sm:w-40 sm:h-40" />
-                      </motion.div>
+                      <h3 className="text-base font-bold mb-1" style={{ color: TEXT }}>{m.title}</h3>
+                      <p className="text-xs leading-relaxed mb-5" style={{ color: MUTED }}>{m.desc}</p>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(14,165,233,0.3)]" style={{ background: ACCENT }}>
+                        <ArrowRight className="w-4 h-4 text-white" />
+                      </div>
                     </motion.button>
                   ))}
                 </div>
 
-                {/* Stats Grid */}
-                <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {statCards.map((stat) => (
-                    <motion.div key={stat.label} variants={staggerItem} whileHover={{ scale: 1.02, y: -2 }} className="admin-glass-card p-4 sm:p-6">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                        <div className={cn("p-1.5 sm:p-2 rounded-lg sm:rounded-xl", stat.color === 'primary' && 'bg-primary/15', stat.color === 'success' && 'bg-success/15', stat.color === 'secondary' && 'bg-secondary/15')}>
-                          <stat.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", stat.color === 'primary' && 'text-primary', stat.color === 'success' && 'text-success', stat.color === 'secondary' && 'text-secondary')} />
-                        </div>
-                        <span className="text-xs sm:text-sm text-muted-foreground">{stat.label}</span>
+                {/* Stats single horizontal card */}
+                <div className={cn(cardBase, 'p-4 sm:p-6')}>
+                  <div className="grid grid-cols-4 divide-x divide-[#E5E7EB]">
+                    {headerStats.map((s) => (
+                      <div key={s.label} className="flex flex-col items-center justify-center px-1 sm:px-3">
+                        <s.icon className="w-5 h-5 mb-2" style={{ color: ACCENT }} strokeWidth={1.8} />
+                        <p className="text-xl sm:text-2xl font-bold" style={{ color: TEXT }}>{s.value}</p>
+                        <p className="text-[10px] sm:text-xs mt-0.5 text-center" style={{ color: MUTED }}>{s.label}</p>
                       </div>
-                      <p className="text-2xl sm:text-3xl font-bold">{stat.value}</p>
-                    </motion.div>
-                  ))}
-                </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Developer Score */}
+                <div className={cn(cardBase, 'p-5')}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold" style={{ color: TEXT }}>Developer Score</p>
+                      <Info className="w-3.5 h-3.5" style={{ color: MUTED }} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-bold" style={{ color: ACCENT }}>85%</span>
+                      <span className="text-[11px] font-medium text-green-600">Excellent</span>
+                      <Sparkline color="#10B981" points={[3, 5, 4, 7, 6, 9, 11]} />
+                    </div>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-[#F1F5F9] overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: '85%' }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                      className="h-full rounded-full"
+                      style={{ background: ACCENT }}
+                    />
+                  </div>
+                </div>
+
+                {/* Overview */}
+                <section>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-lg font-bold" style={{ color: TEXT }}>Overview</h2>
+                    <button className="text-xs font-medium flex items-center gap-1" style={{ color: MUTED }}>
+                      This Month <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {overviewCards.map((c) => (
+                      <motion.div key={c.label} variants={staggerItem} className={cn(cardBase, 'p-4')}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: c.bg }}>
+                            <c.icon className="w-4.5 h-4.5" style={{ color: c.color }} strokeWidth={1.8} />
+                          </div>
+                          <Sparkline color={c.color} />
+                        </div>
+                        <p className="text-[11px] mb-1" style={{ color: MUTED }}>{c.label}</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold" style={{ color: TEXT }}>{c.value}</p>
+                          <span className="text-[10px] font-semibold flex items-center gap-0.5" style={{ color: c.color }}>
+                            <TrendingUp className="w-3 h-3" />{c.trend}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </section>
+
+                {/* Recent Activity */}
+                <section>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-lg font-bold" style={{ color: TEXT }}>Recent Activity</h2>
+                    <button onClick={() => setActiveTab('my-apps')} className="text-xs font-semibold" style={{ color: ACCENT }}>View All</button>
+                  </div>
+                  <div className={cn(cardBase, 'divide-y divide-[#F1F5F9]')}>
+                    {myApps.length === 0 ? (
+                      <div className="p-8 text-center">
+                        <Package className="w-10 h-10 mx-auto mb-3" style={{ color: MUTED }} strokeWidth={1.4} />
+                        <p className="text-sm" style={{ color: MUTED }}>No apps uploaded yet</p>
+                      </div>
+                    ) : (
+                      myApps.slice(0, 4).map((app) => (
+                        <div key={app.id} className="p-3.5 flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-base shrink-0 overflow-hidden">
+                            {app.icon_url && app.icon_url.startsWith('http') ? (
+                              <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-white font-bold">{app.name.charAt(0)}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-sm truncate" style={{ color: TEXT }}>{app.name}</p>
+                              <StatusBadge status={app.status} size="sm" />
+                            </div>
+                            <p className="text-[11px] mt-0.5" style={{ color: MUTED }}>
+                              {app.created_at ? new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently'} • {app.downloads} downloads
+                            </p>
+                          </div>
+                          <button className="w-8 h-8 rounded-full hover:bg-[#F5F5F7] flex items-center justify-center">
+                            <MoreHorizontal className="w-4 h-4" style={{ color: MUTED }} />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </section>
               </motion.div>
             )}
 
-            {/* My Apps Tab */}
+            {/* ============ MY APPS TAB ============ */}
             {activeTab === 'my-apps' && (
-              <motion.div key="my-apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+              <motion.div key="my-apps" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold">My Apps</h2>
-                  <span className="text-xs text-muted-foreground">{myApps.length} apps</span>
+                  <h2 className="text-lg font-bold" style={{ color: TEXT }}>My Apps</h2>
+                  <span className="text-xs" style={{ color: MUTED }}>{myApps.length} apps</span>
                 </div>
                 {myApps.length === 0 ? (
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="admin-glass-card p-8 sm:p-12 text-center">
-                    <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                    <p className="text-xl text-muted-foreground mb-2">No apps yet</p>
-                    <p className="text-sm text-muted-foreground mb-6">Upload your first app to get started</p>
-                    <Button onClick={() => setActiveTab('dashboard')} className="bg-primary hover:bg-primary/90">
-                      <Plus className="w-5 h-5 mr-2" /> Go to Upload
+                  <div className={cn(cardBase, 'p-10 text-center')}>
+                    <Package className="w-14 h-14 mx-auto mb-3" style={{ color: MUTED }} strokeWidth={1.4} />
+                    <p className="text-base mb-1" style={{ color: TEXT }}>No apps yet</p>
+                    <p className="text-sm mb-5" style={{ color: MUTED }}>Upload your first app to get started</p>
+                    <Button onClick={() => setActiveTab('dashboard')} className="rounded-full text-white" style={{ background: ACCENT }}>
+                      <Plus className="w-4 h-4 mr-1" /> Go to Upload
                     </Button>
-                  </motion.div>
+                  </div>
                 ) : (
                   <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-3">
                     {myApps.map((app) => {
                       const isExpanded = expandedAppId === app.id;
                       return (
-                        <motion.div key={app.id} variants={staggerItem} layout className="admin-glass-card overflow-hidden">
-                          <motion.button
-                            whileHover={{ scale: 1.005 }}
+                        <motion.div key={app.id} variants={staggerItem} layout className={cn(cardBase, 'overflow-hidden')}>
+                          <button
                             onClick={() => setExpandedAppId(isExpanded ? null : app.id)}
-                            className="w-full p-2 flex items-center gap-2 text-left"
+                            className="w-full p-3.5 flex items-center gap-3 text-left"
                           >
-                            <div className="w-8 h-8 rounded-md bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-sm shrink-0 overflow-hidden">
+                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shrink-0 overflow-hidden">
                               {app.icon_url && app.icon_url.startsWith('http') ? (
                                 <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
-                              ) : (app.icon || app.icon_url || '📱')}
+                              ) : (
+                                <span className="text-white font-bold">{app.name.charAt(0)}</span>
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1 flex-wrap">
-                                <h3 className="font-semibold truncate text-xs">{app.name}</h3>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-semibold text-sm truncate" style={{ color: TEXT }}>{app.name}</h3>
                                 <StatusBadge status={app.status} size="sm" />
                               </div>
-                              <div className="flex items-center gap-1 text-[9px] text-muted-foreground mt-0.5">
-                                <span>{app.size || 'N/A'}</span>
-                                <span>•</span>
-                                <span>{app.downloads.toLocaleString()}↓</span>
-                                {app.rating && <>
-                                  <span>•</span>
-                                  <span className="flex items-center gap-0.5"><Star className="w-2 h-2 text-warning fill-current" />{app.rating}</span>
-                                </>}
+                              <div className="flex items-center gap-1.5 text-[11px] mt-0.5" style={{ color: MUTED }}>
+                                <span>{app.size || 'N/A'}</span><span>•</span>
+                                <span>{app.downloads.toLocaleString()} ↓</span>
+                                {app.rating ? (
+                                  <><span>•</span><span className="flex items-center gap-0.5"><Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />{app.rating}</span></>
+                                ) : null}
                               </div>
                             </div>
                             <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                              <ChevronDown className="w-4 h-4" style={{ color: MUTED }} />
                             </motion.div>
-                          </motion.button>
+                          </button>
                           <AnimatePresence>
                             {isExpanded && (
-                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }} className="overflow-hidden">
-                                <div className="px-2.5 pb-3 pt-2 border-t border-border/30">
-                                  {/* Edit Button */}
-                                  <div className="flex items-center justify-between mb-4">
-                                    <h4 className="text-sm font-medium text-muted-foreground">Review Status Pipeline</h4>
+                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
+                                <div className="px-4 pb-4 pt-2 border-t border-[#F1F5F9]">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Review Pipeline</h4>
                                     {editingAppId === app.id ? (
                                       <Button size="sm" variant="ghost" onClick={() => setEditingAppId(null)}>
                                         <X className="w-4 h-4 mr-1" /> Cancel
                                       </Button>
                                     ) : (
-                                      <Button size="sm" variant="outline" className="border-primary/30 text-primary" onClick={() => {
+                                      <Button size="sm" variant="outline" className="rounded-full border-[#E5E7EB]" style={{ color: ACCENT }} onClick={() => {
                                         setEditingAppId(app.id);
                                         setEditForm({ name: app.name, description: app.description, icon_url: app.icon_url || '' });
                                       }}>
@@ -431,25 +475,25 @@ export default function DeveloperDashboard() {
                                     )}
                                   </div>
 
-                                  {/* Inline Edit Form */}
                                   {editingAppId === app.id && (
-                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-4 p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-4 p-4 rounded-2xl bg-[#F5F5F7] space-y-3">
                                       <div>
-                                        <label className="text-xs font-medium mb-1 block text-muted-foreground">App Name</label>
-                                        <Input value={editForm.name} onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))} className="bg-white/5 border-white/10" maxLength={30} />
+                                        <label className="text-xs font-medium mb-1 block" style={{ color: MUTED }}>App Name</label>
+                                        <Input value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} className="bg-white border-[#E5E7EB]" maxLength={30} />
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium mb-1 block text-muted-foreground">Description</label>
-                                        <Textarea value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} className="bg-white/5 border-white/10 min-h-[80px]" />
+                                        <label className="text-xs font-medium mb-1 block" style={{ color: MUTED }}>Description</label>
+                                        <Textarea value={editForm.description} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} className="bg-white border-[#E5E7EB] min-h-[80px]" />
                                       </div>
                                       <div>
-                                        <label className="text-xs font-medium mb-1 block text-muted-foreground">Icon URL or Emoji</label>
-                                        <Input value={editForm.icon_url} onChange={(e) => setEditForm(prev => ({ ...prev, icon_url: e.target.value }))} className="bg-white/5 border-white/10" placeholder="📱 or https://..." />
+                                        <label className="text-xs font-medium mb-1 block" style={{ color: MUTED }}>Icon URL or Emoji</label>
+                                        <Input value={editForm.icon_url} onChange={(e) => setEditForm((p) => ({ ...p, icon_url: e.target.value }))} className="bg-white border-[#E5E7EB]" placeholder="📱 or https://..." />
                                       </div>
                                       <Button
                                         size="sm"
                                         disabled={isSavingEdit || !editForm.name.trim()}
-                                        className="w-full bg-primary hover:bg-primary/90"
+                                        className="w-full rounded-full text-white"
+                                        style={{ background: ACCENT }}
                                         onClick={async () => {
                                           setIsSavingEdit(true);
                                           try {
@@ -477,62 +521,12 @@ export default function DeveloperDashboard() {
                                   )}
 
                                   <StatusPipeline status={app.status} lastUpdated={app.updated_at} />
-                                  <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-2 gap-2">
-                                    <div><p className="text-[10px] text-muted-foreground">Version</p><p className="text-xs font-medium">{app.version || '1.0.0'}</p></div>
-                                    <div><p className="text-[10px] text-muted-foreground">Size</p><p className="text-xs font-medium">{app.size || 'N/A'}</p></div>
-                                    <div><p className="text-[10px] text-muted-foreground">Category</p><p className="text-xs font-medium">{app.category || 'General'}</p></div>
-                                    <div><p className="text-[10px] text-muted-foreground">Submitted</p><p className="text-xs font-medium">{app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</p></div>
-                                  </div>
 
-                                  {/* AI Scan Report (if available) */}
-                                  {(app as any).ai_scan_report && (() => {
-                                    try {
-                                      const report = typeof (app as any).ai_scan_report === 'string' ? JSON.parse((app as any).ai_scan_report) : (app as any).ai_scan_report;
-                                      return (
-                                        <div className="mt-4 pt-4 border-t border-border/30">
-                                          <h4 className="text-sm font-medium mb-3 text-muted-foreground flex items-center gap-2">
-                                            <Sparkles className="w-4 h-4 text-primary" /> AI Scan Report
-                                          </h4>
-                                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                            <div className="p-2 rounded-lg bg-white/[0.03] border border-white/5">
-                                              <p className="text-[10px] text-muted-foreground">Ads</p>
-                                              <p className="text-xs font-medium">{report.ad_networks?.length > 0 ? report.ad_networks.join(', ') : 'None'}</p>
-                                            </div>
-                                            <div className="p-2 rounded-lg bg-white/[0.03] border border-white/5">
-                                              <p className="text-[10px] text-muted-foreground">IAP</p>
-                                              <p className="text-xs font-medium">{report.iap_sdks?.length > 0 ? report.iap_sdks.join(', ') : 'None'}</p>
-                                            </div>
-                                            <div className="p-2 rounded-lg bg-white/[0.03] border border-white/5">
-                                              <p className="text-[10px] text-muted-foreground">Category</p>
-                                              <p className="text-xs font-medium capitalize">{report.ai_category || 'N/A'}</p>
-                                            </div>
-                                            <div className={cn("p-2 rounded-lg border", report.risk_level === 'clean' ? "bg-success/5 border-success/30" : "bg-warning/5 border-warning/30")}>
-                                              <p className="text-[10px] text-muted-foreground">Security</p>
-                                              <p className={cn("text-xs font-bold", report.risk_level === 'clean' ? "text-success" : "text-warning")}>
-                                                {report.risk_level === 'clean' ? 'Clean' : 'Warning'}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    } catch { return null; }
-                                  })()}
-
-                                  {/* Edit History */}
-                                  <div className="mt-4 pt-4 border-t border-border/30">
-                                    <h4 className="text-sm font-medium mb-3 text-muted-foreground">Edit History</h4>
-                                    <div className="space-y-2">
-                                      <div className="flex items-center gap-3 text-xs">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                        <span className="text-muted-foreground">App submitted on {app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</span>
-                                      </div>
-                                      {app.updated_at && app.updated_at !== app.created_at && (
-                                        <div className="flex items-center gap-3 text-xs">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-secondary" />
-                                          <span className="text-muted-foreground">Last updated on {new Date(app.updated_at).toLocaleDateString()}</span>
-                                        </div>
-                                      )}
-                                    </div>
+                                  <div className="mt-4 pt-4 border-t border-[#F1F5F9] grid grid-cols-2 gap-3">
+                                    <div><p className="text-[10px]" style={{ color: MUTED }}>Version</p><p className="text-xs font-semibold" style={{ color: TEXT }}>{app.version || '1.0.0'}</p></div>
+                                    <div><p className="text-[10px]" style={{ color: MUTED }}>Size</p><p className="text-xs font-semibold" style={{ color: TEXT }}>{app.size || 'N/A'}</p></div>
+                                    <div><p className="text-[10px]" style={{ color: MUTED }}>Category</p><p className="text-xs font-semibold" style={{ color: TEXT }}>{app.category || 'General'}</p></div>
+                                    <div><p className="text-[10px]" style={{ color: MUTED }}>Submitted</p><p className="text-xs font-semibold" style={{ color: TEXT }}>{app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}</p></div>
                                   </div>
                                 </div>
                               </motion.div>
@@ -546,68 +540,49 @@ export default function DeveloperDashboard() {
               </motion.div>
             )}
 
-            {/* Edit Apps Tab */}
+            {/* ============ EDIT APPS TAB ============ */}
             {activeTab === 'edit-apps' && (
-              <motion.div key="edit-apps" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="min-w-0 overflow-x-hidden">
+              <motion.div key="edit-apps" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
                 <EditAppsTab />
               </motion.div>
             )}
 
-            {/* Analytics Tab */}
+            {/* ============ ANALYTICS TAB ============ */}
             {activeTab === 'analytics' && (
-              <motion.div key="analytics" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="space-y-3 sm:space-y-6 min-w-0 overflow-x-hidden">
-                <h2 className="text-base sm:text-xl font-bold">Analytics</h2>
-                <div className="grid grid-cols-2 gap-2 sm:gap-4 min-w-0">
-                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0">
-                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
-                      <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/15 shrink-0"><Download className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /></div>
-                      <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Total Downloads</span>
+              <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
+                <h2 className="text-lg font-bold" style={{ color: TEXT }}>Analytics</h2>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  {[
+                    { icon: Download, label: 'Total Downloads', value: stats.totalDownloads.toLocaleString(), color: ACCENT, bg: '#E0F2FE' },
+                    { icon: Eye, label: 'Total Views', value: stats.totalViews.toLocaleString(), color: '#F59E0B', bg: '#FEF3C7' },
+                    { icon: CheckCircle, label: 'Approved Apps', value: stats.approvedApps, color: '#10B981', bg: '#D1FAE5' },
+                    { icon: Star, label: 'Avg Rating', value: myApps.length > 0 ? (myApps.reduce((s, a) => s + a.rating, 0) / myApps.length).toFixed(1) : '—', color: '#8B5CF6', bg: '#EDE9FE' },
+                  ].map((c) => (
+                    <div key={c.label} className={cn(cardBase, 'p-4')}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ background: c.bg }}>
+                        <c.icon className="w-4.5 h-4.5" style={{ color: c.color }} strokeWidth={1.8} />
+                      </div>
+                      <p className="text-[11px] mb-1" style={{ color: MUTED }}>{c.label}</p>
+                      <p className="text-2xl font-bold" style={{ color: TEXT }}>{c.value}</p>
                     </div>
-                    <p className="text-xl sm:text-3xl font-bold truncate">{stats.totalDownloads.toLocaleString()}</p>
-                  </div>
-                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0">
-                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
-                      <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-secondary/15 shrink-0"><Eye className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" /></div>
-                      <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Total Views</span>
-                    </div>
-                    <p className="text-xl sm:text-3xl font-bold truncate">{stats.totalViews.toLocaleString()}</p>
-                  </div>
-                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0">
-                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
-                      <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-success/15 shrink-0"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-success" /></div>
-                      <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Approved Apps</span>
-                    </div>
-                    <p className="text-xl sm:text-3xl font-bold truncate">{stats.approvedApps}</p>
-                  </div>
-                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0">
-                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
-                      <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-warning/15 shrink-0"><Star className="w-4 h-4 sm:w-5 sm:h-5 text-warning" /></div>
-                      <span className="text-[11px] sm:text-sm text-muted-foreground truncate">Avg Rating</span>
-                    </div>
-                    <p className="text-xl sm:text-3xl font-bold truncate">
-                      {myApps.length > 0 ? (myApps.reduce((s, a) => s + a.rating, 0) / myApps.length).toFixed(1) : '—'}
-                    </p>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Per-app breakdown */}
                 {myApps.length > 0 && (
-                  <div className="admin-glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-6 min-w-0 overflow-hidden">
-                    <h3 className="text-sm sm:text-lg font-semibold mb-3 sm:mb-4">Per-App Breakdown</h3>
-                    <div className="space-y-2 sm:space-y-3">
-                      {myApps.map(app => (
-                        <div key={app.id} className="flex items-center gap-2 sm:gap-4 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/5 min-w-0">
-                          <span className="w-8 h-8 rounded-lg bg-muted/40 flex items-center justify-center text-lg sm:text-xl shrink-0 overflow-hidden">
-                            {app.icon_url && app.icon_url.startsWith('http') ? (
-                              <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" />
-                            ) : (app.icon || '📱')}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-xs sm:text-sm truncate">{app.name}</p>
+                  <div className={cn(cardBase, 'p-4 sm:p-5')}>
+                    <h3 className="text-sm font-bold mb-3" style={{ color: TEXT }}>Per-App Breakdown</h3>
+                    <div className="space-y-2">
+                      {myApps.map((app) => (
+                        <div key={app.id} className="flex items-center gap-3 p-3 rounded-2xl bg-[#F5F5F7]">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+                            {app.icon_url && app.icon_url.startsWith('http') ? <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" /> : app.name.charAt(0)}
                           </div>
-                          <div className="text-right text-xs sm:text-sm shrink-0">
-                            <p className="font-semibold">{app.downloads.toLocaleString()}</p>
-                            <p className="text-[10px] sm:text-xs text-muted-foreground">downloads</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate" style={{ color: TEXT }}>{app.name}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold" style={{ color: TEXT }}>{app.downloads.toLocaleString()}</p>
+                            <p className="text-[10px]" style={{ color: MUTED }}>downloads</p>
                           </div>
                         </div>
                       ))}
@@ -617,36 +592,36 @@ export default function DeveloperDashboard() {
               </motion.div>
             )}
 
-            {/* Notifications Tab */}
+            {/* ============ NOTIFICATIONS TAB ============ */}
             {activeTab === 'notifications' && (
-              <motion.div key="notifications" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-primary" /> Notifications
+              <motion.div key="notifications" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
+                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: TEXT }}>
+                  <Bell className="w-5 h-5" style={{ color: ACCENT }} strokeWidth={1.8} /> Notifications
                 </h2>
                 {myApps.length === 0 ? (
-                  <div className="admin-glass-card p-12 text-center">
-                    <Bell className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">No notifications yet</p>
+                  <div className={cn(cardBase, 'p-10 text-center')}>
+                    <Bell className="w-12 h-12 mx-auto mb-3" style={{ color: MUTED }} strokeWidth={1.4} />
+                    <p className="text-sm" style={{ color: MUTED }}>No notifications yet</p>
                   </div>
                 ) : (
-                  <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-3">
-                    {myApps.map(app => (
-                      <motion.div key={app.id} variants={staggerItem} className="admin-glass-card p-4 flex items-center gap-4">
+                  <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-2.5">
+                    {myApps.map((app) => (
+                      <motion.div key={app.id} variants={staggerItem} className={cn(cardBase, 'p-4 flex items-center gap-3')}>
                         <div className={cn(
-                          "p-2 rounded-xl",
-                          app.status === 'approved' ? "bg-success/15" : app.status === 'rejected' ? "bg-destructive/15" : "bg-warning/15"
+                          'w-10 h-10 rounded-2xl flex items-center justify-center',
+                          app.status === 'approved' ? 'bg-green-50' : app.status === 'rejected' ? 'bg-red-50' : 'bg-amber-50'
                         )}>
-                          {app.status === 'approved' ? <CheckCircle className="w-5 h-5 text-success" /> :
-                           app.status === 'rejected' ? <XCircle className="w-5 h-5 text-destructive" /> :
-                           <Loader2 className="w-5 h-5 text-warning" />}
+                          {app.status === 'approved' ? <CheckCircle className="w-5 h-5 text-green-600" strokeWidth={1.8} /> :
+                            app.status === 'rejected' ? <XCircle className="w-5 h-5 text-red-500" strokeWidth={1.8} /> :
+                            <Loader2 className="w-5 h-5 text-amber-500" strokeWidth={1.8} />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium">
+                          <p className="text-sm font-medium" style={{ color: TEXT }}>
                             {app.status === 'approved' ? `"${app.name}" has been approved! 🎉` :
-                             app.status === 'rejected' ? `"${app.name}" was rejected.` :
-                             `"${app.name}" is under review...`}
+                              app.status === 'rejected' ? `"${app.name}" was rejected.` :
+                              `"${app.name}" is under review...`}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-[11px] mt-0.5" style={{ color: MUTED }}>
                             {app.updated_at ? new Date(app.updated_at).toLocaleString() : 'Recently'}
                           </p>
                         </div>
@@ -658,47 +633,36 @@ export default function DeveloperDashboard() {
               </motion.div>
             )}
 
-            {/* Settings Tab */}
+            {/* ============ SETTINGS TAB ============ */}
             {activeTab === 'settings' && (
-              <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-primary" /> Developer Profile
+              <motion.div key="settings" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
+                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: TEXT }}>
+                  <Settings className="w-5 h-5" style={{ color: ACCENT }} strokeWidth={1.8} /> Developer Profile
                 </h2>
-                <div className="admin-glass-card p-6 sm:p-8 space-y-6">
+                <div className={cn(cardBase, 'p-5 sm:p-6 space-y-5')}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Developer Name</label>
-                      <Input value={developerProfile.developer_name} readOnly className="bg-white/5 border-white/10" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Full Name</label>
-                      <Input value={developerProfile.full_name} readOnly className="bg-white/5 border-white/10" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Email</label>
-                      <Input value={developerProfile.email} readOnly className="bg-white/5 border-white/10" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Type</label>
-                      <Input value={developerProfile.developer_type} readOnly className="bg-white/5 border-white/10 capitalize" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Country</label>
-                      <Input value={developerProfile.country} readOnly className="bg-white/5 border-white/10" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Website</label>
-                      <Input value={developerProfile.website || 'N/A'} readOnly className="bg-white/5 border-white/10" />
-                    </div>
+                    {[
+                      { label: 'Developer Name', value: developerProfile.developer_name },
+                      { label: 'Full Name', value: developerProfile.full_name },
+                      { label: 'Email', value: developerProfile.email },
+                      { label: 'Type', value: developerProfile.developer_type, capitalize: true },
+                      { label: 'Country', value: developerProfile.country },
+                      { label: 'Website', value: developerProfile.website || 'N/A' },
+                    ].map((f) => (
+                      <div key={f.label}>
+                        <label className="text-xs font-medium mb-1.5 block" style={{ color: MUTED }}>{f.label}</label>
+                        <Input value={f.value} readOnly className={cn('bg-[#F5F5F7] border-[#E5E7EB]', f.capitalize && 'capitalize')} style={{ color: TEXT }} />
+                      </div>
+                    ))}
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Bio</label>
-                    <Textarea value={developerProfile.bio || ''} readOnly rows={3} className="bg-white/5 border-white/10" />
+                    <label className="text-xs font-medium mb-1.5 block" style={{ color: MUTED }}>Bio</label>
+                    <Textarea value={developerProfile.bio || ''} readOnly rows={3} className="bg-[#F5F5F7] border-[#E5E7EB]" style={{ color: TEXT }} />
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F5F5F7]">
                     <div>
-                      <p className="font-medium">Account Status</p>
-                      <p className="text-sm text-muted-foreground">Your developer account status</p>
+                      <p className="font-semibold text-sm" style={{ color: TEXT }}>Account Status</p>
+                      <p className="text-xs" style={{ color: MUTED }}>Your developer account status</p>
                     </div>
                     <StatusBadge status={developerProfile.status} showIcon />
                   </div>
@@ -707,8 +671,22 @@ export default function DeveloperDashboard() {
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
 
+        {/* Floating Action Button */}
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/developer/ai-upload')}
+          className="fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(14,165,233,0.45)]"
+          style={{ background: ACCENT }}
+          aria-label="Upload new app"
+        >
+          <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
+        </motion.button>
+      </motion.div>
     </div>
   );
 }
