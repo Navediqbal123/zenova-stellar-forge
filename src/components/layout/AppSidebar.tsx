@@ -67,11 +67,6 @@ export function AppSidebar() {
 
   const closeMobile = () => setIsMobileOpen(false);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/login';
-  };
-
 
   return (
     <>
