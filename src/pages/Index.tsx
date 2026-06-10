@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu, TrendingUp } from 'lucide-react';
+import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu, TrendingUp } from 'lucide-react';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 
 const ACCENT = '#0EA5E9';
@@ -120,11 +119,6 @@ export default function Index() {
     : promotedFirst(approved);
 
   const recommended = nonGames.slice(0, 8);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/login';
-  };
 
   return (
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden text-slate-900" style={{ backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
@@ -384,11 +378,7 @@ export default function Index() {
               </nav>
 
               <div className="p-4 border-t border-white/10 space-y-2">
-                {isAuthenticated ? (
-                  <Button onClick={handleLogout} className="w-full justify-start gap-2 bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30">
-                    <LogOut className="w-4 h-4" /> Logout
-                  </Button>
-                ) : (
+                {!isAuthenticated && (
                   <>
                     <Link to="/login" onClick={() => setDrawerOpen(false)}>
                       <Button variant="outline" className="w-full justify-start gap-2"><LogIn className="w-4 h-4" /> Sign In</Button>

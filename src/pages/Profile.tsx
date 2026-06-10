@@ -14,7 +14,6 @@ import {
   Star,
   Bookmark,
   DownloadCloud,
-  Moon,
   Globe,
   Clock,
   XCircle,
@@ -25,7 +24,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useApps } from '@/contexts/AppsContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Switch } from '@/components/ui/switch';
 
 const ACCENT = '#0A84FF';
 const PAGE_BG = '#F2F2F7';
@@ -92,9 +90,6 @@ export default function Profile() {
   const [editOpen, setEditOpen] = useState(false);
   const [editingName, setEditingName] = useState(name);
   const [savingName, setSavingName] = useState(false);
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    try { return localStorage.getItem('elorax_dark') === '1'; } catch { return false; }
-  });
   const [reviewCount, setReviewCount] = useState<number>(0);
   const [savedCount, setSavedCount] = useState<number>(0);
 
@@ -176,13 +171,6 @@ export default function Profile() {
     } catch {
       window.location.href = '/login';
     }
-  };
-
-  const toggleDark = (v: boolean) => {
-    setDarkMode(v);
-    try { localStorage.setItem('elorax_dark', v ? '1' : '0'); } catch {}
-    if (v) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
   };
 
   const initials = (name || user?.email || '?').slice(0, 1).toUpperCase();
@@ -287,12 +275,6 @@ export default function Profile() {
             {/* PREFERENCES */}
             <SectionTitle>Preferences</SectionTitle>
             <div className="bg-white rounded-2xl overflow-hidden divide-y divide-slate-100">
-              <Row
-                icon={Moon}
-                label="Dark Mode"
-                onClick={() => toggleDark(!darkMode)}
-                trailing={<Switch checked={darkMode} onCheckedChange={toggleDark} />}
-              />
               <Row
                 icon={Globe}
                 label="Language"
