@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, LogOut, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu, TrendingUp } from 'lucide-react';
+import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu, TrendingUp } from 'lucide-react';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 
 const ACCENT = '#0EA5E9';
