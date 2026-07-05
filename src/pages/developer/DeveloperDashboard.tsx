@@ -545,12 +545,10 @@ export default function DeveloperDashboard() {
               </motion.div>
             )}
 
-            {/* ============ EDIT APPS TAB ============ */}
-            {activeTab === 'edit-apps' && (
-              <motion.div key="edit-apps" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-                <EditAppsTab />
-              </motion.div>
-            )}
+            {/* ============ ANALYTICS TAB ============ */}
+            {activeTab === 'analytics' && (
+              <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
+                <h2 className="text-lg font-bold" style={{ color: TEXT }}>Analytics</h2>
 
             {/* ============ ANALYTICS TAB ============ */}
             {activeTab === 'analytics' && (
