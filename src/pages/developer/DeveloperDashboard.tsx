@@ -265,38 +265,33 @@ export default function DeveloperDashboard() {
                 exit={{ opacity: 0, y: -8 }}
                 className="space-y-6"
               >
-                {/* Upload Method Cards — premium dark landscape */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Upload Method Cards — Apple App Store style, side by side */}
+                <div className="grid grid-cols-2 gap-3">
                   {[
-                    { id: 'manual' as const, icon: UploadCloud, title: 'Manual Upload', desc: 'Full control over every app detail, screenshot, and release setting.', recommended: false, iconBg: 'rgba(14,165,233,0.18)', iconColor: '#38BDF8' },
-                    { id: 'ai' as const, icon: Wand2, title: 'Upload with AI', desc: 'Let AI craft descriptions, tags, and store assets automatically.', recommended: true, iconBg: 'rgba(139,92,246,0.22)', iconColor: '#A78BFA' },
+                    { id: 'manual' as const, icon: UploadCloud, title: 'Manual Upload', desc: 'Full control over app details and settings.', recommended: false },
+                    { id: 'ai' as const, icon: Wand2, title: 'Upload with AI', desc: 'Let AI generate descriptions, tags and screenshots automatically.', recommended: true },
                   ].map((m, i) => (
                     <motion.button
                       key={m.id}
-                      initial={{ opacity: 0, y: 16 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.08 }}
-                      whileHover={{ y: -3 }}
+                      transition={{ delay: i * 0.06 }}
+                      whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleUploadMethodSelect(m.id)}
-                      className="relative text-left overflow-hidden rounded-[24px] p-5 min-h-[180px] flex flex-col justify-between shadow-[0_10px_30px_-10px_rgba(10,10,10,0.35)]"
-                      style={{ background: 'linear-gradient(160deg, #111827 0%, #0A0F1F 100%)' }}
+                      className="relative text-left bg-white rounded-[22px] border border-[#EAEAEA] p-4 min-h-[210px] flex flex-col shadow-[0_4px_18px_-6px_rgba(15,23,42,0.08)]"
                     >
-                      {/* subtle glow */}
-                      <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-40 pointer-events-none" style={{ background: m.iconColor }} />
                       {m.recommended && (
-                        <span className="absolute top-4 right-4 px-2.5 py-1 rounded-full text-[10px] font-semibold text-white backdrop-blur-md" style={{ background: 'rgba(14,165,233,0.9)' }}>
+                        <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-semibold text-white" style={{ background: ACCENT }}>
                           Recommended
                         </span>
                       )}
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center relative z-10" style={{ background: m.iconBg }}>
-                        <m.icon className="w-6 h-6" style={{ color: m.iconColor }} strokeWidth={1.8} />
+                      <div className="w-11 h-11 rounded-2xl flex items-center justify-center mb-3" style={{ background: '#EAF4FF' }}>
+                        <m.icon className="w-5 h-5" style={{ color: ACCENT }} strokeWidth={1.8} />
                       </div>
-                      <div className="relative z-10">
-                        <h3 className="text-lg font-bold text-white mb-1">{m.title}</h3>
-                        <p className="text-xs leading-relaxed text-white/60 line-clamp-2 pr-10">{m.desc}</p>
-                      </div>
-                      <div className="absolute bottom-4 right-4 w-9 h-9 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/10">
+                      <h3 className="text-[15px] font-bold mb-1" style={{ color: TEXT }}>{m.title}</h3>
+                      <p className="text-[11px] leading-relaxed flex-1" style={{ color: BODY }}>{m.desc}</p>
+                      <div className="mt-3 w-8 h-8 rounded-full flex items-center justify-center" style={{ background: ACCENT }}>
                         <ArrowRight className="w-4 h-4 text-white" />
                       </div>
                     </motion.button>
