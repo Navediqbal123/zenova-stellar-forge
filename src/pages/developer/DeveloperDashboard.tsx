@@ -675,14 +675,15 @@ export default function DeveloperDashboard() {
 
       </motion.div>
 
-      {/* Bottom Navigation Dock — Apple-style floating */}
-      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-1rem)]">
-        <div className="flex items-center gap-1 px-2 py-2 rounded-full bg-white/95 backdrop-blur-xl border border-[#E5E7EB] shadow-[0_10px_40px_-8px_rgba(10,10,10,0.18)]">
+      {/* Bottom Navigation — fixed white bar with top divider */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-[#EAEAEA] shadow-[0_-4px_20px_-8px_rgba(15,23,42,0.08)]">
+        <div className="flex items-stretch justify-between px-1 py-1.5 safe-bottom max-w-3xl mx-auto">
           {[
             { tab: 'dashboard' as const, icon: LayoutDashboard, label: 'Dashboard' },
             { tab: 'my-apps' as const, icon: Package, label: 'My Apps' },
+            { tab: 'edit-apps' as const, icon: Pencil, label: 'Edit' },
             { tab: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
-            { tab: 'notifications' as const, icon: Bell, label: 'Notifications' },
+            { tab: 'notifications' as const, icon: Bell, label: 'Alerts' },
             { tab: 'settings' as const, icon: Settings, label: 'Settings' },
           ].map((n) => {
             const active = activeTab === n.tab;
@@ -690,12 +691,12 @@ export default function DeveloperDashboard() {
               <button
                 key={n.tab}
                 onClick={() => setActiveTab(n.tab)}
-                className={cn(
-                  'flex flex-col items-center justify-center gap-0.5 px-2.5 sm:px-3.5 py-1.5 rounded-full transition-colors',
-                  active ? 'bg-[#E0F2FE]' : 'hover:bg-[#F5F5F7]'
-                )}
+                className="relative flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl transition-colors"
                 aria-label={n.label}
               >
+                {active && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full" style={{ background: ACCENT }} />
+                )}
                 <n.icon
                   className="w-5 h-5"
                   strokeWidth={active ? 2.2 : 1.7}
@@ -703,7 +704,7 @@ export default function DeveloperDashboard() {
                 />
                 <span
                   className="text-[10px] font-medium leading-none"
-                  style={{ color: active ? ACCENT : TEXT }}
+                  style={{ color: active ? ACCENT : MUTED }}
                 >
                   {n.label}
                 </span>
