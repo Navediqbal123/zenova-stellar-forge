@@ -1,9 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, Sparkles, X } from 'lucide-react';
+import { Home, Shield, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
-export type DeveloperTab = 'dashboard' | 'my-apps' | 'analytics' | 'notifications' | 'settings';
+export type DeveloperTab = 'dashboard' | 'my-apps' | 'edit-apps' | 'analytics' | 'notifications' | 'settings';
 
 interface DeveloperSidebarProps {
   activeTab: DeveloperTab;
