@@ -40,7 +40,7 @@ import { cn } from '@/lib/utils';
 import { triggerCelebrationConfetti } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { EditAppsTab } from '@/components/developer/EditAppsTab';
+
 
 // Design tokens
 const ACCENT = '#0EA5E9';
