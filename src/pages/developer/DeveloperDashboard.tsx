@@ -43,14 +43,15 @@ import { useToast } from '@/hooks/use-toast';
 
 
 // Design tokens
-const ACCENT = '#0EA5E9';
-const TEXT = '#0A0A0A';
+const ACCENT = '#0A84FF';
+const TEXT = '#111111';
 const MUTED = '#6B7280';
-const BORDER = '#E5E7EB';
-const PAGE_BG = '#F5F5F7';
+const BODY = '#444444';
+const BORDER = '#EAEAEA';
+const PAGE_BG = '#FFFFFF';
 
 const cardBase =
-  'bg-white rounded-3xl border border-[#E5E7EB] shadow-[0_2px_12px_rgba(15,23,42,0.04)]';
+  'bg-white rounded-3xl border border-[#EAEAEA] shadow-[0_2px_12px_rgba(15,23,42,0.04)]';
 
 const staggerContainer = {
   hidden: { opacity: 0 },
