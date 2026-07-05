@@ -1,9 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, Sparkles, X } from 'lucide-react';
+import { Home, Shield, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
-export type DeveloperTab = 'dashboard' | 'my-apps' | 'analytics' | 'notifications' | 'settings';
+export type DeveloperTab = 'dashboard' | 'my-apps' | 'edit-apps' | 'analytics' | 'notifications' | 'settings';
 
 interface DeveloperSidebarProps {
   activeTab: DeveloperTab;
@@ -13,6 +15,9 @@ interface DeveloperSidebarProps {
 }
 
 export function DeveloperSidebar({ mobileOpen = false, onMobileClose }: DeveloperSidebarProps) {
+  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
+
   useEffect(() => {
     if (!mobileOpen) return;
     const originalOverflow = document.body.style.overflow;
@@ -21,6 +26,11 @@ export function DeveloperSidebar({ mobileOpen = false, onMobileClose }: Develope
       document.body.style.overflow = originalOverflow;
     };
   }, [mobileOpen]);
+
+  const navItems = [
+    { icon: Home, label: 'Home', path: '/' },
+    ...(isAdmin ? [{ icon: Shield, label: 'Admin Panel', path: '/admin' }] : []),
+  ];
 
   const sidebarContent = (
     <div className="relative z-10 h-full flex flex-col p-4 bg-white">
@@ -43,18 +53,22 @@ export function DeveloperSidebar({ mobileOpen = false, onMobileClose }: Develope
         </button>
       </div>
 
-      <div className="flex-1" />
-
-      {/* Help */}
-      <div className="border-t border-[#E5E7EB] pt-3 shrink-0">
-        <button
-          onClick={onMobileClose}
-          className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors duration-150 text-[#0A0A0A] hover:bg-[#F5F5F7]"
-        >
-          <HelpCircle className="w-5 h-5 shrink-0" strokeWidth={1.8} />
-          <span className="text-sm font-medium">Help Center</span>
-        </button>
-      </div>
+      {/* Nav items */}
+      <nav className="flex flex-col gap-1 flex-1">
+        {navItems.map((item) => (
+          <button
+            key={item.path}
+            onClick={() => {
+              navigate(item.path);
+              onMobileClose?.();
+            }}
+            className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors duration-150 text-[#0A0A0A] hover:bg-[#F5F5F7]"
+          >
+            <item.icon className="w-5 h-5 shrink-0" strokeWidth={1.8} />
+            <span className="text-sm font-medium">{item.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 
