@@ -549,11 +549,6 @@ export default function DeveloperDashboard() {
             {activeTab === 'analytics' && (
               <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
                 <h2 className="text-lg font-bold" style={{ color: TEXT }}>Analytics</h2>
-
-            {/* ============ ANALYTICS TAB ============ */}
-            {activeTab === 'analytics' && (
-              <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
-                <h2 className="text-lg font-bold" style={{ color: TEXT }}>Analytics</h2>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {[
                     { icon: Download, label: 'Total Downloads', value: stats.totalDownloads.toLocaleString(), color: ACCENT, bg: '#E0F2FE' },
