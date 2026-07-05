@@ -422,7 +422,7 @@ export default function DeveloperDashboard() {
                     <p className="text-base mb-1" style={{ color: TEXT }}>No apps yet</p>
                     <p className="text-sm mb-5" style={{ color: MUTED }}>Upload your first app to get started</p>
                     <Button onClick={() => setActiveTab('dashboard')} className="rounded-full text-white" style={{ background: ACCENT }}>
-                      <Plus className="w-4 h-4 mr-1" /> Go to Upload
+                      <UploadCloud className="w-4 h-4 mr-1" /> Go to Upload
                     </Button>
                   </div>
                 ) : (
