@@ -1,28 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  LayoutDashboard,
-  Package,
-  BarChart3,
-  Settings,
-  Bell,
-  HelpCircle,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  Home,
-  X,
-  Grid3X3,
-  Layers,
-  Shield,
-  Pencil,
-} from 'lucide-react';
+import { HelpCircle, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
-export type DeveloperTab = 'dashboard' | 'my-apps' | 'edit-apps' | 'analytics' | 'notifications' | 'settings';
+export type DeveloperTab = 'dashboard' | 'my-apps' | 'analytics' | 'notifications' | 'settings';
 
 interface DeveloperSidebarProps {
   activeTab: DeveloperTab;
@@ -31,11 +12,7 @@ interface DeveloperSidebarProps {
   onMobileClose?: () => void;
 }
 
-export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, onMobileClose }: DeveloperSidebarProps) {
-  const navigate = useNavigate();
-  const { isAdmin } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
-
+export function DeveloperSidebar({ mobileOpen = false, onMobileClose }: DeveloperSidebarProps) {
   useEffect(() => {
     if (!mobileOpen) return;
     const originalOverflow = document.body.style.overflow;
@@ -45,143 +22,37 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
     };
   }, [mobileOpen]);
 
-  const generalNavItems = [
-    { icon: Home, label: 'Home', path: '/' },
-    ...(isAdmin ? [{ icon: Shield, label: 'Admin Panel', path: '/admin' }] : []),
-  ];
-
-  const devNavItems: { icon: React.ElementType; label: string; tab: DeveloperTab }[] = [
-    { icon: LayoutDashboard, label: 'Dashboard', tab: 'dashboard' },
-    { icon: Package, label: 'My Apps', tab: 'my-apps' },
-    { icon: Pencil, label: 'Edit Apps', tab: 'edit-apps' },
-    { icon: BarChart3, label: 'Analytics', tab: 'analytics' },
-    { icon: Bell, label: 'Notifications', tab: 'notifications' },
-    { icon: Settings, label: 'Settings', tab: 'settings' },
-  ];
-
-  const handleNavClick = (tab: DeveloperTab) => {
-    onTabChange(tab);
-    onMobileClose?.();
-  };
-
   const sidebarContent = (
-    <div className="relative z-10 h-full flex flex-col p-3 sm:p-4 overflow-x-hidden">
+    <div className="relative z-10 h-full flex flex-col p-4 bg-white">
       {/* Logo */}
-      <div className="flex items-center justify-between mb-4 sm:mb-6 px-1 sm:px-2 shrink-0">
-        {!collapsed && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-2"
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="font-bold text-base sm:text-lg gradient-text">EloraX</h1>
-              <p className="text-[11px] sm:text-xs text-muted-foreground">Developer Console</p>
-            </div>
-          </motion.div>
-        )}
-        {collapsed && (
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto">
+      <div className="flex items-center justify-between mb-8 px-1 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-[0_4px_12px_rgba(14,165,233,0.35)]">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
-        )}
-
-        {/* Mobile Close Button */}
+          <div>
+            <h1 className="font-bold text-lg text-[#0A0A0A]">EloraX</h1>
+            <p className="text-[11px] text-[#6B7280]">Developer Console</p>
+          </div>
+        </div>
         <button
           onClick={onMobileClose}
-          className="p-1.5 rounded-lg hover:bg-muted lg:hidden"
+          className="p-1.5 rounded-lg hover:bg-[#F5F5F7] lg:hidden"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5 text-[#0A0A0A]" />
         </button>
       </div>
 
-      {/* Collapse Toggle - desktop only */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-muted border border-white/10 hover:bg-primary/20 z-50 hidden lg:flex"
-      >
-        {collapsed ? (
-          <ChevronRight className="w-3 h-3" />
-        ) : (
-          <ChevronLeft className="w-3 h-3" />
-        )}
-      </Button>
-
-      {/* General Navigation */}
-      <div className="mb-2 shrink-0">
-        {!collapsed && (
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 font-semibold">Navigate</p>
-        )}
-        <nav className="space-y-1">
-          {generalNavItems.map((item) => (
-            <div key={item.path}>
-              <button
-                onClick={() => { navigate(item.path); onMobileClose?.(); }}
-                className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-150 group text-muted-foreground hover:text-foreground hover:bg-white/5 text-sm"
-              >
-                <item.icon className="w-5 h-5 shrink-0 transition-colors group-hover:text-primary" />
-                {!collapsed && (
-                  <span className="font-medium text-sm truncate">{item.label}</span>
-                )}
-              </button>
-            </div>
-          ))}
-        </nav>
-      </div>
-
-      <div className="border-t border-white/10 my-2" />
-
-      {/* Developer Navigation */}
-      <div className="flex-1 min-h-0">
-        {!collapsed && (
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 font-semibold">Developer</p>
-        )}
-        <nav className="space-y-1">
-          {devNavItems.map((item) => {
-            const isActive = activeTab === item.tab;
-            return (
-              <div key={item.tab}>
-                <button
-                  onClick={() => handleNavClick(item.tab)}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl transition-colors duration-150 group text-sm",
-                    isActive
-                      ? "bg-primary/15 text-primary border border-primary/30"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                  )}
-                >
-                  <item.icon className={cn(
-                    "w-5 h-5 shrink-0 transition-colors",
-                    isActive
-                      ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]"
-                      : "group-hover:text-primary"
-                  )} />
-                  {!collapsed && (
-                    <span className="font-medium text-sm truncate">{item.label}</span>
-                  )}
-                  {isActive && !collapsed && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                  )}
-                </button>
-              </div>
-            );
-          })}
-        </nav>
-      </div>
+      <div className="flex-1" />
 
       {/* Help */}
-      <div className="border-t border-white/10 pt-3 mt-3 shrink-0">
+      <div className="border-t border-[#E5E7EB] pt-3 shrink-0">
         <button
-          onClick={() => { onMobileClose?.(); }}
-          className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 text-muted-foreground hover:text-foreground hover:bg-white/5"
+          onClick={onMobileClose}
+          className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors duration-150 text-[#0A0A0A] hover:bg-[#F5F5F7]"
         >
-          <HelpCircle className="w-5 h-5 shrink-0" />
-          {!collapsed && <span className="text-sm">Help Center</span>}
+          <HelpCircle className="w-5 h-5 shrink-0" strokeWidth={1.8} />
+          <span className="text-sm font-medium">Help Center</span>
         </button>
       </div>
     </div>
@@ -194,13 +65,9 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         className={cn(
-          "fixed left-0 top-0 h-screen z-40 transition-all duration-300 hidden lg:block",
-          collapsed ? "w-20" : "w-64"
+          "fixed left-0 top-0 h-screen z-40 hidden lg:block w-64 border-r border-[#E5E7EB] bg-white"
         )}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-sidebar via-sidebar to-background/95 backdrop-blur-xl border-r border-white/10" />
-        <div className="absolute top-1/4 -right-20 w-40 h-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 -right-10 w-20 h-20 rounded-full bg-secondary/10 blur-2xl pointer-events-none" />
         {sidebarContent}
       </motion.aside>
 
@@ -213,7 +80,7 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="fixed inset-0 bg-background/70 z-50 lg:hidden"
+              className="fixed inset-0 bg-black/30 z-50 lg:hidden"
               onClick={onMobileClose}
             />
             <motion.aside
@@ -221,9 +88,8 @@ export function DeveloperSidebar({ activeTab, onTabChange, mobileOpen = false, o
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed left-0 top-0 h-[100dvh] w-[82vw] max-w-[280px] z-50 lg:hidden overflow-y-auto overflow-x-hidden overscroll-contain transform-gpu will-change-transform"
+              className="fixed left-0 top-0 h-[100dvh] w-[80vw] max-w-[280px] z-50 lg:hidden overflow-y-auto border-r border-[#E5E7EB]"
             >
-              <div className="absolute inset-0 bg-gradient-to-b from-sidebar via-sidebar to-background/95 border-r border-white/10" />
               {sidebarContent}
             </motion.aside>
           </>
