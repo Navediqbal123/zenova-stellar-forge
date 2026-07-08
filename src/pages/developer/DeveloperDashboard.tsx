@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import { triggerCelebrationConfetti } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 
 
 // Design tokens
@@ -675,44 +676,19 @@ export default function DeveloperDashboard() {
 
       </motion.div>
 
-      {/* Bottom Navigation — fixed white bar with top divider */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-[#EAEAEA] shadow-[0_-4px_20px_-8px_rgba(15,23,42,0.08)]">
-        <div className="flex items-stretch justify-between px-1 py-1.5 safe-bottom max-w-3xl mx-auto">
-          {[
-            { tab: 'dashboard' as const, icon: LayoutDashboard, label: 'Dashboard' },
-            { tab: 'my-apps' as const, icon: Package, label: 'My Apps' },
-            { tab: 'edit-apps' as const, icon: Pencil, label: 'Edit' },
-            { tab: 'analytics' as const, icon: BarChart3, label: 'Analytics' },
-            { tab: 'notifications' as const, icon: Bell, label: 'Alerts' },
-            { tab: 'settings' as const, icon: Settings, label: 'Settings' },
-          ].map((n) => {
-            const active = activeTab === n.tab;
-            return (
-              <button
-                key={n.tab}
-                onClick={() => setActiveTab(n.tab)}
-                className="relative flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl transition-colors"
-                aria-label={n.label}
-              >
-                {active && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full" style={{ background: ACCENT }} />
-                )}
-                <n.icon
-                  className="w-5 h-5"
-                  strokeWidth={active ? 2.2 : 1.7}
-                  style={{ color: active ? ACCENT : TEXT }}
-                />
-                <span
-                  className="text-[10px] font-medium leading-none"
-                  style={{ color: active ? ACCENT : MUTED }}
-                >
-                  {n.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+      {/* Bottom Navigation — shared premium floating dock */}
+      <BottomNavigation
+        activeId={activeTab}
+        items={[
+          { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+          { id: 'my-apps', label: 'My Apps', icon: Package },
+          { id: 'edit-apps', label: 'Edit', icon: Pencil },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'notifications', label: 'Alerts', icon: Bell },
+          { id: 'settings', label: 'Settings', icon: Settings },
+        ]}
+        onSelect={(id) => setActiveTab(id as any)}
+      />
     </div>
   );
 }

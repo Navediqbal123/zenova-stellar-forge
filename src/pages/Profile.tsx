@@ -19,7 +19,12 @@ import {
   XCircle,
   CheckCircle2,
   LogOut,
+  Gamepad2,
+  AppWindow,
+  TrendingUp,
+  Search as SearchIcon,
 } from 'lucide-react';
+import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApps } from '@/contexts/AppsContext';
 import { supabase } from '@/lib/supabase';
@@ -186,7 +191,7 @@ export default function Profile() {
         color: '#1C1C1E',
       }}
     >
-      <div className="w-full max-w-2xl mx-auto px-4 pt-4 pb-28">
+      <div className="w-full max-w-2xl mx-auto px-4 pt-4 pb-36">
         <header className="flex items-center gap-2 mb-4">
           <button
             onClick={() => navigate('/')}
@@ -373,6 +378,21 @@ export default function Profile() {
           </motion.div>
         </motion.div>
       )}
+
+      <BottomNavigation
+        activeId="profile"
+        items={[
+          { id: 'games', label: 'Games', icon: Gamepad2 },
+          { id: 'apps', label: 'Apps', icon: AppWindow },
+          { id: 'trending', label: 'Trending', icon: TrendingUp },
+          { id: 'search', label: 'Search', icon: SearchIcon },
+          { id: 'profile', label: 'Profile', icon: UserIcon },
+        ]}
+        onSelect={(id) => {
+          if (id === 'profile') return;
+          navigate('/', { state: { tab: id } });
+        }}
+      />
     </div>
   );
 }

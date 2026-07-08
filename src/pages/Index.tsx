@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu, TrendingUp } from 'lucide-react';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 
 const ACCENT = '#0EA5E9';
 
@@ -78,7 +79,9 @@ export default function Index() {
   const { apps } = useApps();
   const { isAuthenticated, isAdmin, developerProfile } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>('apps');
+  const location = useLocation();
+  const initialTab = (location.state as any)?.tab as 'games' | 'apps' | 'trending' | 'search' | undefined;
+  const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>(initialTab ?? 'apps');
   const [query, setQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -122,7 +125,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden text-slate-900" style={{ backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif' }}>
-      <div className="w-full max-w-2xl mx-auto px-5 pt-6 pb-28">
+      <div className="w-full max-w-2xl mx-auto px-5 pt-6 pb-36">
 
         {/* Top Bar */}
         <header className="flex items-center justify-between mb-5">
@@ -308,54 +311,24 @@ export default function Index() {
       </div>
 
       {/* Floating Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-5 pt-3 pointer-events-none">
-        <nav
-          className="max-w-2xl mx-auto pointer-events-auto flex items-center justify-around px-2 py-3 rounded-[30px] bg-white safe-bottom"
-          style={{
-            boxShadow: '0 10px 40px -8px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.04)',
-          }}
-        >
-          {[
-            { id: 'games', label: 'Games', Icon: Gamepad2 },
-            { id: 'apps', label: 'Apps', Icon: AppWindow },
-            { id: 'trending', label: 'Trending', Icon: TrendingUp },
-            { id: 'search', label: 'Search', Icon: Search },
-            { id: 'profile', label: 'Profile', Icon: User },
-          ].map(({ id, label, Icon }) => {
-            const active = tab === id;
-            return (
-              <button
-                key={id}
-                onClick={() => {
-                  if (id === 'profile') {
-                    navigate('/profile');
-                    return;
-                  }
-                  setTab(id as any);
-                  setQuery('');
-                }}
-                className="flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-[16px] transition-all duration-200"
-                style={{
-                  backgroundColor: active ? '#DFF3FF' : 'transparent',
-                  boxShadow: active ? '0 0 18px rgba(10, 132, 255, 0.22)' : 'none',
-                }}
-              >
-                <Icon
-                  className="w-6 h-6 transition-colors duration-200"
-                  style={{ color: active ? '#0A84FF' : '#111111' }}
-                  strokeWidth={active ? 2.5 : 2}
-                />
-                <span
-                  className="text-[11px] font-medium transition-colors duration-200"
-                  style={{ color: active ? '#0A84FF' : '#111111' }}
-                >
-                  {label}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+      <BottomNavigation
+        activeId={tab}
+        items={[
+          { id: 'games', label: 'Games', icon: Gamepad2 },
+          { id: 'apps', label: 'Apps', icon: AppWindow },
+          { id: 'trending', label: 'Trending', icon: TrendingUp },
+          { id: 'search', label: 'Search', icon: Search },
+          { id: 'profile', label: 'Profile', icon: User },
+        ]}
+        onSelect={(id) => {
+          if (id === 'profile') {
+            navigate('/profile');
+            return;
+          }
+          setTab(id as any);
+          setQuery('');
+        }}
+      />
 
       {/* Drawer (accessed by tapping logo) */}
       <AnimatePresence>
