@@ -191,7 +191,7 @@ export default function Profile() {
         color: '#1C1C1E',
       }}
     >
-      <div className="w-full max-w-2xl mx-auto px-4 pt-4 pb-28">
+      <div className="w-full max-w-2xl mx-auto px-4 pt-4 pb-36">
         <header className="flex items-center gap-2 mb-4">
           <button
             onClick={() => navigate('/')}
