@@ -378,6 +378,21 @@ export default function Profile() {
           </motion.div>
         </motion.div>
       )}
+
+      <BottomNavigation
+        activeId="profile"
+        items={[
+          { id: 'games', label: 'Games', icon: Gamepad2 },
+          { id: 'apps', label: 'Apps', icon: AppWindow },
+          { id: 'trending', label: 'Trending', icon: TrendingUp },
+          { id: 'search', label: 'Search', icon: SearchIcon },
+          { id: 'profile', label: 'Profile', icon: UserIcon },
+        ]}
+        onSelect={(id) => {
+          if (id === 'profile') return;
+          navigate('/', { state: { tab: id } });
+        }}
+      />
     </div>
   );
 }
