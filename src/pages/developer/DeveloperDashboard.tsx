@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import { triggerCelebrationConfetti } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 
 
 // Design tokens
