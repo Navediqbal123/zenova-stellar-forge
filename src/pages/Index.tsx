@@ -307,9 +307,14 @@ export default function Index() {
         </section>
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200">
-        <div className="max-w-2xl mx-auto flex items-center justify-around px-2 py-2 safe-bottom">
+      {/* Floating Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-5 pt-3 pointer-events-none">
+        <nav
+          className="max-w-2xl mx-auto pointer-events-auto flex items-center justify-around px-2 py-3 rounded-[30px] bg-white safe-bottom"
+          style={{
+            boxShadow: '0 10px 40px -8px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.04)',
+          }}
+        >
           {[
             { id: 'games', label: 'Games', Icon: Gamepad2 },
             { id: 'apps', label: 'Apps', Icon: AppWindow },
@@ -329,15 +334,28 @@ export default function Index() {
                   setTab(id as any);
                   setQuery('');
                 }}
-                className="flex flex-col items-center gap-1 px-4 py-1.5 transition-all"
+                className="flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-[16px] transition-all duration-200"
+                style={{
+                  backgroundColor: active ? '#DFF3FF' : 'transparent',
+                  boxShadow: active ? '0 0 18px rgba(10, 132, 255, 0.22)' : 'none',
+                }}
               >
-                <Icon className="w-6 h-6" style={{ color: active ? ACCENT : '#94A3B8' }} />
-                <span className="text-[11px] font-medium" style={{ color: active ? ACCENT : '#94A3B8' }}>{label}</span>
+                <Icon
+                  className="w-6 h-6 transition-colors duration-200"
+                  style={{ color: active ? '#0A84FF' : '#111111' }}
+                  strokeWidth={active ? 2.5 : 2}
+                />
+                <span
+                  className="text-[11px] font-medium transition-colors duration-200"
+                  style={{ color: active ? '#0A84FF' : '#111111' }}
+                >
+                  {label}
+                </span>
               </button>
             );
           })}
-        </div>
-      </nav>
+        </nav>
+      </div>
 
       {/* Drawer (accessed by tapping logo) */}
       <AnimatePresence>
