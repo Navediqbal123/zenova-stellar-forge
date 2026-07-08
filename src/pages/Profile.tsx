@@ -19,7 +19,12 @@ import {
   XCircle,
   CheckCircle2,
   LogOut,
+  Gamepad2,
+  AppWindow,
+  TrendingUp,
+  Search as SearchIcon,
 } from 'lucide-react';
+import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApps } from '@/contexts/AppsContext';
 import { supabase } from '@/lib/supabase';
