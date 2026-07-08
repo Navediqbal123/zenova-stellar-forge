@@ -79,7 +79,9 @@ export default function Index() {
   const { apps } = useApps();
   const { isAuthenticated, isAdmin, developerProfile } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>('apps');
+  const location = useLocation();
+  const initialTab = (location.state as any)?.tab as 'games' | 'apps' | 'trending' | 'search' | undefined;
+  const [tab, setTab] = useState<'games' | 'apps' | 'trending' | 'search'>(initialTab ?? 'apps');
   const [query, setQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
 
