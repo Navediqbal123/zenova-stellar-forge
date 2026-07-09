@@ -259,11 +259,12 @@ export default function DeveloperDashboard() {
 
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => setActiveTab('notifications')}
-                className="relative w-11 h-11 rounded-full bg-white border border-[#E5E7EB] shadow-[0_1px_4px_rgba(0,0,0,0.04)] flex items-center justify-center"
+                onClick={() => setQuickActionsOpen(true)}
+                aria-label="Quick actions"
+                className="w-11 h-11 rounded-full flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(10,132,255,0.5)] active:scale-95 transition-transform"
+                style={{ background: ACCENT }}
               >
-                <Bell className="w-5 h-5" style={{ color: TEXT }} strokeWidth={1.8} />
-                <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full" style={{ background: ACCENT }} />
+                <Plus className="w-5 h-5" strokeWidth={2.4} />
               </button>
               <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-bold shadow-[0_2px_8px_rgba(14,165,233,0.3)]">
                 {avatarLetter}
