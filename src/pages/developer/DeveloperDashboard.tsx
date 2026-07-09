@@ -17,6 +17,7 @@ import {
   Wand2,
   ArrowRight,
   ChevronDown,
+  ChevronRight,
   Menu,
   Bell,
   Settings,
@@ -27,6 +28,20 @@ import {
   Info,
   TrendingUp,
   MoreHorizontal,
+  Plus,
+  User as UserIcon,
+  Store,
+  ImageIcon,
+  Globe,
+  ShieldCheck,
+  Users as UsersIcon,
+  CreditCard,
+  FileText,
+  HelpCircle,
+  LogOut,
+  Camera,
+  FilePlus,
+  Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
