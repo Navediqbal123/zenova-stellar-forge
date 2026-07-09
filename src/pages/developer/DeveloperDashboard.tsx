@@ -761,6 +761,102 @@ export default function DeveloperDashboard() {
         ]}
         onSelect={(id) => setActiveTab(id as any)}
       />
+
+      {/* Quick Actions Bottom Sheet */}
+      <AnimatePresence>
+        {quickActionsOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[90] bg-black/40 flex items-end sm:items-center justify-center"
+            onClick={() => setQuickActionsOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 60, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full sm:max-w-md bg-white rounded-t-[28px] sm:rounded-[28px] p-5 pb-8 shadow-[0_-8px_40px_rgba(0,0,0,0.12)]"
+            >
+              <div className="w-10 h-1 bg-[#E5E7EB] rounded-full mx-auto mb-4 sm:hidden" />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[17px] font-bold" style={{ color: TEXT }}>Quick Actions</h3>
+                <button
+                  onClick={() => setQuickActionsOpen(false)}
+                  aria-label="Close"
+                  className="w-8 h-8 rounded-full bg-[#F5F5F7] flex items-center justify-center"
+                >
+                  <X className="w-4 h-4" style={{ color: TEXT }} />
+                </button>
+              </div>
+              <div className="space-y-1.5">
+                {[
+                  { icon: UploadCloud, label: 'Upload New App', desc: 'Publish a new app manually', onClick: () => navigate('/developer/upload') },
+                  { icon: Wand2, label: 'Upload with AI', desc: 'Let AI generate metadata & assets', onClick: () => navigate('/developer/ai-upload') },
+                  { icon: FilePlus, label: 'Save as Draft', desc: 'Start a draft submission', onClick: () => { toast({ title: 'Draft', description: 'Draft creation coming soon.' }); } },
+                  { icon: Package, label: 'My Apps', desc: 'View and manage your apps', onClick: () => setActiveTab('my-apps') },
+                  { icon: BarChart3, label: 'Analytics', desc: 'Downloads, views & ratings', onClick: () => setActiveTab('analytics') },
+                ].map((a, i) => (
+                  <motion.button
+                    key={a.label}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.03 * i, duration: 0.22 }}
+                    onClick={() => { setQuickActionsOpen(false); a.onClick(); }}
+                    className="w-full flex items-center gap-3 p-3 rounded-2xl active:bg-[#F5F5F7] transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-2xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
+                      <a.icon className="w-[18px] h-[18px]" style={{ color: TEXT }} strokeWidth={1.8} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-semibold leading-tight" style={{ color: TEXT }}>{a.label}</p>
+                      <p className="text-[12px] mt-0.5 truncate" style={{ color: '#666666' }}>{a.desc}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4" style={{ color: '#C7C7CC' }} strokeWidth={2.4} />
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+interface SettingsRow {
+  icon: React.ElementType;
+  label: string;
+  desc: string;
+  onClick?: () => void;
+}
+
+function SettingsGroup({ title, rows }: { title: string; rows: SettingsRow[] }) {
+  return (
+    <section>
+      <h3 className="text-[13px] font-semibold px-1 mb-2" style={{ color: '#111111' }}>{title}</h3>
+      <div className="bg-white rounded-[24px] border border-[#EAEAEA] shadow-[0_2px_12px_rgba(15,23,42,0.04)] overflow-hidden">
+        {rows.map((r, i) => (
+          <button
+            key={r.label}
+            onClick={r.onClick}
+            className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left active:bg-[#F5F5F7] transition-colors"
+          >
+            <r.icon className="w-[22px] h-[22px] shrink-0" style={{ color: '#111111' }} strokeWidth={1.7} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] font-semibold leading-tight" style={{ color: '#111111' }}>{r.label}</p>
+              <p className="text-[12px] mt-0.5 truncate" style={{ color: '#666666' }}>{r.desc}</p>
+            </div>
+            <ChevronRight className="w-[18px] h-[18px] shrink-0" style={{ color: '#C7C7CC' }} strokeWidth={2.2} />
+            {i < rows.length - 1 && (
+              <span className="absolute left-[54px] right-4 bottom-0 h-px bg-[#EAEAEA]" style={{ display: 'none' }} />
+            )}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
