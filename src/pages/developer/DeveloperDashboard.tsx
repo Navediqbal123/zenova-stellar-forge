@@ -652,40 +652,95 @@ export default function DeveloperDashboard() {
               </motion.div>
             )}
 
-            {/* ============ SETTINGS TAB ============ */}
+            {/* ============ SETTINGS TAB — App Store Connect style ============ */}
             {activeTab === 'settings' && (
-              <motion.div key="settings" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
-                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: TEXT }}>
-                  <Settings className="w-5 h-5" style={{ color: ACCENT }} strokeWidth={1.8} /> Developer Profile
-                </h2>
-                <div className={cn(cardBase, 'p-5 sm:p-6 space-y-5')}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[
-                      { label: 'Developer Name', value: developerProfile.developer_name },
-                      { label: 'Full Name', value: developerProfile.full_name },
-                      { label: 'Email', value: developerProfile.email },
-                      { label: 'Type', value: developerProfile.developer_type, capitalize: true },
-                      { label: 'Country', value: developerProfile.country },
-                      { label: 'Website', value: developerProfile.website || 'N/A' },
-                    ].map((f) => (
-                      <div key={f.label}>
-                        <label className="text-xs font-medium mb-1.5 block" style={{ color: MUTED }}>{f.label}</label>
-                        <Input value={f.value} readOnly className={cn('bg-[#F5F5F7] border-[#E5E7EB]', f.capitalize && 'capitalize')} style={{ color: TEXT }} />
+              <motion.div key="settings" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-5 h-5" style={{ color: TEXT }} strokeWidth={1.8} />
+                  <h2 className="text-[22px] font-bold tracking-tight" style={{ color: TEXT }}>Developer Settings</h2>
+                </div>
+
+                {/* Profile Header Card */}
+                <div className={cn(cardBase, 'p-4 sm:p-5')}>
+                  <div className="flex items-start gap-4">
+                    <div className="relative shrink-0">
+                      <div className="w-[92px] h-[92px] rounded-full overflow-hidden ring-2 ring-white shadow-[0_4px_16px_rgba(0,0,0,0.08)] bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                        {(user?.user_metadata as any)?.avatar_url ? (
+                          <img src={(user?.user_metadata as any).avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{avatarLetter}</span>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium mb-1.5 block" style={{ color: MUTED }}>Bio</label>
-                    <Textarea value={developerProfile.bio || ''} readOnly rows={3} className="bg-[#F5F5F7] border-[#E5E7EB]" style={{ color: TEXT }} />
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F5F5F7]">
-                    <div>
-                      <p className="font-semibold text-sm" style={{ color: TEXT }}>Account Status</p>
-                      <p className="text-xs" style={{ color: MUTED }}>Your developer account status</p>
+                      <button
+                        onClick={() => navigate('/profile')}
+                        aria-label="Change photo"
+                        className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] flex items-center justify-center border border-[#EAEAEA]"
+                      >
+                        <Camera className="w-4 h-4" style={{ color: TEXT }} strokeWidth={1.8} />
+                      </button>
                     </div>
-                    <StatusBadge status={developerProfile.status} showIcon />
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h3 className="text-[20px] font-bold leading-tight truncate" style={{ color: TEXT }}>{developerProfile.developer_name || 'Developer'}</h3>
+                          <p className="text-sm mt-0.5 truncate" style={{ color: '#666666' }}>{developerProfile.full_name || developerProfile.email}</p>
+                        </div>
+                        <button
+                          onClick={() => setActiveTab('my-apps')}
+                          className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-[#EAEAEA] bg-white text-[12px] font-semibold active:scale-95 transition-transform"
+                          style={{ color: TEXT }}
+                        >
+                          <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                          Edit Profile
+                        </button>
+                      </div>
+
+                      <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#EAEAEA] bg-white">
+                        <BadgeCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} />
+                        <span className="text-[11px] font-semibold" style={{ color: TEXT }}>Verified Developer</span>
+                      </div>
+
+                      <div className="flex items-center gap-3 mt-3 text-[12px]" style={{ color: '#666666' }}>
+                        <span className="inline-flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" strokeWidth={1.8} />{developerProfile.country || 'N/A'}</span>
+                        <span className="w-px h-3 bg-[#EAEAEA]" />
+                        <span className="inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={1.8} />
+                          Joined {developerProfile.created_at ? new Date(developerProfile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                {/* Grouped sections */}
+                <SettingsGroup
+                  title="Account & Profile"
+                  rows={[
+                    { icon: UserIcon, label: 'Developer Profile', desc: 'Manage your personal information', onClick: () => toast({ title: 'Developer Profile', description: 'Personal information settings.' }) },
+                    { icon: Store, label: 'Studio Information', desc: 'Manage your developer or company details', onClick: () => toast({ title: 'Studio Information', description: 'Studio details settings.' }) },
+                    { icon: Pencil, label: 'Branding', desc: 'Update your logo, banner and profile image', onClick: () => navigate('/profile') },
+                    { icon: Globe, label: 'Store Presence', desc: 'Website, social links and store details', onClick: () => toast({ title: 'Store Presence', description: 'Store presence settings.' }) },
+                    { icon: ShieldCheck, label: 'Verification', desc: 'Manage verification status and documents', onClick: () => toast({ title: 'Verification', description: `Status: ${developerProfile.status}` }) },
+                  ]}
+                />
+
+                <SettingsGroup
+                  title="Security & Access"
+                  rows={[
+                    { icon: Lock, label: 'Security', desc: 'Password, 2FA and security preferences', onClick: () => toast({ title: 'Security', description: 'Security preferences.' }) },
+                    { icon: UsersIcon, label: 'Access & Permissions', desc: 'Manage team members and roles', onClick: () => toast({ title: 'Access & Permissions', description: 'Team access settings.' }) },
+                  ]}
+                />
+
+                <SettingsGroup
+                  title="Other"
+                  rows={[
+                    { icon: CreditCard, label: 'Payments & Payouts', desc: 'Manage payout methods and tax info', onClick: () => toast({ title: 'Payments & Payouts', description: 'Payout settings.' }) },
+                    { icon: FileText, label: 'Legal & Policies', desc: 'Agreements, policies and compliance', onClick: () => toast({ title: 'Legal & Policies', description: 'Legal documents.' }) },
+                    { icon: HelpCircle, label: 'Help & Support', desc: 'Get help and contact support', onClick: () => toast({ title: 'Help & Support', description: 'Support center.' }) },
+                    { icon: LogOut, label: 'Logout', desc: 'Sign out from your developer account', onClick: async () => { try { await logout(); } catch { window.location.href = '/login'; } } },
+                  ]}
+                />
               </motion.div>
             )}
           </AnimatePresence>
