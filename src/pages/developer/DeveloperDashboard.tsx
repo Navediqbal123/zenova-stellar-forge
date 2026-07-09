@@ -93,7 +93,7 @@ function Sparkline({ color = ACCENT, points = [4, 9, 6, 12, 8, 14, 11] }: { colo
 
 export default function DeveloperDashboard() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, developerProfile, isDeveloperApproved } = useAuth();
+  const { user, isAuthenticated, developerProfile, isDeveloperApproved, logout } = useAuth();
   const { getAppsByDeveloper, refreshApps } = useApps();
   const { toast } = useToast();
 
@@ -103,6 +103,7 @@ export default function DeveloperDashboard() {
   const [editingAppId, setEditingAppId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ name: string; description: string; icon_url: string }>({ name: '', description: '', icon_url: '' });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
 
   const prevStatusesRef = useRef<Record<string, string>>({});
   const myApps = developerProfile ? getAppsByDeveloper(developerProfile.id) : [];
