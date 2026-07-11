@@ -6,6 +6,7 @@ import {
   Users as UsersIcon, CreditCard, FileText, HelpCircle, LogOut, Camera,
   BadgeCheck, Calendar, ChevronRight, X, Save, Loader2, Trash2, Image as ImageIcon,
   CheckCircle, XCircle, Clock, ExternalLink, Twitter, Github, Facebook, Instagram,
+  Unlock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
