@@ -225,37 +225,33 @@ export default function DeveloperDashboard() {
         onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Mobile Menu */}
-      <button
-        onClick={() => setMobileSidebarOpen(true)}
-        className="fixed top-3 left-3 z-40 w-11 h-11 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.06)] lg:hidden flex items-center justify-center active:scale-95 transition-transform"
-      >
-        <Menu className="w-5 h-5" style={{ color: TEXT }} />
-      </button>
-
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative z-10 flex-1 min-w-0 w-full overflow-x-hidden lg:ml-64 px-4 sm:px-6 pt-16 pb-28 lg:p-8"
+        className="relative z-10 flex-1 min-w-0 w-full overflow-x-hidden lg:ml-64 px-4 sm:px-6 pt-4 pb-28 lg:p-8"
       >
         <div className="max-w-6xl mx-auto space-y-6 min-w-0">
           {/* ============ Header ============ */}
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-start justify-between gap-4"
+            className="flex items-center justify-between gap-3"
           >
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: TEXT }}>
-                Developer Console
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                aria-label="Open menu"
+                className="w-11 h-11 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.06)] lg:hidden flex items-center justify-center active:scale-95 transition-transform shrink-0"
+              >
+                <Menu className="w-5 h-5" style={{ color: TEXT }} />
+              </button>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate" style={{ color: TEXT }}>
+                {activeTab === 'dashboard' && 'Dashboard'}
+                {activeTab === 'my-apps' && 'My Apps'}
+                {activeTab === 'edit-apps' && 'Edit Apps'}
+                {activeTab === 'analytics' && 'Analytics'}
+                {activeTab === 'settings' && 'Developer Settings'}
               </h1>
-              <p className="mt-1 text-sm sm:text-base" style={{ color: MUTED }}>
-                Welcome back, <span className="font-semibold" style={{ color: ACCENT }}>{displayName} 👋</span>
-              </p>
-              <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-white border border-[#E5E7EB] shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-                <BadgeCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} fill={ACCENT + '20'} />
-                <span className="text-[11px] font-medium" style={{ color: TEXT }}>Verified Developer</span>
-              </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
@@ -267,10 +263,6 @@ export default function DeveloperDashboard() {
               >
                 <Plus className="w-5 h-5" strokeWidth={2.4} />
               </button>
-              <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-bold shadow-[0_2px_8px_rgba(14,165,233,0.3)]">
-                {avatarLetter}
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
-              </div>
             </div>
           </motion.header>
 
@@ -612,46 +604,8 @@ export default function DeveloperDashboard() {
               </motion.div>
             )}
 
-            {/* ============ NOTIFICATIONS TAB ============ */}
-            {activeTab === 'notifications' && (
-              <motion.div key="notifications" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
-                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: TEXT }}>
-                  <Bell className="w-5 h-5" style={{ color: ACCENT }} strokeWidth={1.8} /> Notifications
-                </h2>
-                {myApps.length === 0 ? (
-                  <div className={cn(cardBase, 'p-10 text-center')}>
-                    <Bell className="w-12 h-12 mx-auto mb-3" style={{ color: MUTED }} strokeWidth={1.4} />
-                    <p className="text-sm" style={{ color: MUTED }}>No notifications yet</p>
-                  </div>
-                ) : (
-                  <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-2.5">
-                    {myApps.map((app) => (
-                      <motion.div key={app.id} variants={staggerItem} className={cn(cardBase, 'p-4 flex items-center gap-3')}>
-                        <div className={cn(
-                          'w-10 h-10 rounded-2xl flex items-center justify-center',
-                          app.status === 'approved' ? 'bg-green-50' : app.status === 'rejected' ? 'bg-red-50' : 'bg-amber-50'
-                        )}>
-                          {app.status === 'approved' ? <CheckCircle className="w-5 h-5 text-green-600" strokeWidth={1.8} /> :
-                            app.status === 'rejected' ? <XCircle className="w-5 h-5 text-red-500" strokeWidth={1.8} /> :
-                            <Loader2 className="w-5 h-5 text-amber-500" strokeWidth={1.8} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium" style={{ color: TEXT }}>
-                            {app.status === 'approved' ? `"${app.name}" has been approved! 🎉` :
-                              app.status === 'rejected' ? `"${app.name}" was rejected.` :
-                              `"${app.name}" is under review...`}
-                          </p>
-                          <p className="text-[11px] mt-0.5" style={{ color: MUTED }}>
-                            {app.updated_at ? new Date(app.updated_at).toLocaleString() : 'Recently'}
-                          </p>
-                        </div>
-                        <StatusBadge status={app.status} size="sm" />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
+            {/* Notifications tab removed — alerts live on Home bell */}
+
 
             {/* ============ SETTINGS TAB ============ */}
             {activeTab === 'settings' && (
@@ -672,7 +626,7 @@ export default function DeveloperDashboard() {
           { id: 'my-apps', label: 'My Apps', icon: Package },
           { id: 'edit-apps', label: 'Edit', icon: Pencil },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-          { id: 'notifications', label: 'Alerts', icon: Bell },
+          
           { id: 'settings', label: 'Settings', icon: Settings },
         ]}
         onSelect={(id) => setActiveTab(id as any)}
