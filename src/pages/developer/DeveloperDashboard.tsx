@@ -604,46 +604,8 @@ export default function DeveloperDashboard() {
               </motion.div>
             )}
 
-            {/* ============ NOTIFICATIONS TAB ============ */}
-            {activeTab === 'notifications' && (
-              <motion.div key="notifications" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
-                <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: TEXT }}>
-                  <Bell className="w-5 h-5" style={{ color: ACCENT }} strokeWidth={1.8} /> Notifications
-                </h2>
-                {myApps.length === 0 ? (
-                  <div className={cn(cardBase, 'p-10 text-center')}>
-                    <Bell className="w-12 h-12 mx-auto mb-3" style={{ color: MUTED }} strokeWidth={1.4} />
-                    <p className="text-sm" style={{ color: MUTED }}>No notifications yet</p>
-                  </div>
-                ) : (
-                  <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-2.5">
-                    {myApps.map((app) => (
-                      <motion.div key={app.id} variants={staggerItem} className={cn(cardBase, 'p-4 flex items-center gap-3')}>
-                        <div className={cn(
-                          'w-10 h-10 rounded-2xl flex items-center justify-center',
-                          app.status === 'approved' ? 'bg-green-50' : app.status === 'rejected' ? 'bg-red-50' : 'bg-amber-50'
-                        )}>
-                          {app.status === 'approved' ? <CheckCircle className="w-5 h-5 text-green-600" strokeWidth={1.8} /> :
-                            app.status === 'rejected' ? <XCircle className="w-5 h-5 text-red-500" strokeWidth={1.8} /> :
-                            <Loader2 className="w-5 h-5 text-amber-500" strokeWidth={1.8} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium" style={{ color: TEXT }}>
-                            {app.status === 'approved' ? `"${app.name}" has been approved! 🎉` :
-                              app.status === 'rejected' ? `"${app.name}" was rejected.` :
-                              `"${app.name}" is under review...`}
-                          </p>
-                          <p className="text-[11px] mt-0.5" style={{ color: MUTED }}>
-                            {app.updated_at ? new Date(app.updated_at).toLocaleString() : 'Recently'}
-                          </p>
-                        </div>
-                        <StatusBadge status={app.status} size="sm" />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
+            {/* Notifications tab removed — alerts live on Home bell */}
+
 
             {/* ============ SETTINGS TAB ============ */}
             {activeTab === 'settings' && (
