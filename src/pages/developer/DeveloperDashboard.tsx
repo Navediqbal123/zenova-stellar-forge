@@ -245,8 +245,14 @@ export default function DeveloperDashboard() {
               >
                 <Menu className="w-5 h-5" style={{ color: TEXT }} />
               </button>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate" style={{ color: TEXT }}>
-                {activeTab === 'dashboard' && 'Dashboard'}
+              <h1
+                className="text-2xl sm:text-3xl font-bold tracking-tight truncate bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, #0A84FF 0%, #2563EB 55%, #1E3A8A 100%)',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {activeTab === 'dashboard' && 'Developer Console'}
                 {activeTab === 'my-apps' && 'My Apps'}
                 {activeTab === 'edit-apps' && 'Edit Apps'}
                 {activeTab === 'analytics' && 'Analytics'}
