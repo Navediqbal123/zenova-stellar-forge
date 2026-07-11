@@ -390,58 +390,68 @@ export function DeveloperSettings() {
       </Sheet>
 
       {/* ============ Developer Profile Panel ============ */}
-      <PanelSheet open={panel === 'profile'} onClose={closePanel} title="Developer Profile" description="Personal information">
-        <FormField label="Full Name">
-          <Input value={devForm.full_name} onChange={(e) => setDevForm((p) => ({ ...p, full_name: e.target.value }))} />
-        </FormField>
-        <FormField label="Email">
-          <Input value={developerProfile?.email || ''} disabled />
-        </FormField>
-        <FormField label="Phone">
-          <Input value={devForm.phone} onChange={(e) => setDevForm((p) => ({ ...p, phone: e.target.value }))} />
-        </FormField>
-        <FormField label="Country">
-          <Input value={devForm.country} onChange={(e) => setDevForm((p) => ({ ...p, country: e.target.value }))} />
-        </FormField>
-        <SaveBar loading={savingDev} onSave={() => saveDevFields({
-          full_name: devForm.full_name.trim(),
-          phone: devForm.phone.trim(),
-          country: devForm.country.trim(),
-        })} />
+      <PanelSheet open={panel === 'profile'} onClose={closePanel} title="Developer Profile" description="Personal information" lockable>
+        {({ locked }) => (
+          <>
+            <FormField label="Full Name">
+              <Input autoFocus={false} value={devForm.full_name} onChange={(e) => setDevForm((p) => ({ ...p, full_name: e.target.value }))} />
+            </FormField>
+            <FormField label="Email">
+              <Input autoFocus={false} value={developerProfile?.email || ''} disabled />
+            </FormField>
+            <FormField label="Phone">
+              <Input autoFocus={false} value={devForm.phone} onChange={(e) => setDevForm((p) => ({ ...p, phone: e.target.value }))} />
+            </FormField>
+            <FormField label="Country">
+              <Input autoFocus={false} value={devForm.country} onChange={(e) => setDevForm((p) => ({ ...p, country: e.target.value }))} />
+            </FormField>
+            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields({
+              full_name: devForm.full_name.trim(),
+              phone: devForm.phone.trim(),
+              country: devForm.country.trim(),
+            })} />
+          </>
+        )}
       </PanelSheet>
 
       {/* ============ Studio Info Panel ============ */}
-      <PanelSheet open={panel === 'studio'} onClose={closePanel} title="Studio Information" description="Your developer or company details">
-        <FormField label="Studio / Developer Name">
-          <Input value={devForm.developer_name} onChange={(e) => setDevForm((p) => ({ ...p, developer_name: e.target.value }))} />
-        </FormField>
-        <FormField label="Type">
-          <div className="grid grid-cols-2 gap-2">
-            {(['individual', 'company'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setDevForm((p) => ({ ...p, developer_type: t }))}
-                className={cn(
-                  'h-10 rounded-2xl border text-[13px] font-semibold capitalize transition-colors',
-                  devForm.developer_type === t
-                    ? 'border-transparent text-white'
-                    : 'bg-white border-[#EAEAEA]'
-                )}
-                style={devForm.developer_type === t ? { background: ACCENT } : { color: TEXT }}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </FormField>
-        <FormField label="Bio">
-          <Textarea rows={4} value={devForm.bio} onChange={(e) => setDevForm((p) => ({ ...p, bio: e.target.value }))} placeholder="Tell users about your studio..." />
-        </FormField>
-        <SaveBar loading={savingDev} onSave={() => saveDevFields({
-          developer_name: devForm.developer_name.trim(),
-          developer_type: devForm.developer_type as any,
-          bio: devForm.bio.trim(),
-        })} />
+      <PanelSheet open={panel === 'studio'} onClose={closePanel} title="Studio Information" description="Your developer or company details" lockable>
+        {({ locked }) => (
+          <>
+            <FormField label="Studio / Developer Name">
+              <Input autoFocus={false} value={devForm.developer_name} onChange={(e) => setDevForm((p) => ({ ...p, developer_name: e.target.value }))} />
+            </FormField>
+            <FormField label="Type">
+              <div className="grid grid-cols-2 gap-2">
+                {(['individual', 'company'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    disabled={locked}
+                    onClick={() => setDevForm((p) => ({ ...p, developer_type: t }))}
+                    className={cn(
+                      'h-11 rounded-2xl border text-[13px] font-semibold capitalize transition-colors disabled:opacity-70',
+                      devForm.developer_type === t
+                        ? 'border-transparent text-white'
+                        : 'bg-white/5 border-white/10 text-white/80'
+                    )}
+                    style={devForm.developer_type === t ? { background: '#2563EB' } : undefined}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </FormField>
+            <FormField label="Bio">
+              <Textarea autoFocus={false} rows={4} value={devForm.bio} onChange={(e) => setDevForm((p) => ({ ...p, bio: e.target.value }))} placeholder="Tell users about your studio..." />
+            </FormField>
+            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields({
+              developer_name: devForm.developer_name.trim(),
+              developer_type: devForm.developer_type as any,
+              bio: devForm.bio.trim(),
+            })} />
+          </>
+        )}
       </PanelSheet>
 
       {/* ============ Branding Panel ============ */}
@@ -452,43 +462,47 @@ export function DeveloperSettings() {
       </PanelSheet>
 
       {/* ============ Store Presence Panel ============ */}
-      <PanelSheet open={panel === 'presence'} onClose={closePanel} title="Store Presence" description="Your website and social links">
-        <FormField label="Website">
-          <Input placeholder="https://yourstudio.com" value={devForm.website} onChange={(e) => setDevForm((p) => ({ ...p, website: e.target.value }))} />
-        </FormField>
-        <FormField label="Twitter / X">
-          <div className="relative">
-            <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: MUTED }} />
-            <Input className="pl-9" placeholder="@handle" value={devForm.twitter} onChange={(e) => setDevForm((p) => ({ ...p, twitter: e.target.value }))} />
-          </div>
-        </FormField>
-        <FormField label="GitHub">
-          <div className="relative">
-            <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: MUTED }} />
-            <Input className="pl-9" placeholder="username" value={devForm.github} onChange={(e) => setDevForm((p) => ({ ...p, github: e.target.value }))} />
-          </div>
-        </FormField>
-        <FormField label="Instagram">
-          <div className="relative">
-            <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: MUTED }} />
-            <Input className="pl-9" placeholder="@handle" value={devForm.instagram} onChange={(e) => setDevForm((p) => ({ ...p, instagram: e.target.value }))} />
-          </div>
-        </FormField>
-        <FormField label="Facebook">
-          <div className="relative">
-            <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: MUTED }} />
-            <Input className="pl-9" placeholder="page-name" value={devForm.facebook} onChange={(e) => setDevForm((p) => ({ ...p, facebook: e.target.value }))} />
-          </div>
-        </FormField>
-        <SaveBar loading={savingDev} onSave={() => saveDevFields(
-          { website: devForm.website.trim() },
-          {
-            twitter: devForm.twitter.trim(),
-            github: devForm.github.trim(),
-            instagram: devForm.instagram.trim(),
-            facebook: devForm.facebook.trim(),
-          }
-        )} />
+      <PanelSheet open={panel === 'presence'} onClose={closePanel} title="Store Presence" description="Your website and social links" lockable>
+        {({ locked }) => (
+          <>
+            <FormField label="Website">
+              <Input autoFocus={false} placeholder="https://yourstudio.com" value={devForm.website} onChange={(e) => setDevForm((p) => ({ ...p, website: e.target.value }))} />
+            </FormField>
+            <FormField label="Twitter / X">
+              <div className="relative">
+                <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+                <Input autoFocus={false} className="pl-10" placeholder="@handle" value={devForm.twitter} onChange={(e) => setDevForm((p) => ({ ...p, twitter: e.target.value }))} />
+              </div>
+            </FormField>
+            <FormField label="GitHub">
+              <div className="relative">
+                <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+                <Input autoFocus={false} className="pl-10" placeholder="username" value={devForm.github} onChange={(e) => setDevForm((p) => ({ ...p, github: e.target.value }))} />
+              </div>
+            </FormField>
+            <FormField label="Instagram">
+              <div className="relative">
+                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+                <Input autoFocus={false} className="pl-10" placeholder="@handle" value={devForm.instagram} onChange={(e) => setDevForm((p) => ({ ...p, instagram: e.target.value }))} />
+              </div>
+            </FormField>
+            <FormField label="Facebook">
+              <div className="relative">
+                <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+                <Input autoFocus={false} className="pl-10" placeholder="page-name" value={devForm.facebook} onChange={(e) => setDevForm((p) => ({ ...p, facebook: e.target.value }))} />
+              </div>
+            </FormField>
+            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields(
+              { website: devForm.website.trim() },
+              {
+                twitter: devForm.twitter.trim(),
+                github: devForm.github.trim(),
+                instagram: devForm.instagram.trim(),
+                facebook: devForm.facebook.trim(),
+              }
+            )} />
+          </>
+        )}
       </PanelSheet>
 
       {/* ============ Verification Panel ============ */}
