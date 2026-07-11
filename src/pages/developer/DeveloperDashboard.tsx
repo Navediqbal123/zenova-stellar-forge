@@ -626,7 +626,7 @@ export default function DeveloperDashboard() {
           { id: 'my-apps', label: 'My Apps', icon: Package },
           { id: 'edit-apps', label: 'Edit', icon: Pencil },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-          { id: 'notifications', label: 'Alerts', icon: Bell },
+          
           { id: 'settings', label: 'Settings', icon: Settings },
         ]}
         onSelect={(id) => setActiveTab(id as any)}
