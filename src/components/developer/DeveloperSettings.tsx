@@ -6,6 +6,7 @@ import {
   Users as UsersIcon, CreditCard, FileText, HelpCircle, LogOut, Camera,
   BadgeCheck, Calendar, ChevronRight, X, Save, Loader2, Trash2, Image as ImageIcon,
   CheckCircle, XCircle, Clock, ExternalLink, Twitter, Github, Facebook, Instagram,
+  Unlock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -389,58 +390,68 @@ export function DeveloperSettings() {
       </Sheet>
 
       {/* ============ Developer Profile Panel ============ */}
-      <PanelSheet open={panel === 'profile'} onClose={closePanel} title="Developer Profile" description="Personal information">
-        <FormField label="Full Name">
-          <Input value={devForm.full_name} onChange={(e) => setDevForm((p) => ({ ...p, full_name: e.target.value }))} />
-        </FormField>
-        <FormField label="Email">
-          <Input value={developerProfile?.email || ''} disabled />
-        </FormField>
-        <FormField label="Phone">
-          <Input value={devForm.phone} onChange={(e) => setDevForm((p) => ({ ...p, phone: e.target.value }))} />
-        </FormField>
-        <FormField label="Country">
-          <Input value={devForm.country} onChange={(e) => setDevForm((p) => ({ ...p, country: e.target.value }))} />
-        </FormField>
-        <SaveBar loading={savingDev} onSave={() => saveDevFields({
-          full_name: devForm.full_name.trim(),
-          phone: devForm.phone.trim(),
-          country: devForm.country.trim(),
-        })} />
+      <PanelSheet open={panel === 'profile'} onClose={closePanel} title="Developer Profile" description="Personal information" lockable>
+        {({ locked }) => (
+          <>
+            <FormField label="Full Name">
+              <Input autoFocus={false} value={devForm.full_name} onChange={(e) => setDevForm((p) => ({ ...p, full_name: e.target.value }))} />
+            </FormField>
+            <FormField label="Email">
+              <Input autoFocus={false} value={developerProfile?.email || ''} disabled />
+            </FormField>
+            <FormField label="Phone">
+              <Input autoFocus={false} value={devForm.phone} onChange={(e) => setDevForm((p) => ({ ...p, phone: e.target.value }))} />
+            </FormField>
+            <FormField label="Country">
+              <Input autoFocus={false} value={devForm.country} onChange={(e) => setDevForm((p) => ({ ...p, country: e.target.value }))} />
+            </FormField>
+            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields({
+              full_name: devForm.full_name.trim(),
+              phone: devForm.phone.trim(),
+              country: devForm.country.trim(),
+            })} />
+          </>
+        )}
       </PanelSheet>
 
       {/* ============ Studio Info Panel ============ */}
-      <PanelSheet open={panel === 'studio'} onClose={closePanel} title="Studio Information" description="Your developer or company details">
-        <FormField label="Studio / Developer Name">
-          <Input value={devForm.developer_name} onChange={(e) => setDevForm((p) => ({ ...p, developer_name: e.target.value }))} />
-        </FormField>
-        <FormField label="Type">
-          <div className="grid grid-cols-2 gap-2">
-            {(['individual', 'company'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setDevForm((p) => ({ ...p, developer_type: t }))}
-                className={cn(
-                  'h-10 rounded-2xl border text-[13px] font-semibold capitalize transition-colors',
-                  devForm.developer_type === t
-                    ? 'border-transparent text-white'
-                    : 'bg-white border-[#EAEAEA]'
-                )}
-                style={devForm.developer_type === t ? { background: ACCENT } : { color: TEXT }}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </FormField>
-        <FormField label="Bio">
-          <Textarea rows={4} value={devForm.bio} onChange={(e) => setDevForm((p) => ({ ...p, bio: e.target.value }))} placeholder="Tell users about your studio..." />
-        </FormField>
-        <SaveBar loading={savingDev} onSave={() => saveDevFields({
-          developer_name: devForm.developer_name.trim(),
-          developer_type: devForm.developer_type as any,
-          bio: devForm.bio.trim(),
-        })} />
+      <PanelSheet open={panel === 'studio'} onClose={closePanel} title="Studio Information" description="Your developer or company details" lockable>
+        {({ locked }) => (
+          <>
+            <FormField label="Studio / Developer Name">
+              <Input autoFocus={false} value={devForm.developer_name} onChange={(e) => setDevForm((p) => ({ ...p, developer_name: e.target.value }))} />
+            </FormField>
+            <FormField label="Type">
+              <div className="grid grid-cols-2 gap-2">
+                {(['individual', 'company'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    disabled={locked}
+                    onClick={() => setDevForm((p) => ({ ...p, developer_type: t }))}
+                    className={cn(
+                      'h-11 rounded-2xl border text-[13px] font-semibold capitalize transition-colors disabled:opacity-70',
+                      devForm.developer_type === t
+                        ? 'border-transparent text-white'
+                        : 'bg-white/5 border-white/10 text-white/80'
+                    )}
+                    style={devForm.developer_type === t ? { background: '#2563EB' } : undefined}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </FormField>
+            <FormField label="Bio">
+              <Textarea autoFocus={false} rows={4} value={devForm.bio} onChange={(e) => setDevForm((p) => ({ ...p, bio: e.target.value }))} placeholder="Tell users about your studio..." />
+            </FormField>
+            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields({
+              developer_name: devForm.developer_name.trim(),
+              developer_type: devForm.developer_type as any,
+              bio: devForm.bio.trim(),
+            })} />
+          </>
+        )}
       </PanelSheet>
 
       {/* ============ Branding Panel ============ */}
@@ -451,43 +462,47 @@ export function DeveloperSettings() {
       </PanelSheet>
 
       {/* ============ Store Presence Panel ============ */}
-      <PanelSheet open={panel === 'presence'} onClose={closePanel} title="Store Presence" description="Your website and social links">
-        <FormField label="Website">
-          <Input placeholder="https://yourstudio.com" value={devForm.website} onChange={(e) => setDevForm((p) => ({ ...p, website: e.target.value }))} />
-        </FormField>
-        <FormField label="Twitter / X">
-          <div className="relative">
-            <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: MUTED }} />
-            <Input className="pl-9" placeholder="@handle" value={devForm.twitter} onChange={(e) => setDevForm((p) => ({ ...p, twitter: e.target.value }))} />
-          </div>
-        </FormField>
-        <FormField label="GitHub">
-          <div className="relative">
-            <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: MUTED }} />
-            <Input className="pl-9" placeholder="username" value={devForm.github} onChange={(e) => setDevForm((p) => ({ ...p, github: e.target.value }))} />
-          </div>
-        </FormField>
-        <FormField label="Instagram">
-          <div className="relative">
-            <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: MUTED }} />
-            <Input className="pl-9" placeholder="@handle" value={devForm.instagram} onChange={(e) => setDevForm((p) => ({ ...p, instagram: e.target.value }))} />
-          </div>
-        </FormField>
-        <FormField label="Facebook">
-          <div className="relative">
-            <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: MUTED }} />
-            <Input className="pl-9" placeholder="page-name" value={devForm.facebook} onChange={(e) => setDevForm((p) => ({ ...p, facebook: e.target.value }))} />
-          </div>
-        </FormField>
-        <SaveBar loading={savingDev} onSave={() => saveDevFields(
-          { website: devForm.website.trim() },
-          {
-            twitter: devForm.twitter.trim(),
-            github: devForm.github.trim(),
-            instagram: devForm.instagram.trim(),
-            facebook: devForm.facebook.trim(),
-          }
-        )} />
+      <PanelSheet open={panel === 'presence'} onClose={closePanel} title="Store Presence" description="Your website and social links" lockable>
+        {({ locked }) => (
+          <>
+            <FormField label="Website">
+              <Input autoFocus={false} placeholder="https://yourstudio.com" value={devForm.website} onChange={(e) => setDevForm((p) => ({ ...p, website: e.target.value }))} />
+            </FormField>
+            <FormField label="Twitter / X">
+              <div className="relative">
+                <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+                <Input autoFocus={false} className="pl-10" placeholder="@handle" value={devForm.twitter} onChange={(e) => setDevForm((p) => ({ ...p, twitter: e.target.value }))} />
+              </div>
+            </FormField>
+            <FormField label="GitHub">
+              <div className="relative">
+                <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+                <Input autoFocus={false} className="pl-10" placeholder="username" value={devForm.github} onChange={(e) => setDevForm((p) => ({ ...p, github: e.target.value }))} />
+              </div>
+            </FormField>
+            <FormField label="Instagram">
+              <div className="relative">
+                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+                <Input autoFocus={false} className="pl-10" placeholder="@handle" value={devForm.instagram} onChange={(e) => setDevForm((p) => ({ ...p, instagram: e.target.value }))} />
+              </div>
+            </FormField>
+            <FormField label="Facebook">
+              <div className="relative">
+                <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+                <Input autoFocus={false} className="pl-10" placeholder="page-name" value={devForm.facebook} onChange={(e) => setDevForm((p) => ({ ...p, facebook: e.target.value }))} />
+              </div>
+            </FormField>
+            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields(
+              { website: devForm.website.trim() },
+              {
+                twitter: devForm.twitter.trim(),
+                github: devForm.github.trim(),
+                instagram: devForm.instagram.trim(),
+                facebook: devForm.facebook.trim(),
+              }
+            )} />
+          </>
+        )}
       </PanelSheet>
 
       {/* ============ Verification Panel ============ */}
@@ -625,18 +640,72 @@ export function DeveloperSettings() {
 
 // ============ Helpers ============
 function PanelSheet({
-  open, onClose, title, description, children,
+  open, onClose, title, description, children, lockable = false,
 }: {
-  open: boolean; onClose: () => void; title: string; description?: string; children: React.ReactNode;
+  open: boolean; onClose: () => void; title: string; description?: string;
+  children: React.ReactNode | ((ctx: { locked: boolean }) => React.ReactNode);
+  lockable?: boolean;
 }) {
+  const [locked, setLocked] = useState(true);
+
+  // reset lock state whenever the panel opens
+  useEffect(() => {
+    if (open) setLocked(true);
+  }, [open]);
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="bottom" className="rounded-t-[28px] p-5 pb-8 border-none max-h-[92vh] overflow-y-auto">
-        <SheetHeader className="text-left mb-4">
-          <SheetTitle style={{ color: TEXT }}>{title}</SheetTitle>
-          {description && <SheetDescription>{description}</SheetDescription>}
-        </SheetHeader>
-        <div className="space-y-3.5">{children}</div>
+      <SheetContent
+        side="bottom"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        className="rounded-t-[28px] p-0 pb-8 border-none max-h-[92vh] overflow-hidden bg-[#111827] text-white shadow-[0_20px_60px_rgba(0,0,0,0.45)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
+      >
+        {/* drag handle */}
+        <div className="pt-3 pb-2 flex justify-center">
+          <div className="w-10 h-[5px] rounded-full bg-white/20" />
+        </div>
+
+        <div className="px-6 overflow-y-auto max-h-[calc(92vh-48px)]">
+          <SheetHeader className="text-left mb-5">
+            <SheetTitle className="text-white text-[19px] font-bold tracking-tight">{title}</SheetTitle>
+            {description && <SheetDescription className="text-white/60 text-[13px]">{description}</SheetDescription>}
+          </SheetHeader>
+
+          <fieldset
+            disabled={lockable && locked}
+            className={cn(
+              "space-y-4 disabled:opacity-100 group",
+              // Dark premium input styling inside the popup
+              "[&_input]:bg-[#1F2937] [&_input]:border-white/10 [&_input]:text-white [&_input]:placeholder:text-white/40",
+              "[&_input]:h-[52px] [&_input]:rounded-[16px] [&_input]:px-4 [&_input]:text-[14px]",
+              "[&_input:focus-visible]:ring-2 [&_input:focus-visible]:ring-[#3B82F6]/40 [&_input:focus-visible]:border-[#3B82F6]",
+              "[&_textarea]:bg-[#1F2937] [&_textarea]:border-white/10 [&_textarea]:text-white [&_textarea]:placeholder:text-white/40",
+              "[&_textarea]:rounded-[16px] [&_textarea]:p-4 [&_textarea]:text-[14px]",
+              "[&_textarea:focus-visible]:ring-2 [&_textarea:focus-visible]:ring-[#3B82F6]/40 [&_textarea:focus-visible]:border-[#3B82F6]",
+              // disabled state visual
+              "group-disabled:[&_input]:opacity-70 group-disabled:[&_input]:cursor-not-allowed",
+              "group-disabled:[&_textarea]:opacity-70 group-disabled:[&_textarea]:cursor-not-allowed",
+            )}
+          >
+            {typeof children === 'function' ? children({ locked: lockable && locked }) : children}
+          </fieldset>
+
+          {lockable && locked && (
+            <button
+              onClick={() => setLocked(false)}
+              className="w-full mt-6 h-[54px] rounded-[14px] font-semibold text-[15px] text-white flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+              style={{
+                background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+                boxShadow: '0 8px 20px -6px rgba(59,130,246,0.55)',
+              }}
+            >
+              <Unlock className="w-4 h-4" />
+              Enable Editing
+            </button>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );
@@ -645,19 +714,23 @@ function PanelSheet({
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-[12px] font-semibold mb-1.5 block" style={{ color: MUTED }}>{label}</label>
+      <label className="text-[12px] font-semibold mb-2 block text-white/70">{label}</label>
       {children}
     </div>
   );
 }
 
-function SaveBar({ loading, onSave }: { loading: boolean; onSave: () => void }) {
+function SaveBar({ loading, onSave, hidden }: { loading: boolean; onSave: () => void; hidden?: boolean }) {
+  if (hidden) return null;
   return (
     <Button
       disabled={loading}
       onClick={onSave}
-      className="w-full h-11 rounded-full text-white text-[15px] font-semibold mt-2"
-      style={{ background: ACCENT }}
+      className="w-full h-[54px] rounded-[14px] text-white text-[15px] font-semibold mt-2 border-0"
+      style={{
+        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+        boxShadow: '0 8px 20px -6px rgba(59,130,246,0.55)',
+      }}
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
       Save Changes
@@ -668,8 +741,8 @@ function SaveBar({ loading, onSave }: { loading: boolean; onSave: () => void }) 
 function RowKV({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex items-center justify-between text-[13px]">
-      <span style={{ color: MUTED }}>{k}</span>
-      <span className="font-semibold capitalize" style={{ color: TEXT }}>{v}</span>
+      <span className="text-white/60">{k}</span>
+      <span className="font-semibold capitalize text-white">{v}</span>
     </div>
   );
 }
@@ -685,25 +758,30 @@ function BrandingRow({
       : shape === 'square' ? 'w-16 h-16 rounded-2xl'
       : 'w-24 h-14 rounded-2xl';
   return (
-    <div className={cn(cardBase, 'p-4 flex items-center gap-3')}>
-      <div className={cn(box, 'overflow-hidden bg-[#F5F5F7] flex items-center justify-center shrink-0 border border-[#EAEAEA]')}>
+    <div
+      className="p-4 flex items-center gap-3 rounded-[18px] border transition-transform active:scale-[0.99]"
+      style={{
+        background: '#1F2937',
+        borderColor: 'rgba(255,255,255,0.08)',
+      }}
+    >
+      <div className={cn(box, 'overflow-hidden bg-white/5 flex items-center justify-center shrink-0 border border-white/10')}>
         {url ? (
           <img src={url} alt={label} className="w-full h-full object-cover" />
         ) : (
-          <ImageIcon className="w-5 h-5" style={{ color: MUTED }} />
+          <ImageIcon className="w-5 h-5 text-white/50" />
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-semibold" style={{ color: TEXT }}>{label}</p>
-        <p className="text-[11px]" style={{ color: MUTED }}>{url ? 'Uploaded' : 'Not set'}</p>
+        <p className="text-[14px] font-semibold text-white">{label}</p>
+        <p className="text-[11px] text-white/50">{url ? 'Uploaded' : 'Not set'}</p>
       </div>
       <Button
         disabled={uploading}
         onClick={onPick}
         size="sm"
-        variant="outline"
-        className="rounded-full border-[#EAEAEA]"
-        style={{ color: TEXT }}
+        className="rounded-full h-9 px-4 text-[12px] font-semibold border-0 text-white"
+        style={{ background: 'rgba(59,130,246,0.18)', color: '#93C5FD' }}
       >
         {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : url ? 'Replace' : 'Upload'}
       </Button>
@@ -713,12 +791,16 @@ function BrandingRow({
 
 function ComingSoon({ icon: Icon, title, desc }: { icon: React.ElementType; title: string; desc: string }) {
   return (
-    <div className={cn(cardBase, 'p-6 text-center')}>
-      <div className="w-14 h-14 rounded-full bg-[#EAF4FF] mx-auto flex items-center justify-center mb-3">
-        <Icon className="w-6 h-6" style={{ color: ACCENT }} strokeWidth={1.8} />
+    <div
+      className="p-6 text-center rounded-[18px] border"
+      style={{ background: '#1F2937', borderColor: 'rgba(255,255,255,0.08)' }}
+    >
+      <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ background: 'rgba(59,130,246,0.15)' }}>
+        <Icon className="w-6 h-6" style={{ color: '#60A5FA' }} strokeWidth={1.8} />
       </div>
-      <p className="text-[16px] font-bold" style={{ color: TEXT }}>{title}</p>
-      <p className="text-[13px] mt-1.5" style={{ color: MUTED }}>{desc}</p>
+      <p className="text-[16px] font-bold text-white">{title}</p>
+      <p className="text-[13px] mt-1.5 text-white/60">{desc}</p>
     </div>
   );
 }
+
