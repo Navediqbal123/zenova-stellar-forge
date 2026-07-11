@@ -225,37 +225,33 @@ export default function DeveloperDashboard() {
         onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Mobile Menu */}
-      <button
-        onClick={() => setMobileSidebarOpen(true)}
-        className="fixed top-3 left-3 z-40 w-11 h-11 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.06)] lg:hidden flex items-center justify-center active:scale-95 transition-transform"
-      >
-        <Menu className="w-5 h-5" style={{ color: TEXT }} />
-      </button>
-
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative z-10 flex-1 min-w-0 w-full overflow-x-hidden lg:ml-64 px-4 sm:px-6 pt-16 pb-28 lg:p-8"
+        className="relative z-10 flex-1 min-w-0 w-full overflow-x-hidden lg:ml-64 px-4 sm:px-6 pt-4 pb-28 lg:p-8"
       >
         <div className="max-w-6xl mx-auto space-y-6 min-w-0">
           {/* ============ Header ============ */}
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-start justify-between gap-4"
+            className="flex items-center justify-between gap-3"
           >
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: TEXT }}>
-                Developer Console
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                aria-label="Open menu"
+                className="w-11 h-11 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.06)] lg:hidden flex items-center justify-center active:scale-95 transition-transform shrink-0"
+              >
+                <Menu className="w-5 h-5" style={{ color: TEXT }} />
+              </button>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate" style={{ color: TEXT }}>
+                {activeTab === 'dashboard' && 'Dashboard'}
+                {activeTab === 'my-apps' && 'My Apps'}
+                {activeTab === 'edit-apps' && 'Edit Apps'}
+                {activeTab === 'analytics' && 'Analytics'}
+                {activeTab === 'settings' && 'Developer Settings'}
               </h1>
-              <p className="mt-1 text-sm sm:text-base" style={{ color: MUTED }}>
-                Welcome back, <span className="font-semibold" style={{ color: ACCENT }}>{displayName} 👋</span>
-              </p>
-              <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-white border border-[#E5E7EB] shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-                <BadgeCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} fill={ACCENT + '20'} />
-                <span className="text-[11px] font-medium" style={{ color: TEXT }}>Verified Developer</span>
-              </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
@@ -267,10 +263,6 @@ export default function DeveloperDashboard() {
               >
                 <Plus className="w-5 h-5" strokeWidth={2.4} />
               </button>
-              <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-bold shadow-[0_2px_8px_rgba(14,165,233,0.3)]">
-                {avatarLetter}
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
-              </div>
             </div>
           </motion.header>
 
