@@ -661,7 +661,19 @@ function PanelSheet({
 
           <fieldset
             disabled={lockable && locked}
-            className="space-y-4 disabled:opacity-100 group"
+            className={cn(
+              "space-y-4 disabled:opacity-100 group",
+              // Dark premium input styling inside the popup
+              "[&_input]:bg-[#1F2937] [&_input]:border-white/10 [&_input]:text-white [&_input]:placeholder:text-white/40",
+              "[&_input]:h-[52px] [&_input]:rounded-[16px] [&_input]:px-4 [&_input]:text-[14px]",
+              "[&_input:focus-visible]:ring-2 [&_input:focus-visible]:ring-[#3B82F6]/40 [&_input:focus-visible]:border-[#3B82F6]",
+              "[&_textarea]:bg-[#1F2937] [&_textarea]:border-white/10 [&_textarea]:text-white [&_textarea]:placeholder:text-white/40",
+              "[&_textarea]:rounded-[16px] [&_textarea]:p-4 [&_textarea]:text-[14px]",
+              "[&_textarea:focus-visible]:ring-2 [&_textarea:focus-visible]:ring-[#3B82F6]/40 [&_textarea:focus-visible]:border-[#3B82F6]",
+              // disabled state visual
+              "group-disabled:[&_input]:opacity-70 group-disabled:[&_input]:cursor-not-allowed",
+              "group-disabled:[&_textarea]:opacity-70 group-disabled:[&_textarea]:cursor-not-allowed",
+            )}
           >
             {typeof children === 'function' ? children({ locked: lockable && locked }) : children}
           </fieldset>
