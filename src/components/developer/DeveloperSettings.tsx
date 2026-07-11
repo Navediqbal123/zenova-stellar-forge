@@ -626,18 +626,60 @@ export function DeveloperSettings() {
 
 // ============ Helpers ============
 function PanelSheet({
-  open, onClose, title, description, children,
+  open, onClose, title, description, children, lockable = false,
 }: {
-  open: boolean; onClose: () => void; title: string; description?: string; children: React.ReactNode;
+  open: boolean; onClose: () => void; title: string; description?: string;
+  children: React.ReactNode | ((ctx: { locked: boolean }) => React.ReactNode);
+  lockable?: boolean;
 }) {
+  const [locked, setLocked] = useState(true);
+
+  // reset lock state whenever the panel opens
+  useEffect(() => {
+    if (open) setLocked(true);
+  }, [open]);
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="bottom" className="rounded-t-[28px] p-5 pb-8 border-none max-h-[92vh] overflow-y-auto">
-        <SheetHeader className="text-left mb-4">
-          <SheetTitle style={{ color: TEXT }}>{title}</SheetTitle>
-          {description && <SheetDescription>{description}</SheetDescription>}
-        </SheetHeader>
-        <div className="space-y-3.5">{children}</div>
+      <SheetContent
+        side="bottom"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        className="rounded-t-[28px] p-0 pb-8 border-none max-h-[92vh] overflow-hidden bg-[#111827] text-white shadow-[0_20px_60px_rgba(0,0,0,0.45)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
+      >
+        {/* drag handle */}
+        <div className="pt-3 pb-2 flex justify-center">
+          <div className="w-10 h-[5px] rounded-full bg-white/20" />
+        </div>
+
+        <div className="px-6 overflow-y-auto max-h-[calc(92vh-48px)]">
+          <SheetHeader className="text-left mb-5">
+            <SheetTitle className="text-white text-[19px] font-bold tracking-tight">{title}</SheetTitle>
+            {description && <SheetDescription className="text-white/60 text-[13px]">{description}</SheetDescription>}
+          </SheetHeader>
+
+          <fieldset
+            disabled={lockable && locked}
+            className="space-y-4 disabled:opacity-100 group"
+          >
+            {typeof children === 'function' ? children({ locked: lockable && locked }) : children}
+          </fieldset>
+
+          {lockable && locked && (
+            <button
+              onClick={() => setLocked(false)}
+              className="w-full mt-6 h-[54px] rounded-[14px] font-semibold text-[15px] text-white flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+              style={{
+                background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+                boxShadow: '0 8px 20px -6px rgba(59,130,246,0.55)',
+              }}
+            >
+              <Unlock className="w-4 h-4" />
+              Enable Editing
+            </button>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );
@@ -646,19 +688,23 @@ function PanelSheet({
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-[12px] font-semibold mb-1.5 block" style={{ color: MUTED }}>{label}</label>
+      <label className="text-[12px] font-semibold mb-2 block text-white/70">{label}</label>
       {children}
     </div>
   );
 }
 
-function SaveBar({ loading, onSave }: { loading: boolean; onSave: () => void }) {
+function SaveBar({ loading, onSave, hidden }: { loading: boolean; onSave: () => void; hidden?: boolean }) {
+  if (hidden) return null;
   return (
     <Button
       disabled={loading}
       onClick={onSave}
-      className="w-full h-11 rounded-full text-white text-[15px] font-semibold mt-2"
-      style={{ background: ACCENT }}
+      className="w-full h-[54px] rounded-[14px] text-white text-[15px] font-semibold mt-2 border-0"
+      style={{
+        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+        boxShadow: '0 8px 20px -6px rgba(59,130,246,0.55)',
+      }}
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
       Save Changes
@@ -669,8 +715,8 @@ function SaveBar({ loading, onSave }: { loading: boolean; onSave: () => void }) 
 function RowKV({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex items-center justify-between text-[13px]">
-      <span style={{ color: MUTED }}>{k}</span>
-      <span className="font-semibold capitalize" style={{ color: TEXT }}>{v}</span>
+      <span className="text-white/60">{k}</span>
+      <span className="font-semibold capitalize text-white">{v}</span>
     </div>
   );
 }
@@ -686,25 +732,30 @@ function BrandingRow({
       : shape === 'square' ? 'w-16 h-16 rounded-2xl'
       : 'w-24 h-14 rounded-2xl';
   return (
-    <div className={cn(cardBase, 'p-4 flex items-center gap-3')}>
-      <div className={cn(box, 'overflow-hidden bg-[#F5F5F7] flex items-center justify-center shrink-0 border border-[#EAEAEA]')}>
+    <div
+      className="p-4 flex items-center gap-3 rounded-[18px] border transition-transform active:scale-[0.99]"
+      style={{
+        background: '#1F2937',
+        borderColor: 'rgba(255,255,255,0.08)',
+      }}
+    >
+      <div className={cn(box, 'overflow-hidden bg-white/5 flex items-center justify-center shrink-0 border border-white/10')}>
         {url ? (
           <img src={url} alt={label} className="w-full h-full object-cover" />
         ) : (
-          <ImageIcon className="w-5 h-5" style={{ color: MUTED }} />
+          <ImageIcon className="w-5 h-5 text-white/50" />
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-semibold" style={{ color: TEXT }}>{label}</p>
-        <p className="text-[11px]" style={{ color: MUTED }}>{url ? 'Uploaded' : 'Not set'}</p>
+        <p className="text-[14px] font-semibold text-white">{label}</p>
+        <p className="text-[11px] text-white/50">{url ? 'Uploaded' : 'Not set'}</p>
       </div>
       <Button
         disabled={uploading}
         onClick={onPick}
         size="sm"
-        variant="outline"
-        className="rounded-full border-[#EAEAEA]"
-        style={{ color: TEXT }}
+        className="rounded-full h-9 px-4 text-[12px] font-semibold border-0 text-white"
+        style={{ background: 'rgba(59,130,246,0.18)', color: '#93C5FD' }}
       >
         {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : url ? 'Replace' : 'Upload'}
       </Button>
@@ -714,12 +765,16 @@ function BrandingRow({
 
 function ComingSoon({ icon: Icon, title, desc }: { icon: React.ElementType; title: string; desc: string }) {
   return (
-    <div className={cn(cardBase, 'p-6 text-center')}>
-      <div className="w-14 h-14 rounded-full bg-[#EAF4FF] mx-auto flex items-center justify-center mb-3">
-        <Icon className="w-6 h-6" style={{ color: ACCENT }} strokeWidth={1.8} />
+    <div
+      className="p-6 text-center rounded-[18px] border"
+      style={{ background: '#1F2937', borderColor: 'rgba(255,255,255,0.08)' }}
+    >
+      <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ background: 'rgba(59,130,246,0.15)' }}>
+        <Icon className="w-6 h-6" style={{ color: '#60A5FA' }} strokeWidth={1.8} />
       </div>
-      <p className="text-[16px] font-bold" style={{ color: TEXT }}>{title}</p>
-      <p className="text-[13px] mt-1.5" style={{ color: MUTED }}>{desc}</p>
+      <p className="text-[16px] font-bold text-white">{title}</p>
+      <p className="text-[13px] mt-1.5 text-white/60">{desc}</p>
     </div>
   );
 }
+
