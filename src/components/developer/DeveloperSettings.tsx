@@ -767,6 +767,25 @@ function RowKV({ k, v }: { k: string; v: string }) {
   );
 }
 
+function LightRow({ k, v, mono, highlight }: { k: string; v: string; mono?: boolean; highlight?: 'green' | 'red' | 'amber' }) {
+  const color =
+    highlight === 'green' ? '#16A34A' :
+    highlight === 'red' ? '#DC2626' :
+    highlight === 'amber' ? '#B45309' : TEXT;
+  return (
+    <div className="flex items-start justify-between gap-3 text-[13px]">
+      <span className="text-[#6B7280] shrink-0">{k}</span>
+      <span
+        className={cn('font-semibold text-right capitalize break-all', mono && 'font-mono tracking-wide uppercase')}
+        style={{ color }}
+      >
+        {v}
+      </span>
+    </div>
+  );
+}
+
+
 function BrandingRow({
   label, url, onPick, uploading, shape,
 }: {
