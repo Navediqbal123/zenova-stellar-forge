@@ -273,6 +273,7 @@ export default function DeveloperDashboard() {
               </button>
             </div>
           </motion.header>
+          )}
 
           <AnimatePresence mode="wait">
             {/* ============ DASHBOARD TAB ============ */}
