@@ -58,6 +58,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 import { DeveloperSettings } from '@/components/developer/DeveloperSettings';
+import { AnalyticsTab } from '@/components/developer/AnalyticsTab';
 
 
 // Design tokens
@@ -232,6 +233,7 @@ export default function DeveloperDashboard() {
       >
         <div className="max-w-6xl mx-auto space-y-6 min-w-0">
           {/* ============ Header ============ */}
+          {activeTab !== 'analytics' && (
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -271,6 +273,7 @@ export default function DeveloperDashboard() {
               </button>
             </div>
           </motion.header>
+          )}
 
           <AnimatePresence mode="wait">
             {/* ============ DASHBOARD TAB ============ */}
@@ -567,46 +570,8 @@ export default function DeveloperDashboard() {
 
             {/* ============ ANALYTICS TAB ============ */}
             {activeTab === 'analytics' && (
-              <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
-                <h2 className="text-lg font-bold" style={{ color: TEXT }}>Analytics</h2>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  {[
-                    { icon: Download, label: 'Total Downloads', value: stats.totalDownloads.toLocaleString(), color: ACCENT, bg: '#E0F2FE' },
-                    { icon: Eye, label: 'Total Views', value: stats.totalViews.toLocaleString(), color: '#F59E0B', bg: '#FEF3C7' },
-                    { icon: CheckCircle, label: 'Approved Apps', value: stats.approvedApps, color: '#10B981', bg: '#D1FAE5' },
-                    { icon: Star, label: 'Avg Rating', value: myApps.length > 0 ? (myApps.reduce((s, a) => s + a.rating, 0) / myApps.length).toFixed(1) : '—', color: '#8B5CF6', bg: '#EDE9FE' },
-                  ].map((c) => (
-                    <div key={c.label} className={cn(cardBase, 'p-4')}>
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ background: c.bg }}>
-                        <c.icon className="w-4.5 h-4.5" style={{ color: c.color }} strokeWidth={1.8} />
-                      </div>
-                      <p className="text-[11px] mb-1" style={{ color: MUTED }}>{c.label}</p>
-                      <p className="text-2xl font-bold" style={{ color: TEXT }}>{c.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {myApps.length > 0 && (
-                  <div className={cn(cardBase, 'p-4 sm:p-5')}>
-                    <h3 className="text-sm font-bold mb-3" style={{ color: TEXT }}>Per-App Breakdown</h3>
-                    <div className="space-y-2">
-                      {myApps.map((app) => (
-                        <div key={app.id} className="flex items-center gap-3 p-3 rounded-2xl bg-[#F5F5F7]">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden">
-                            {app.icon_url && app.icon_url.startsWith('http') ? <img src={app.icon_url} alt={app.name} className="w-full h-full object-cover" /> : app.name.charAt(0)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate" style={{ color: TEXT }}>{app.name}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold" style={{ color: TEXT }}>{app.downloads.toLocaleString()}</p>
-                            <p className="text-[10px]" style={{ color: MUTED }}>downloads</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                <AnalyticsTab onOpenMenu={() => setMobileSidebarOpen(true)} />
               </motion.div>
             )}
 
