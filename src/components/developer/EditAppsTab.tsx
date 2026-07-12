@@ -627,7 +627,10 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       </AnimatePresence>
 
       {/* Sticky Bottom Save Bar */}
-      <div className="fixed bottom-20 left-3 right-3 z-40 pointer-events-none">
+      <div
+        className="fixed left-3 right-3 z-40 pointer-events-none"
+        style={{ bottom: 'calc(112px + env(safe-area-inset-bottom, 0px))' }}
+      >
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
