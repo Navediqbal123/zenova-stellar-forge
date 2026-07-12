@@ -526,12 +526,32 @@ export function DeveloperSettings() {
               : 'Your application is being reviewed.'}
           </p>
         </div>
-        <div className={cn(cardBase, 'p-4 mt-3 space-y-2')}>
-          <RowKV k="Developer" v={developerProfile?.developer_name || '—'} />
-          <RowKV k="Type" v={developerProfile?.developer_type || '—'} />
-          <RowKV k="Email" v={developerProfile?.email || '—'} />
-          <RowKV k="Country" v={developerProfile?.country || '—'} />
-          <RowKV k="Submitted" v={developerProfile?.created_at ? new Date(developerProfile.created_at).toLocaleDateString() : '—'} />
+        {/* Premium white details card */}
+        <div className="mt-3 mb-4 rounded-2xl bg-white p-5 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.35)] border border-black/5 space-y-3">
+          <div className="flex items-center justify-between pb-3 border-b border-[#F1F1F3]">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>Verification Details</p>
+              <p className="text-[15px] font-bold mt-0.5" style={{ color: TEXT }}>Account Overview</p>
+            </div>
+            {verificationStatus === 'approved' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
+                <CheckCircle className="w-3.5 h-3.5 text-green-600" strokeWidth={2.2} />
+                <span className="text-[11px] font-semibold text-green-700">Verified Developer</span>
+              </span>
+            )}
+          </div>
+          <div className="space-y-2.5 pt-1">
+            <LightRow k="Verification Status" v={verificationStatus} highlight={verificationStatus === 'approved' ? 'green' : verificationStatus === 'rejected' ? 'red' : 'amber'} />
+            <LightRow k="Developer Name" v={developerProfile?.developer_name || developerProfile?.full_name || '—'} />
+            <LightRow k="Developer Type" v={developerProfile?.developer_type || '—'} />
+            <LightRow k="Developer ID" v={developerProfile?.id ? developerProfile.id.slice(0, 8).toUpperCase() : '—'} mono />
+            <LightRow k="Country" v={developerProfile?.country || '—'} />
+            <LightRow k="Verified Email" v={developerProfile?.email || '—'} />
+            <LightRow k="Verified Phone" v={developerProfile?.phone || '—'} />
+            <LightRow k="Verified Since" v={developerProfile?.updated_at ? new Date(developerProfile.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'} />
+            <LightRow k="Verification Method" v="Government ID + Email" />
+            <LightRow k="Account Status" v={verificationStatus === 'approved' ? 'Active' : 'Pending Review'} highlight={verificationStatus === 'approved' ? 'green' : 'amber'} />
+          </div>
         </div>
       </PanelSheet>
 
@@ -746,6 +766,25 @@ function RowKV({ k, v }: { k: string; v: string }) {
     </div>
   );
 }
+
+function LightRow({ k, v, mono, highlight }: { k: string; v: string; mono?: boolean; highlight?: 'green' | 'red' | 'amber' }) {
+  const color =
+    highlight === 'green' ? '#16A34A' :
+    highlight === 'red' ? '#DC2626' :
+    highlight === 'amber' ? '#B45309' : TEXT;
+  return (
+    <div className="flex items-start justify-between gap-3 text-[13px]">
+      <span className="text-[#6B7280] shrink-0">{k}</span>
+      <span
+        className={cn('font-semibold text-right capitalize break-all', mono && 'font-mono tracking-wide uppercase')}
+        style={{ color }}
+      >
+        {v}
+      </span>
+    </div>
+  );
+}
+
 
 function BrandingRow({
   label, url, onPick, uploading, shape,
