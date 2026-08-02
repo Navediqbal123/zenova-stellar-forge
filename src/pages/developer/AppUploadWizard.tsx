@@ -15,6 +15,7 @@ import { StoreListingStep, type StoreListingData } from '@/components/developer/
 import { GraphicsStep, type GraphicsData } from '@/components/developer/wizard/GraphicsStep';
 import { MonetizationStep, type MonetizationData } from '@/components/developer/wizard/MonetizationStep';
 import { AppReleaseStep, type ReleaseData } from '@/components/developer/wizard/AppReleaseStep';
+import { CountryAvailabilitySelector, type AvailabilityMode } from '@/components/developer/CountryAvailabilitySelector';
 
 const STEPS = [
   { id: 1, label: 'Store Listing', description: 'App details' },
