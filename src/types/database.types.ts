@@ -9,6 +9,7 @@ export type Json =
 export type DeveloperStatus = 'pending' | 'approved' | 'rejected';
 export type DeveloperType = 'individual' | 'company';
 export type AppStatus = 'pending' | 'approved' | 'rejected';
+export type SupportTicketStatus = 'open' | 'resolved';
 
 export interface Database {
   public: {
