@@ -58,6 +58,7 @@ const adminNavItems: NavItem[] = [
   { id: 'ai-insights', label: 'AI Insights', icon: Brain, type: 'tab', tab: 'ai-insights', isSpecial: true },
   { id: 'stats', label: 'Statistics', icon: BarChart3, type: 'tab', tab: 'stats' },
   { id: 'security', label: 'Security Logs', icon: ShieldCheck, type: 'tab', tab: 'stats' },
+  { id: 'support-tickets', label: 'Support Tickets', icon: LifeBuoy, type: 'tab', tab: 'support-tickets' },
   { id: 'support', label: 'Support Bot', icon: MessageCircle, type: 'action' },
 ];
 
