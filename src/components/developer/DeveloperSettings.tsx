@@ -91,16 +91,18 @@ export function DeveloperSettings() {
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   const meta = (user?.user_metadata as any) || {};
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(meta.avatar_url || null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(meta.logo_url || null);
-  const [bannerUrl, setBannerUrl] = useState<string | null>(meta.banner_url || null);
+  const devAny = (developerProfile as any) || {};
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(devAny.profile_photo_url || meta.avatar_url || null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(devAny.studio_logo_url || meta.logo_url || null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(devAny.banner_url || meta.banner_url || null);
 
   useEffect(() => {
     const m = (user?.user_metadata as any) || {};
-    setAvatarUrl(m.avatar_url || null);
-    setLogoUrl(m.logo_url || null);
-    setBannerUrl(m.banner_url || null);
-  }, [user]);
+    const d = (developerProfile as any) || {};
+    setAvatarUrl(d.profile_photo_url || m.avatar_url || null);
+    setLogoUrl(d.studio_logo_url || m.logo_url || null);
+    setBannerUrl(d.banner_url || m.banner_url || null);
+  }, [user, developerProfile]);
 
   const displayName = developerProfile?.developer_name || user?.email?.split('@')[0] || 'Developer';
   const avatarLetter = displayName.charAt(0).toUpperCase();
@@ -110,7 +112,14 @@ export function DeveloperSettings() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<null | 'avatar' | 'logo' | 'banner'>(null);
+
+  // Each asset has its own bucket + developers table column
+  const ASSET_CONFIG = {
+    avatar: { bucket: STORAGE_BUCKETS.DEVELOPER_IDS, column: 'profile_photo_url', metaKey: 'avatar_url', label: 'Profile photo' },
+    logo: { bucket: STORAGE_BUCKETS.DEVELOPER_BRANDING, column: 'studio_logo_url', metaKey: 'logo_url', label: 'Studio logo' },
+    banner: { bucket: STORAGE_BUCKETS.DEVELOPER_BRANDING, column: 'banner_url', metaKey: 'banner_url', label: 'Banner image' },
+  } as const;
 
   const uploadImage = async (
     file: File,
@@ -119,32 +128,41 @@ export function DeveloperSettings() {
     if (!user) return;
     if (!file.type.startsWith('image/')) { toast({ title: 'Invalid file', description: 'Please pick an image.', variant: 'destructive' }); return; }
     if (file.size > 8 * 1024 * 1024) { toast({ title: 'Too large', description: 'Image must be under 8MB.', variant: 'destructive' }); return; }
-    setUploading(true);
+    const cfg = ASSET_CONFIG[kind];
+    setUploading(kind);
     try {
       const compressed = await compressImage(file, 1);
       const ext = (compressed.name.split('.').pop() || 'jpg').toLowerCase();
       const path = `${kind}s/${user.id}-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
-        .from(STORAGE_BUCKETS.APP_ICONS)
+        .from(cfg.bucket)
         .upload(path, compressed, { upsert: true, cacheControl: '3600' });
       if (upErr) throw upErr;
-      const { data } = supabase.storage.from(STORAGE_BUCKETS.APP_ICONS).getPublicUrl(path);
+      const { data } = supabase.storage.from(cfg.bucket).getPublicUrl(path);
       const publicUrl = data.publicUrl;
 
-      const key = kind === 'avatar' ? 'avatar_url' : kind === 'logo' ? 'logo_url' : 'banner_url';
-      const { error: updErr } = await supabase.auth.updateUser({ data: { [key]: publicUrl } });
-      if (updErr) throw updErr;
+      // Persist to developers table
+      if (developerProfile?.id) {
+        const { error: dbErr } = await supabase
+          .from('developers')
+          .update({ [cfg.column]: publicUrl, updated_at: new Date().toISOString() } as any)
+          .eq('id', developerProfile.id);
+        if (dbErr) throw dbErr;
+      }
+      // Mirror into auth metadata so headers/avatars update instantly
+      await supabase.auth.updateUser({ data: { [cfg.metaKey]: publicUrl } });
 
       if (kind === 'avatar') setAvatarUrl(publicUrl);
       if (kind === 'logo') setLogoUrl(publicUrl);
       if (kind === 'banner') setBannerUrl(publicUrl);
 
-      toast({ title: 'Updated', description: `${kind[0].toUpperCase() + kind.slice(1)} saved.` });
+      await refreshDeveloperProfile();
+      toast({ title: 'Uploaded', description: `${cfg.label} saved.` });
       setAvatarSheetOpen(false);
     } catch (err: any) {
       toast({ title: 'Upload failed', description: err?.message || 'Please try again.', variant: 'destructive' });
     } finally {
-      setUploading(false);
+      setUploading(null);
     }
   };
 
