@@ -667,8 +667,8 @@ export function DeveloperSettings() {
         <FormField label="Message">
           <Textarea rows={5} value={help.message} onChange={(e) => setHelp((p) => ({ ...p, message: e.target.value }))} placeholder="Describe your issue..." />
         </FormField>
-        <Button onClick={submitHelp} className="w-full h-11 rounded-full text-white text-[15px] font-semibold" style={{ background: ACCENT }}>
-          <Save className="w-4 h-4 mr-1.5" /> Send Message
+        <Button onClick={submitHelp} disabled={sendingHelp} className="w-full h-11 rounded-full text-white text-[15px] font-semibold" style={{ background: ACCENT }}>
+          {sendingHelp ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />} Send Message
         </Button>
         <p className="text-[12px] text-center mt-3" style={{ color: MUTED }}>
           Or email us at <a className="underline" style={{ color: ACCENT }} href="mailto:support@elorax.app">support@elorax.app</a>
