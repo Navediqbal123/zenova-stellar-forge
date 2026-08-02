@@ -191,6 +191,7 @@ export default function AppUploadWizard() {
         contains_ads: monetization.contains_ads,
         in_app_purchases: monetization.in_app_purchases,
         privacy_policy_url: monetization.privacy_policy_url,
+        available_countries: availabilityMode === 'worldwide' ? [] : availableCountries,
       } as any);
 
       triggerConfetti();
