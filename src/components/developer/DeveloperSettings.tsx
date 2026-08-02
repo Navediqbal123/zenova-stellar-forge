@@ -392,7 +392,7 @@ export function DeveloperSettings() {
             ].map((a: any) => (
               <button
                 key={a.label}
-                disabled={uploading}
+                disabled={!!uploading}
                 onClick={a.onClick}
                 className="w-full flex items-center gap-3 p-3 rounded-2xl active:bg-[#F5F5F7] transition-colors text-left disabled:opacity-50"
               >
