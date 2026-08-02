@@ -474,9 +474,9 @@ export function DeveloperSettings() {
 
       {/* ============ Branding Panel ============ */}
       <PanelSheet open={panel === 'branding'} onClose={closePanel} title="Branding" description="Upload your logo, banner and profile image">
-        <BrandingRow label="Profile Photo" url={avatarUrl} onPick={() => galleryInputRef.current?.click()} uploading={uploading} shape="circle" />
-        <BrandingRow label="Studio Logo" url={logoUrl} onPick={() => logoInputRef.current?.click()} uploading={uploading} shape="square" />
-        <BrandingRow label="Banner Image" url={bannerUrl} onPick={() => bannerInputRef.current?.click()} uploading={uploading} shape="wide" />
+        <BrandingRow label="Profile Photo" url={avatarUrl} onPick={() => galleryInputRef.current?.click()} uploading={uploading === 'avatar'} shape="circle" />
+        <BrandingRow label="Studio Logo" url={logoUrl} onPick={() => logoInputRef.current?.click()} uploading={uploading === 'logo'} shape="square" />
+        <BrandingRow label="Banner Image" url={bannerUrl} onPick={() => bannerInputRef.current?.click()} uploading={uploading === 'banner'} shape="wide" />
       </PanelSheet>
 
       {/* ============ Store Presence Panel ============ */}
