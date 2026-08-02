@@ -88,6 +88,7 @@ export interface Database {
           in_app_purchases: boolean
           ai_scan_report: string | null
           version_code: number | null
+          available_countries: string[]
           created_at: string
           updated_at: string
         }
