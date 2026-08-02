@@ -170,3 +170,6 @@ export type AppUpdate = Database['public']['Tables']['apps']['Update'];
 
 export type Review = Database['public']['Tables']['reviews']['Row'];
 export type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
+
+export type SupportTicket = Database['public']['Tables']['support_tickets']['Row'];
+export type SupportTicketInsert = Database['public']['Tables']['support_tickets']['Insert'];
