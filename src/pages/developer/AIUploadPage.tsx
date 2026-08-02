@@ -229,6 +229,14 @@ export default function AIUploadPage() {
 
   const handleSubmit = async () => {
     if (!developerProfile) return;
+    if (availabilityMode === 'specific' && availableCountries.length === 0) {
+      toast({
+        title: 'Select countries',
+        description: 'Pick at least one country or choose Worldwide.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setIsSubmitting(true);
 
     try {
