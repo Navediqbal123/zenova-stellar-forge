@@ -257,7 +257,7 @@ export default function DeveloperDashboard() {
                 {activeTab === 'dashboard' && 'Developer Console'}
                 {activeTab === 'my-apps' && 'My Apps'}
                 {activeTab === 'edit-apps' && 'Edit Apps'}
-                {activeTab === 'analytics' && 'Analytics'}
+                
                 {activeTab === 'settings' && 'Developer Settings'}
               </h1>
             </div>
