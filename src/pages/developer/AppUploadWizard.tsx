@@ -68,6 +68,10 @@ export default function AppUploadWizard() {
     releaseNotes: '',
   });
 
+  // Availability — developer chooses manually, worldwide by default
+  const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('worldwide');
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+
   // Validation per step
   const validateStep = (step: number): string | null => {
     switch (step) {
