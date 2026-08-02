@@ -669,6 +669,18 @@ export default function AIUploadPage() {
                 </div>
               </div>
 
+              {/* Available Countries — manual selection only */}
+              <div className="glass-card p-5 rounded-2xl">
+                <CountryAvailabilitySelector
+                  mode={availabilityMode}
+                  countries={availableCountries}
+                  onChange={(mode, countries) => {
+                    setAvailabilityMode(mode);
+                    setAvailableCountries(countries);
+                  }}
+                />
+              </div>
+
               {/* Submit */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
