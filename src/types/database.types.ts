@@ -27,6 +27,9 @@ export interface Database {
           bio: string | null
           status: DeveloperStatus
           rejection_reason: string | null
+          profile_photo_url: string | null
+          studio_logo_url: string | null
+          banner_url: string | null
           created_at: string
           updated_at: string
         }
