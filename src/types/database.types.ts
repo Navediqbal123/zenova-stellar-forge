@@ -121,6 +121,25 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['reviews']['Row']>
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          id: string
+          user_id: string
+          email: string | null
+          subject: string
+          message: string
+          status: SupportTicketStatus
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: Partial<Database['public']['Tables']['support_tickets']['Row']> & {
+          user_id: string
+          subject: string
+          message: string
+        }
+        Update: Partial<Database['public']['Tables']['support_tickets']['Row']>
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
