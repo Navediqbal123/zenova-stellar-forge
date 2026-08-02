@@ -63,6 +63,10 @@ export default function AIUploadPage() {
   const [phase, setPhase] = useState<'input' | 'scanning' | 'review'>('input');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Availability — never auto-selected by AI, developer picks manually
+  const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('worldwide');
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+
   const [scanSteps, setScanSteps] = useState<ScanStep[]>([
     { id: 'manifest', icon: Search, message: 'Scanning APK Manifest for Permissions...', status: 'pending' },
     { id: 'ads', icon: Megaphone, message: 'Detecting Monetization SDKs...', status: 'pending' },
