@@ -265,16 +265,35 @@ export function DeveloperSettings() {
 
   // ============ Help & Support ============
   const [help, setHelp] = useState({ subject: '', message: '' });
-  const submitHelp = () => {
+  const [sendingHelp, setSendingHelp] = useState(false);
+  const submitHelp = async () => {
     if (!help.subject.trim() || !help.message.trim()) {
       toast({ title: 'Missing info', description: 'Add a subject and message.', variant: 'destructive' });
       return;
     }
-    const body = encodeURIComponent(`${help.message}\n\n— ${user?.email || 'developer'}`);
-    const subject = encodeURIComponent(help.subject);
-    window.location.href = `mailto:support@elorax.app?subject=${subject}&body=${body}`;
-    toast({ title: 'Opening mail app', description: 'Your message is ready to send.' });
-    setPanel(null);
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to contact support.', variant: 'destructive' });
+      return;
+    }
+    setSendingHelp(true);
+    try {
+      const { error } = await supabase.from('support_tickets' as any).insert([{
+        user_id: user.id,
+        email: user.email,
+        subject: help.subject.trim(),
+        message: help.message.trim(),
+        status: 'open',
+        created_at: new Date().toISOString(),
+      }] as any);
+      if (error) throw error;
+      toast({ title: 'Message sent successfully!', description: 'Our team will reply within 24 hours.' });
+      setHelp({ subject: '', message: '' });
+      setPanel(null);
+    } catch (err: any) {
+      toast({ title: 'Could not send', description: err?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSendingHelp(false);
+    }
   };
 
   const verificationStatus = developerProfile?.status || 'pending';
