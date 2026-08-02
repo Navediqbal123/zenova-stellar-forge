@@ -168,7 +168,7 @@ export function DeveloperSettings() {
 
   const removeAvatar = async () => {
     if (!user) return;
-    setUploading(true);
+    setUploading('avatar');
     try {
       const { error } = await supabase.auth.updateUser({ data: { avatar_url: null } });
       if (error) throw error;
