@@ -263,7 +263,19 @@ export default function AppUploadWizard() {
               <MonetizationStep key="step3" data={monetization} onChange={setMonetization} />
             )}
             {currentStep === 4 && (
-              <AppReleaseStep key="step4" data={release} onChange={setRelease} />
+              <div key="step4" className="space-y-6">
+                <AppReleaseStep data={release} onChange={setRelease} />
+                <div className="admin-glass-card p-5 sm:p-6">
+                  <CountryAvailabilitySelector
+                    mode={availabilityMode}
+                    countries={availableCountries}
+                    onChange={(mode, countries) => {
+                      setAvailabilityMode(mode);
+                      setAvailableCountries(countries);
+                    }}
+                  />
+                </div>
+              </div>
             )}
           </AnimatePresence>
         </div>
