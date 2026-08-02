@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { ChatbotSupport, ChatbotTrigger } from '@/components/admin/ChatbotSupport';
 
-export type AdminTab = 'dashboard' | 'developers' | 'apps' | 'edit-apps' | 'categories' | 'stats' | 'ai-insights';
+export type AdminTab = 'dashboard' | 'developers' | 'apps' | 'edit-apps' | 'categories' | 'stats' | 'ai-insights' | 'support-tickets';
 
 interface AdminLayoutProps {
   children: ReactNode;

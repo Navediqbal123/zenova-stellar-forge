@@ -25,6 +25,8 @@ export const STORAGE_BUCKETS = {
   APP_ICONS: 'app-icons',
   APP_SCREENSHOTS: 'app-screenshots',
   APP_FILES: 'app-files',
+  DEVELOPER_IDS: 'developer-ids',
+  DEVELOPER_BRANDING: 'developer-branding',
 } as const;
 
 // Helper function to get public URL for a storage file

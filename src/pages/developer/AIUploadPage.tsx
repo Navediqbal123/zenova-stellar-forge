@@ -28,6 +28,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { cn } from '@/lib/utils';
 import { adminAPI } from '@/lib/axios';
 import { supabase } from '@/lib/supabase';
+import { CountryAvailabilitySelector, type AvailabilityMode } from '@/components/developer/CountryAvailabilitySelector';
 
 interface ScanStep {
   id: string;
@@ -62,6 +63,10 @@ export default function AIUploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [phase, setPhase] = useState<'input' | 'scanning' | 'review'>('input');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Availability — never auto-selected by AI, developer picks manually
+  const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('worldwide');
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
 
   const [scanSteps, setScanSteps] = useState<ScanStep[]>([
     { id: 'manifest', icon: Search, message: 'Scanning APK Manifest for Permissions...', status: 'pending' },
@@ -224,6 +229,14 @@ export default function AIUploadPage() {
 
   const handleSubmit = async () => {
     if (!developerProfile) return;
+    if (availabilityMode === 'specific' && availableCountries.length === 0) {
+      toast({
+        title: 'Select countries',
+        description: 'Pick at least one country or choose Worldwide.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -285,6 +298,7 @@ export default function AIUploadPage() {
         ai_scan_report: aiScanReport,
         apk_url: apkUrl,
         aab_url: aabUrl,
+        available_countries: availabilityMode === 'worldwide' ? [] : availableCountries,
       } as any);
 
       triggerConfetti();
@@ -661,6 +675,18 @@ export default function AIUploadPage() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Available Countries — manual selection only */}
+              <div className="glass-card p-5 rounded-2xl">
+                <CountryAvailabilitySelector
+                  mode={availabilityMode}
+                  countries={availableCountries}
+                  onChange={(mode, countries) => {
+                    setAvailabilityMode(mode);
+                    setAvailableCountries(countries);
+                  }}
+                />
               </div>
 
               {/* Submit */}

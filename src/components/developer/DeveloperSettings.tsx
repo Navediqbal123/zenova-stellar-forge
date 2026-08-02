@@ -91,16 +91,18 @@ export function DeveloperSettings() {
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   const meta = (user?.user_metadata as any) || {};
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(meta.avatar_url || null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(meta.logo_url || null);
-  const [bannerUrl, setBannerUrl] = useState<string | null>(meta.banner_url || null);
+  const devAny = (developerProfile as any) || {};
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(devAny.profile_photo_url || meta.avatar_url || null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(devAny.studio_logo_url || meta.logo_url || null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(devAny.banner_url || meta.banner_url || null);
 
   useEffect(() => {
     const m = (user?.user_metadata as any) || {};
-    setAvatarUrl(m.avatar_url || null);
-    setLogoUrl(m.logo_url || null);
-    setBannerUrl(m.banner_url || null);
-  }, [user]);
+    const d = (developerProfile as any) || {};
+    setAvatarUrl(d.profile_photo_url || m.avatar_url || null);
+    setLogoUrl(d.studio_logo_url || m.logo_url || null);
+    setBannerUrl(d.banner_url || m.banner_url || null);
+  }, [user, developerProfile]);
 
   const displayName = developerProfile?.developer_name || user?.email?.split('@')[0] || 'Developer';
   const avatarLetter = displayName.charAt(0).toUpperCase();
@@ -110,7 +112,14 @@ export function DeveloperSettings() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<null | 'avatar' | 'logo' | 'banner'>(null);
+
+  // Each asset has its own bucket + developers table column
+  const ASSET_CONFIG = {
+    avatar: { bucket: STORAGE_BUCKETS.DEVELOPER_IDS, column: 'profile_photo_url', metaKey: 'avatar_url', label: 'Profile photo' },
+    logo: { bucket: STORAGE_BUCKETS.DEVELOPER_BRANDING, column: 'studio_logo_url', metaKey: 'logo_url', label: 'Studio logo' },
+    banner: { bucket: STORAGE_BUCKETS.DEVELOPER_BRANDING, column: 'banner_url', metaKey: 'banner_url', label: 'Banner image' },
+  } as const;
 
   const uploadImage = async (
     file: File,
@@ -119,48 +128,64 @@ export function DeveloperSettings() {
     if (!user) return;
     if (!file.type.startsWith('image/')) { toast({ title: 'Invalid file', description: 'Please pick an image.', variant: 'destructive' }); return; }
     if (file.size > 8 * 1024 * 1024) { toast({ title: 'Too large', description: 'Image must be under 8MB.', variant: 'destructive' }); return; }
-    setUploading(true);
+    const cfg = ASSET_CONFIG[kind];
+    setUploading(kind);
     try {
       const compressed = await compressImage(file, 1);
       const ext = (compressed.name.split('.').pop() || 'jpg').toLowerCase();
       const path = `${kind}s/${user.id}-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
-        .from(STORAGE_BUCKETS.APP_ICONS)
+        .from(cfg.bucket)
         .upload(path, compressed, { upsert: true, cacheControl: '3600' });
       if (upErr) throw upErr;
-      const { data } = supabase.storage.from(STORAGE_BUCKETS.APP_ICONS).getPublicUrl(path);
+      const { data } = supabase.storage.from(cfg.bucket).getPublicUrl(path);
       const publicUrl = data.publicUrl;
 
-      const key = kind === 'avatar' ? 'avatar_url' : kind === 'logo' ? 'logo_url' : 'banner_url';
-      const { error: updErr } = await supabase.auth.updateUser({ data: { [key]: publicUrl } });
-      if (updErr) throw updErr;
+      // Persist to developers table
+      if (developerProfile?.id) {
+        const { error: dbErr } = await supabase
+          .from('developers')
+          .update({ [cfg.column]: publicUrl, updated_at: new Date().toISOString() } as any)
+          .eq('id', developerProfile.id);
+        if (dbErr) throw dbErr;
+      }
+      // Mirror into auth metadata so headers/avatars update instantly
+      await supabase.auth.updateUser({ data: { [cfg.metaKey]: publicUrl } });
 
       if (kind === 'avatar') setAvatarUrl(publicUrl);
       if (kind === 'logo') setLogoUrl(publicUrl);
       if (kind === 'banner') setBannerUrl(publicUrl);
 
-      toast({ title: 'Updated', description: `${kind[0].toUpperCase() + kind.slice(1)} saved.` });
+      await refreshDeveloperProfile();
+      toast({ title: 'Uploaded', description: `${cfg.label} saved.` });
       setAvatarSheetOpen(false);
     } catch (err: any) {
       toast({ title: 'Upload failed', description: err?.message || 'Please try again.', variant: 'destructive' });
     } finally {
-      setUploading(false);
+      setUploading(null);
     }
   };
 
   const removeAvatar = async () => {
     if (!user) return;
-    setUploading(true);
+    setUploading('avatar');
     try {
       const { error } = await supabase.auth.updateUser({ data: { avatar_url: null } });
       if (error) throw error;
+      if (developerProfile?.id) {
+        await supabase
+          .from('developers')
+          .update({ profile_photo_url: null, updated_at: new Date().toISOString() } as any)
+          .eq('id', developerProfile.id);
+        await refreshDeveloperProfile();
+      }
       setAvatarUrl(null);
       toast({ title: 'Removed', description: 'Profile photo removed.' });
       setAvatarSheetOpen(false);
     } catch (err: any) {
       toast({ title: 'Failed', description: err?.message || 'Please try again.', variant: 'destructive' });
     } finally {
-      setUploading(false);
+      setUploading(null);
     }
   };
 
@@ -240,16 +265,35 @@ export function DeveloperSettings() {
 
   // ============ Help & Support ============
   const [help, setHelp] = useState({ subject: '', message: '' });
-  const submitHelp = () => {
+  const [sendingHelp, setSendingHelp] = useState(false);
+  const submitHelp = async () => {
     if (!help.subject.trim() || !help.message.trim()) {
       toast({ title: 'Missing info', description: 'Add a subject and message.', variant: 'destructive' });
       return;
     }
-    const body = encodeURIComponent(`${help.message}\n\n— ${user?.email || 'developer'}`);
-    const subject = encodeURIComponent(help.subject);
-    window.location.href = `mailto:support@elorax.app?subject=${subject}&body=${body}`;
-    toast({ title: 'Opening mail app', description: 'Your message is ready to send.' });
-    setPanel(null);
+    if (!user) {
+      toast({ title: 'Not signed in', description: 'Please sign in to contact support.', variant: 'destructive' });
+      return;
+    }
+    setSendingHelp(true);
+    try {
+      const { error } = await supabase.from('support_tickets' as any).insert([{
+        user_id: user.id,
+        email: user.email,
+        subject: help.subject.trim(),
+        message: help.message.trim(),
+        status: 'open',
+        created_at: new Date().toISOString(),
+      }] as any);
+      if (error) throw error;
+      toast({ title: 'Message sent successfully!', description: 'Our team will reply within 24 hours.' });
+      setHelp({ subject: '', message: '' });
+      setPanel(null);
+    } catch (err: any) {
+      toast({ title: 'Could not send', description: err?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSendingHelp(false);
+    }
   };
 
   const verificationStatus = developerProfile?.status || 'pending';
@@ -374,7 +418,7 @@ export function DeveloperSettings() {
             ].map((a: any) => (
               <button
                 key={a.label}
-                disabled={uploading}
+                disabled={!!uploading}
                 onClick={a.onClick}
                 className="w-full flex items-center gap-3 p-3 rounded-2xl active:bg-[#F5F5F7] transition-colors text-left disabled:opacity-50"
               >
@@ -456,9 +500,9 @@ export function DeveloperSettings() {
 
       {/* ============ Branding Panel ============ */}
       <PanelSheet open={panel === 'branding'} onClose={closePanel} title="Branding" description="Upload your logo, banner and profile image">
-        <BrandingRow label="Profile Photo" url={avatarUrl} onPick={() => galleryInputRef.current?.click()} uploading={uploading} shape="circle" />
-        <BrandingRow label="Studio Logo" url={logoUrl} onPick={() => logoInputRef.current?.click()} uploading={uploading} shape="square" />
-        <BrandingRow label="Banner Image" url={bannerUrl} onPick={() => bannerInputRef.current?.click()} uploading={uploading} shape="wide" />
+        <BrandingRow label="Profile Photo" url={avatarUrl} onPick={() => galleryInputRef.current?.click()} uploading={uploading === 'avatar'} shape="circle" />
+        <BrandingRow label="Studio Logo" url={logoUrl} onPick={() => logoInputRef.current?.click()} uploading={uploading === 'logo'} shape="square" />
+        <BrandingRow label="Banner Image" url={bannerUrl} onPick={() => bannerInputRef.current?.click()} uploading={uploading === 'banner'} shape="wide" />
       </PanelSheet>
 
       {/* ============ Store Presence Panel ============ */}
@@ -623,8 +667,8 @@ export function DeveloperSettings() {
         <FormField label="Message">
           <Textarea rows={5} value={help.message} onChange={(e) => setHelp((p) => ({ ...p, message: e.target.value }))} placeholder="Describe your issue..." />
         </FormField>
-        <Button onClick={submitHelp} className="w-full h-11 rounded-full text-white text-[15px] font-semibold" style={{ background: ACCENT }}>
-          <Save className="w-4 h-4 mr-1.5" /> Send Message
+        <Button onClick={submitHelp} disabled={sendingHelp} className="w-full h-11 rounded-full text-white text-[15px] font-semibold" style={{ background: ACCENT }}>
+          {sendingHelp ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />} Send Message
         </Button>
         <p className="text-[12px] text-center mt-3" style={{ color: MUTED }}>
           Or email us at <a className="underline" style={{ color: ACCENT }} href="mailto:support@elorax.app">support@elorax.app</a>

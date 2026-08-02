@@ -15,6 +15,7 @@ import { StoreListingStep, type StoreListingData } from '@/components/developer/
 import { GraphicsStep, type GraphicsData } from '@/components/developer/wizard/GraphicsStep';
 import { MonetizationStep, type MonetizationData } from '@/components/developer/wizard/MonetizationStep';
 import { AppReleaseStep, type ReleaseData } from '@/components/developer/wizard/AppReleaseStep';
+import { CountryAvailabilitySelector, type AvailabilityMode } from '@/components/developer/CountryAvailabilitySelector';
 
 const STEPS = [
   { id: 1, label: 'Store Listing', description: 'App details' },
@@ -68,6 +69,10 @@ export default function AppUploadWizard() {
     releaseNotes: '',
   });
 
+  // Availability — developer chooses manually, worldwide by default
+  const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('worldwide');
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+
   // Validation per step
   const validateStep = (step: number): string | null => {
     switch (step) {
@@ -87,6 +92,8 @@ export default function AppUploadWizard() {
         return null;
       case 4:
         if (!release.releaseNotes.trim()) return 'Release notes are required';
+        if (availabilityMode === 'specific' && availableCountries.length === 0)
+          return 'Select at least one country, or choose Worldwide';
         return null;
       default:
         return null;
@@ -184,6 +191,7 @@ export default function AppUploadWizard() {
         contains_ads: monetization.contains_ads,
         in_app_purchases: monetization.in_app_purchases,
         privacy_policy_url: monetization.privacy_policy_url,
+        available_countries: availabilityMode === 'worldwide' ? [] : availableCountries,
       } as any);
 
       triggerConfetti();
@@ -255,7 +263,19 @@ export default function AppUploadWizard() {
               <MonetizationStep key="step3" data={monetization} onChange={setMonetization} />
             )}
             {currentStep === 4 && (
-              <AppReleaseStep key="step4" data={release} onChange={setRelease} />
+              <div key="step4" className="space-y-6">
+                <AppReleaseStep data={release} onChange={setRelease} />
+                <div className="admin-glass-card p-5 sm:p-6">
+                  <CountryAvailabilitySelector
+                    mode={availabilityMode}
+                    countries={availableCountries}
+                    onChange={(mode, countries) => {
+                      setAvailabilityMode(mode);
+                      setAvailableCountries(countries);
+                    }}
+                  />
+                </div>
+              </div>
             )}
           </AnimatePresence>
         </div>

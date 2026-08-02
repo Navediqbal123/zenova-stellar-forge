@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdminEditAppsTab } from '@/components/admin/AdminEditAppsTab';
+import { AdminSupportTickets } from '@/components/admin/AdminSupportTickets';
 import { 
   Users, 
   Package, 
@@ -91,6 +92,7 @@ export default function AdminPanel() {
       {activeTab === 'categories' && <AdminCategories />}
       {activeTab === 'stats' && <AdminStats />}
       {activeTab === 'ai-insights' && <AdminAIInsights />}
+      {activeTab === 'support-tickets' && <AdminSupportTickets />}
     </AdminLayout>
   );
 }

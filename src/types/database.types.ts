@@ -9,6 +9,7 @@ export type Json =
 export type DeveloperStatus = 'pending' | 'approved' | 'rejected';
 export type DeveloperType = 'individual' | 'company';
 export type AppStatus = 'pending' | 'approved' | 'rejected';
+export type SupportTicketStatus = 'open' | 'resolved';
 
 export interface Database {
   public: {
@@ -27,6 +28,9 @@ export interface Database {
           bio: string | null
           status: DeveloperStatus
           rejection_reason: string | null
+          profile_photo_url: string | null
+          studio_logo_url: string | null
+          banner_url: string | null
           created_at: string
           updated_at: string
         }
@@ -85,6 +89,7 @@ export interface Database {
           in_app_purchases: boolean
           ai_scan_report: string | null
           version_code: number | null
+          available_countries: string[]
           created_at: string
           updated_at: string
         }
@@ -117,6 +122,25 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['reviews']['Row']>
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          id: string
+          user_id: string
+          email: string | null
+          subject: string
+          message: string
+          status: SupportTicketStatus
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: Partial<Database['public']['Tables']['support_tickets']['Row']> & {
+          user_id: string
+          subject: string
+          message: string
+        }
+        Update: Partial<Database['public']['Tables']['support_tickets']['Row']>
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -146,3 +170,6 @@ export type AppUpdate = Database['public']['Tables']['apps']['Update'];
 
 export type Review = Database['public']['Tables']['reviews']['Row'];
 export type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
+
+export type SupportTicket = Database['public']['Tables']['support_tickets']['Row'];
+export type SupportTicketInsert = Database['public']['Tables']['support_tickets']['Insert'];
