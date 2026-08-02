@@ -91,6 +91,7 @@ export default function AdminPanel() {
       {activeTab === 'categories' && <AdminCategories />}
       {activeTab === 'stats' && <AdminStats />}
       {activeTab === 'ai-insights' && <AdminAIInsights />}
+      {activeTab === 'support-tickets' && <AdminSupportTickets />}
     </AdminLayout>
   );
 }
