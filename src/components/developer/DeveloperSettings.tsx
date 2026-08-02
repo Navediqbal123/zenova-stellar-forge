@@ -172,6 +172,13 @@ export function DeveloperSettings() {
     try {
       const { error } = await supabase.auth.updateUser({ data: { avatar_url: null } });
       if (error) throw error;
+      if (developerProfile?.id) {
+        await supabase
+          .from('developers')
+          .update({ profile_photo_url: null, updated_at: new Date().toISOString() } as any)
+          .eq('id', developerProfile.id);
+        await refreshDeveloperProfile();
+      }
       setAvatarUrl(null);
       toast({ title: 'Removed', description: 'Profile photo removed.' });
       setAvatarSheetOpen(false);
