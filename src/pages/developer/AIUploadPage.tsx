@@ -28,6 +28,7 @@ import { triggerConfetti } from '@/lib/confetti';
 import { cn } from '@/lib/utils';
 import { adminAPI } from '@/lib/axios';
 import { supabase } from '@/lib/supabase';
+import { CountryAvailabilitySelector, type AvailabilityMode } from '@/components/developer/CountryAvailabilitySelector';
 
 interface ScanStep {
   id: string;
