@@ -178,7 +178,7 @@ export function DeveloperSettings() {
     } catch (err: any) {
       toast({ title: 'Failed', description: err?.message || 'Please try again.', variant: 'destructive' });
     } finally {
-      setUploading(false);
+      setUploading(null);
     }
   };
 
