@@ -92,6 +92,8 @@ export default function AppUploadWizard() {
         return null;
       case 4:
         if (!release.releaseNotes.trim()) return 'Release notes are required';
+        if (availabilityMode === 'specific' && availableCountries.length === 0)
+          return 'Select at least one country, or choose Worldwide';
         return null;
       default:
         return null;
