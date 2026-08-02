@@ -285,6 +285,7 @@ export default function AIUploadPage() {
         ai_scan_report: aiScanReport,
         apk_url: apkUrl,
         aab_url: aabUrl,
+        available_countries: availabilityMode === 'worldwide' ? [] : availableCountries,
       } as any);
 
       triggerConfetti();
