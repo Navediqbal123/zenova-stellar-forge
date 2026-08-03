@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Settings, User as UserIcon, Store, Pencil, Globe, ShieldCheck, Lock,
+  User as UserIcon, Store, Pencil, Globe, ShieldCheck, Lock,
   Users as UsersIcon, CreditCard, FileText, HelpCircle, LogOut, Camera,
   BadgeCheck, Calendar, ChevronRight, X, Save, Loader2, Trash2, Image as ImageIcon,
   CheckCircle, XCircle, Clock, ExternalLink, Twitter, Github, Facebook, Instagram,
