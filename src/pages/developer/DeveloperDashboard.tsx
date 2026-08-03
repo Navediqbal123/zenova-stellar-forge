@@ -263,7 +263,7 @@ export default function DeveloperDashboard() {
       >
         <div className="max-w-6xl mx-auto space-y-6 min-w-0">
           {/* ============ Header ============ */}
-          {activeTab !== 'analytics' && (
+          {activeTab !== 'analytics' && activeTab !== 'edit-apps' && (
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -286,22 +286,23 @@ export default function DeveloperDashboard() {
               >
                 {activeTab === 'dashboard' && 'Developer Console'}
                 {activeTab === 'my-apps' && 'My Apps'}
-                {activeTab === 'edit-apps' && 'Edit Apps'}
-                
                 {activeTab === 'settings' && 'Developer Settings'}
               </h1>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => setQuickActionsOpen(true)}
-                aria-label="Quick actions"
-                className="w-11 h-11 rounded-full flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(10,132,255,0.5)] active:scale-95 transition-transform"
-                style={{ background: ACCENT }}
-              >
-                <Plus className="w-5 h-5" strokeWidth={2.4} />
-              </button>
-            </div>
+            {activeTab !== 'settings' && (
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setQuickActionsOpen(true)}
+                  aria-label="Quick actions"
+                  className="w-11 h-11 rounded-full flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(10,132,255,0.5)] active:scale-95 transition-transform"
+                  style={{ background: ACCENT }}
+                >
+                  <Plus className="w-5 h-5" strokeWidth={2.4} />
+                </button>
+              </div>
+            )}
+
           </motion.header>
           )}
 
