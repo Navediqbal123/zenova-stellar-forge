@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+
 import { useApps, type AppWithDeveloper } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, STORAGE_BUCKETS, getStorageUrl } from '@/lib/supabase';
