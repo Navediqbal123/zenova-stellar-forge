@@ -434,13 +434,19 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       <div className="flex gap-1 border-b overflow-x-auto -mx-1 px-1" style={{ borderColor: BORDER }}>
         {tabs.map((t) => {
           const active = tab === t.id;
+          const Icon = t.icon;
           return (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className="relative shrink-0 px-3 py-2.5 text-[13px] font-semibold transition-colors"
-              style={{ color: active ? ACCENT : MUTED }}
+              className="relative shrink-0 px-3 py-2.5 text-[13px] font-semibold transition-colors inline-flex items-center gap-1.5"
+              style={{ color: active ? ACCENT : '#4B5563' }}
             >
+              <Icon
+                className="w-[15px] h-[15px]"
+                strokeWidth={2}
+                style={{ color: active ? ACCENT : t.iconColor }}
+              />
               {t.label}
               {active && (
                 <motion.span
@@ -453,6 +459,7 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
             </button>
           );
         })}
+
       </div>
 
       <AnimatePresence mode="wait">
