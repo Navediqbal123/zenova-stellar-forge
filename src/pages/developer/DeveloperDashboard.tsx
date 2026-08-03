@@ -95,7 +95,7 @@ function Sparkline({ color = ACCENT, points = [4, 9, 6, 12, 8, 14, 11] }: { colo
 
 export default function DeveloperDashboard() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, developerProfile, isDeveloperApproved, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, developerProfile, isDeveloperApproved, logout } = useAuth();
   const { getAppsByDeveloper, refreshApps } = useApps();
   const { toast } = useToast();
 
@@ -106,6 +106,14 @@ export default function DeveloperDashboard() {
   const [editForm, setEditForm] = useState<{ name: string; description: string; icon_url: string }>({ name: '', description: '', icon_url: '' });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+  // Grace window so a refresh never flashes the registration card while the
+  // developer profile request is still in flight.
+  const [profileResolved, setProfileResolved] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setProfileResolved(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   const prevStatusesRef = useRef<Record<string, string>>({});
   const myApps = developerProfile ? getAppsByDeveloper(developerProfile.id) : [];
