@@ -504,8 +504,9 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   onChange={(e) => update('short_description', e.target.value.slice(0, 100))}
                   maxLength={100}
                   rows={2}
-                  className="rounded-2xl border resize-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
-                  style={{ borderColor: BORDER }}
+                  placeholder="A short, catchy summary of your app"
+                  className="rounded-2xl border bg-white resize-none text-[14px] placeholder:text-[#9CA3AF] shadow-[0_2px_10px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
+                  style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
                 />
                 <Counter value={form.short_description.length} max={100} />
               </div>
@@ -516,22 +517,26 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   onChange={(e) => update('description', e.target.value.slice(0, 4000))}
                   maxLength={4000}
                   rows={5}
-                  className="rounded-2xl border resize-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
-                  style={{ borderColor: BORDER }}
+                  placeholder="Describe features, highlights and what makes your app great"
+                  className="rounded-2xl border bg-white resize-none text-[14px] placeholder:text-[#9CA3AF] shadow-[0_2px_10px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
+                  style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
                 />
                 <Counter value={form.description.length} max={4000} />
               </div>
             </SectionCard>
 
             <SectionCard title="Category & Version" desc="Choose the appropriate category and version.">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <FieldLabel>Category</FieldLabel>
                   <Select value={form.category} onValueChange={(v) => update('category', v)}>
-                    <SelectTrigger className="h-11 rounded-2xl border" style={{ borderColor: BORDER }}>
-                      <SelectValue placeholder="Choose" />
+                    <SelectTrigger
+                      className="h-12 rounded-2xl border bg-white text-[14px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] [&>svg]:text-[#4B5563] [&>svg]:opacity-100"
+                      style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
+                    >
+                      <SelectValue placeholder="Choose a category" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white">
                       {categories.map((c) => (
                         <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
                       ))}
@@ -540,9 +545,16 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                 </div>
                 <div>
                   <FieldLabel>Version</FieldLabel>
-                  <PremiumInput value={form.version} onChange={(v) => update('version', v)} placeholder="1.0.0" />
+                  <Input
+                    value={form.version}
+                    onChange={(e) => update('version', e.target.value)}
+                    placeholder="1.0.0"
+                    className="h-12 rounded-2xl border bg-white text-[14px] placeholder:text-[#9CA3AF] shadow-[0_2px_10px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
+                    style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
+                  />
                 </div>
               </div>
+
             </SectionCard>
           </motion.div>
         )}
