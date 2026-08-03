@@ -335,7 +335,7 @@ export function DeveloperSettings() {
         <div className="px-4 sm:px-0 -mt-10 relative">
           <div className={cn(cardBase, 'p-4 sm:p-5 pt-0')}>
             <div className="relative -mt-10">
-              <div className="flex items-end justify-between gap-3">
+              <div className="flex items-start gap-4">
                 <div className="relative shrink-0">
                   <button
                     onClick={() => setAvatarSheetOpen(true)}
@@ -356,37 +356,42 @@ export function DeveloperSettings() {
                     <Camera className="w-4 h-4" style={{ color: TEXT }} strokeWidth={1.8} />
                   </button>
                 </div>
-                <button
-                  onClick={() => openPanel('profile')}
-                  className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-[#EAEAEA] bg-white text-[12px] font-semibold active:scale-95 transition-transform"
-                  style={{ color: TEXT }}
-                >
-                  <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
-                  Edit Profile
-                </button>
-              </div>
 
-              <div className="mt-3 min-w-0">
-                <h3 className="text-[20px] font-bold leading-tight truncate" style={{ color: TEXT }}>{displayName}</h3>
-                <p className="text-sm mt-0.5 truncate" style={{ color: MUTED }}>{developerProfile?.full_name || developerProfile?.email}</p>
+                <div className="min-w-0 flex-1 pt-11">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="text-[19px] font-bold leading-tight truncate" style={{ color: TEXT }}>{displayName}</h3>
+                      <p className="text-[13px] mt-0.5 truncate" style={{ color: MUTED }}>{developerProfile?.full_name || developerProfile?.email}</p>
+                    </div>
+                    <button
+                      onClick={() => openPanel('profile')}
+                      className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-[#EAEAEA] bg-white text-[12px] font-semibold active:scale-95 transition-transform"
+                      style={{ color: TEXT }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                      Edit
+                    </button>
+                  </div>
 
-                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#EAEAEA] bg-white">
-                  <BadgeCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} />
-                  <span className="text-[11px] font-semibold" style={{ color: TEXT }}>Verified Developer</span>
-                </div>
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#EAEAEA] bg-white">
+                    <BadgeCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} />
+                    <span className="text-[11px] font-semibold" style={{ color: TEXT }}>Verified Developer</span>
+                  </div>
 
-                <div className="flex items-center gap-3 mt-3 text-[12px]" style={{ color: MUTED }}>
-                  <span className="inline-flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" strokeWidth={1.8} />{developerProfile?.country || 'N/A'}</span>
-                  <span className="w-px h-3 bg-[#EAEAEA]" />
-                  <span className="inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={1.8} />
-                    Joined {developerProfile?.created_at ? new Date(developerProfile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}
-                  </span>
+                  <div className="flex items-center gap-2.5 mt-2 text-[12px] flex-wrap" style={{ color: MUTED }}>
+                    <span className="inline-flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" strokeWidth={1.8} />{developerProfile?.country || 'N/A'}</span>
+                    <span className="w-px h-3 bg-[#EAEAEA]" />
+                    <span className="inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={1.8} />
+                      Joined {developerProfile?.created_at ? new Date(developerProfile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
 
 
       <SettingsGroup
