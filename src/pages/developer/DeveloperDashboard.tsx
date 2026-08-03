@@ -134,6 +134,27 @@ export default function DeveloperDashboard() {
     );
   }
 
+  // While the session/profile is still resolving, show a shimmer skeleton instead of
+  // flashing the "Become a Developer" registration card on refresh.
+  if (isLoading || (!developerProfile && !profileResolved)) {
+    return (
+      <div className="min-h-screen px-4 pt-6 pb-28" style={{ background: PAGE_BG }}>
+        <div className="max-w-6xl mx-auto space-y-5 animate-pulse">
+          <div className="h-11 w-56 rounded-2xl bg-[#EDEFF3]" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-32 rounded-[22px] bg-[#EDEFF3]" />
+            <div className="h-32 rounded-[22px] bg-[#EDEFF3]" />
+          </div>
+          <div className="h-20 rounded-[22px] bg-[#EDEFF3]" />
+          <div className="h-24 rounded-[22px] bg-[#EDEFF3]" />
+          <div className="grid grid-cols-2 gap-3">
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-28 rounded-[22px] bg-[#EDEFF3]" />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!developerProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: PAGE_BG }}>
@@ -146,6 +167,7 @@ export default function DeveloperDashboard() {
       </div>
     );
   }
+
 
   if (!isDeveloperApproved) {
     const isPending = developerProfile.status === 'pending';
