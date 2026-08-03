@@ -335,7 +335,7 @@ export function DeveloperSettings() {
         <div className="px-4 sm:px-0 -mt-10 relative">
           <div className={cn(cardBase, 'p-4 sm:p-5 pt-0')}>
             <div className="relative -mt-10">
-              <div className="flex items-end justify-between gap-3">
+              <div className="flex items-start gap-4">
                 <div className="relative shrink-0">
                   <button
                     onClick={() => setAvatarSheetOpen(true)}
@@ -356,37 +356,42 @@ export function DeveloperSettings() {
                     <Camera className="w-4 h-4" style={{ color: TEXT }} strokeWidth={1.8} />
                   </button>
                 </div>
-                <button
-                  onClick={() => openPanel('profile')}
-                  className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-[#EAEAEA] bg-white text-[12px] font-semibold active:scale-95 transition-transform"
-                  style={{ color: TEXT }}
-                >
-                  <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
-                  Edit Profile
-                </button>
-              </div>
 
-              <div className="mt-3 min-w-0">
-                <h3 className="text-[20px] font-bold leading-tight truncate" style={{ color: TEXT }}>{displayName}</h3>
-                <p className="text-sm mt-0.5 truncate" style={{ color: MUTED }}>{developerProfile?.full_name || developerProfile?.email}</p>
+                <div className="min-w-0 flex-1 pt-11">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="text-[19px] font-bold leading-tight truncate" style={{ color: TEXT }}>{displayName}</h3>
+                      <p className="text-[13px] mt-0.5 truncate" style={{ color: MUTED }}>{developerProfile?.full_name || developerProfile?.email}</p>
+                    </div>
+                    <button
+                      onClick={() => openPanel('profile')}
+                      className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-[#EAEAEA] bg-white text-[12px] font-semibold active:scale-95 transition-transform"
+                      style={{ color: TEXT }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                      Edit
+                    </button>
+                  </div>
 
-                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#EAEAEA] bg-white">
-                  <BadgeCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} />
-                  <span className="text-[11px] font-semibold" style={{ color: TEXT }}>Verified Developer</span>
-                </div>
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#EAEAEA] bg-white">
+                    <BadgeCheck className="w-3.5 h-3.5" style={{ color: ACCENT }} />
+                    <span className="text-[11px] font-semibold" style={{ color: TEXT }}>Verified Developer</span>
+                  </div>
 
-                <div className="flex items-center gap-3 mt-3 text-[12px]" style={{ color: MUTED }}>
-                  <span className="inline-flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" strokeWidth={1.8} />{developerProfile?.country || 'N/A'}</span>
-                  <span className="w-px h-3 bg-[#EAEAEA]" />
-                  <span className="inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={1.8} />
-                    Joined {developerProfile?.created_at ? new Date(developerProfile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}
-                  </span>
+                  <div className="flex items-center gap-2.5 mt-2 text-[12px] flex-wrap" style={{ color: MUTED }}>
+                    <span className="inline-flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" strokeWidth={1.8} />{developerProfile?.country || 'N/A'}</span>
+                    <span className="w-px h-3 bg-[#EAEAEA]" />
+                    <span className="inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={1.8} />
+                      Joined {developerProfile?.created_at ? new Date(developerProfile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
 
 
       <SettingsGroup
@@ -420,10 +425,10 @@ export function DeveloperSettings() {
 
       {/* ============ Avatar Sheet ============ */}
       <Sheet open={avatarSheetOpen} onOpenChange={setAvatarSheetOpen}>
-        <SheetContent side="bottom" className="rounded-t-[28px] p-5 pb-8 border-none">
+        <SheetContent side="bottom" className="rounded-t-[28px] p-5 pb-8 border-none bg-white">
           <SheetHeader className="text-left mb-3">
-            <SheetTitle style={{ color: TEXT }}>Profile Photo</SheetTitle>
-            <SheetDescription>Choose how to update your photo</SheetDescription>
+            <SheetTitle style={{ color: '#0A0A0A' }}>Profile Photo</SheetTitle>
+            <SheetDescription style={{ color: '#6B7280' }}>Choose how to update your photo</SheetDescription>
           </SheetHeader>
           <div className="space-y-1.5">
             {[
@@ -438,9 +443,9 @@ export function DeveloperSettings() {
                 className="w-full flex items-center gap-3 p-3 rounded-2xl active:bg-[#F5F5F7] transition-colors text-left disabled:opacity-50"
               >
                 <div className="w-10 h-10 rounded-2xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                  <a.icon className="w-[18px] h-[18px]" style={{ color: a.destructive ? '#EF4444' : TEXT }} strokeWidth={1.8} />
+                  <a.icon className="w-[18px] h-[18px]" style={{ color: a.destructive ? '#EF4444' : '#0A0A0A' }} strokeWidth={1.8} />
                 </div>
-                <p className="text-[15px] font-semibold" style={{ color: a.destructive ? '#EF4444' : TEXT }}>{a.label}</p>
+                <p className="text-[15px] font-semibold" style={{ color: a.destructive ? '#EF4444' : '#0A0A0A' }}>{a.label}</p>
                 {uploading && <Loader2 className="w-4 h-4 animate-spin ml-auto" />}
               </button>
             ))}
@@ -492,7 +497,7 @@ export function DeveloperSettings() {
                       'h-11 rounded-2xl border text-[13px] font-semibold capitalize transition-colors disabled:opacity-70',
                       devForm.developer_type === t
                         ? 'border-transparent text-white'
-                        : 'bg-white/5 border-white/10 text-white/80'
+                        : 'bg-white border-[#E5E5EA] text-[#0A0A0A]'
                     )}
                     style={devForm.developer_type === t ? { background: '#2563EB' } : undefined}
                   >
@@ -529,26 +534,26 @@ export function DeveloperSettings() {
             </FormField>
             <FormField label="Twitter / X">
               <div className="relative">
-                <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
-                <Input autoFocus={false} className="pl-10" placeholder="@handle" value={devForm.twitter} onChange={(e) => setDevForm((p) => ({ ...p, twitter: e.target.value }))} />
+                <Twitter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#0A0A0A] z-10" />
+                <Input autoFocus={false} className="!pl-11" placeholder="@handle" value={devForm.twitter} onChange={(e) => setDevForm((p) => ({ ...p, twitter: e.target.value }))} />
               </div>
             </FormField>
             <FormField label="GitHub">
               <div className="relative">
-                <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
-                <Input autoFocus={false} className="pl-10" placeholder="username" value={devForm.github} onChange={(e) => setDevForm((p) => ({ ...p, github: e.target.value }))} />
+                <Github className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#0A0A0A] z-10" />
+                <Input autoFocus={false} className="!pl-11" placeholder="username" value={devForm.github} onChange={(e) => setDevForm((p) => ({ ...p, github: e.target.value }))} />
               </div>
             </FormField>
             <FormField label="Instagram">
               <div className="relative">
-                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
-                <Input autoFocus={false} className="pl-10" placeholder="@handle" value={devForm.instagram} onChange={(e) => setDevForm((p) => ({ ...p, instagram: e.target.value }))} />
+                <Instagram className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#0A0A0A] z-10" />
+                <Input autoFocus={false} className="!pl-11" placeholder="@handle" value={devForm.instagram} onChange={(e) => setDevForm((p) => ({ ...p, instagram: e.target.value }))} />
               </div>
             </FormField>
             <FormField label="Facebook">
               <div className="relative">
-                <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
-                <Input autoFocus={false} className="pl-10" placeholder="page-name" value={devForm.facebook} onChange={(e) => setDevForm((p) => ({ ...p, facebook: e.target.value }))} />
+                <Facebook className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#0A0A0A] z-10" />
+                <Input autoFocus={false} className="!pl-11" placeholder="page-name" value={devForm.facebook} onChange={(e) => setDevForm((p) => ({ ...p, facebook: e.target.value }))} />
               </div>
             </FormField>
             <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields(
@@ -738,18 +743,18 @@ function PanelSheet({
         side="bottom"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
-        className="rounded-t-[28px] p-0 pb-8 border-none max-h-[92vh] overflow-hidden bg-[#111827] text-white shadow-[0_20px_60px_rgba(0,0,0,0.45)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
+        className="rounded-t-[28px] p-0 pb-8 border-none max-h-[92vh] overflow-hidden bg-white text-[#0A0A0A] shadow-[0_20px_60px_rgba(0,0,0,0.18)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
+        style={{ borderTop: '1px solid #EAEAEA' }}
       >
         {/* drag handle */}
         <div className="pt-3 pb-2 flex justify-center">
-          <div className="w-10 h-[5px] rounded-full bg-white/20" />
+          <div className="w-10 h-[5px] rounded-full bg-black/15" />
         </div>
 
         <div className="px-6 overflow-y-auto max-h-[calc(92vh-48px)]">
           <SheetHeader className="text-left mb-5">
-            <SheetTitle className="text-white text-[19px] font-bold tracking-tight">{title}</SheetTitle>
-            {description && <SheetDescription className="text-white/60 text-[13px]">{description}</SheetDescription>}
+            <SheetTitle className="text-[#0A0A0A] text-[19px] font-bold tracking-tight">{title}</SheetTitle>
+            {description && <SheetDescription className="text-[#6B7280] text-[13px]">{description}</SheetDescription>}
           </SheetHeader>
 
           <fieldset
@@ -757,10 +762,10 @@ function PanelSheet({
             className={cn(
               "space-y-4 disabled:opacity-100 group",
               // Dark premium input styling inside the popup
-              "[&_input]:bg-[#1F2937] [&_input]:border-white/10 [&_input]:text-white [&_input]:placeholder:text-white/40",
+              "[&_input]:bg-white [&_input]:border-[#E5E5EA] [&_input]:text-[#0A0A0A] [&_input]:placeholder:text-[#9CA3AF]",
               "[&_input]:h-[52px] [&_input]:rounded-[16px] [&_input]:px-4 [&_input]:text-[14px]",
               "[&_input:focus-visible]:ring-2 [&_input:focus-visible]:ring-[#3B82F6]/40 [&_input:focus-visible]:border-[#3B82F6]",
-              "[&_textarea]:bg-[#1F2937] [&_textarea]:border-white/10 [&_textarea]:text-white [&_textarea]:placeholder:text-white/40",
+              "[&_textarea]:bg-white [&_textarea]:border-[#E5E5EA] [&_textarea]:text-[#0A0A0A] [&_textarea]:placeholder:text-[#9CA3AF]",
               "[&_textarea]:rounded-[16px] [&_textarea]:p-4 [&_textarea]:text-[14px]",
               "[&_textarea:focus-visible]:ring-2 [&_textarea:focus-visible]:ring-[#3B82F6]/40 [&_textarea:focus-visible]:border-[#3B82F6]",
               // disabled state visual
@@ -793,7 +798,7 @@ function PanelSheet({
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-[12px] font-semibold mb-2 block text-white/70">{label}</label>
+      <label className="text-[12px] font-semibold mb-2 block text-[#6B7280]">{label}</label>
       {children}
     </div>
   );
