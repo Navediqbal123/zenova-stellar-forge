@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Pencil, Search, SlidersHorizontal, ChevronLeft, FlaskConical, Rocket,
-  Save, ShieldCheck, Loader2, Image as ImageIcon, Trash2, Plus, X,
-  Smartphone, Apple, Package, Upload,
+  Pencil, Search, SlidersHorizontal, FlaskConical, Rocket,
+  Save, ShieldCheck, Loader2, Image as ImageIcon, Plus, X,
+  Smartphone, Apple, Package, Upload, Info, Tag, CircleDollarSign,
 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -359,11 +360,11 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
     }
   };
 
-  const tabs: { id: EditTab; label: string }[] = [
-    { id: 'basic', label: 'Basic Info' },
-    { id: 'store', label: 'Store Details' },
-    { id: 'media', label: 'Media & Assets' },
-    { id: 'monetize', label: 'Monetization' },
+  const tabs: { id: EditTab; label: string; icon: React.ElementType; iconColor: string }[] = [
+    { id: 'basic', label: 'Basic Info', icon: Info, iconColor: ACCENT },
+    { id: 'store', label: 'Store Details', icon: Tag, iconColor: TEXT },
+    { id: 'media', label: 'Media & Assets', icon: ImageIcon, iconColor: TEXT },
+    { id: 'monetize', label: 'Monetization', icon: CircleDollarSign, iconColor: TEXT },
   ];
 
   return (
@@ -372,35 +373,13 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-4"
-      style={{ paddingBottom: 'calc(200px + env(safe-area-inset-bottom, 0px))' }}
+      style={{ paddingBottom: 'calc(220px + env(safe-area-inset-bottom, 0px))' }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <button
-            onClick={onBack}
-            aria-label="Back"
-            className="w-10 h-10 rounded-xl bg-white border flex items-center justify-center active:scale-95 transition-transform shrink-0"
-            style={{ borderColor: BORDER }}
-          >
-            <ChevronLeft className="w-5 h-5" style={{ color: TEXT }} />
-          </button>
-          <div className="min-w-0">
-            <h2 className="text-[22px] font-bold tracking-tight leading-tight" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
-              Edit App
-            </h2>
-            <p className="text-[12px] mt-0.5" style={{ color: MUTED }}>
-              Update your app details and store information
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Top right actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-end gap-2.5">
         <button
           onClick={() => toast({ title: 'Test build queued', description: 'We will notify you when it is ready.' })}
-          className="flex-1 h-10 rounded-xl bg-white border inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold active:scale-[0.98] transition-transform"
+          className="h-10 px-4 rounded-xl bg-white border inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold active:scale-[0.98] transition-transform shadow-[0_2px_10px_rgba(15,23,42,0.06)]"
           style={{ borderColor: '#DBEAFE', color: ACCENT }}
         >
           <FlaskConical className="w-4 h-4" strokeWidth={2} />
@@ -409,13 +388,14 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
         <button
           onClick={handleSave}
           disabled={isSaving || !isDirty}
-          className="flex-1 h-10 rounded-xl inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-white active:scale-[0.98] transition-transform disabled:opacity-50 shadow-[0_6px_16px_-6px_rgba(37,99,235,0.55)]"
+          className="h-10 px-4 rounded-xl inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-white active:scale-[0.98] transition-transform disabled:opacity-50 shadow-[0_6px_16px_-6px_rgba(37,99,235,0.55)]"
           style={{ background: ACCENT }}
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" strokeWidth={2} />}
           Publish Update
         </button>
       </div>
+
 
       {/* App Summary Card */}
       <div className={cn(cardCls, 'p-4')} style={{ borderColor: BORDER }}>
