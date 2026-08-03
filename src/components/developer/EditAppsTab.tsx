@@ -699,6 +699,33 @@ function PremiumInput({ value, onChange, placeholder, maxLength }: { value: stri
   );
 }
 
+function PremiumToggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className="relative w-[52px] h-[31px] rounded-full shrink-0 transition-colors duration-300 border"
+      style={{
+        background: checked ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)' : '#E5E7EB',
+        borderColor: checked ? 'transparent' : '#D1D5DB',
+      }}
+    >
+      <motion.span
+        className="absolute top-[2px] left-[2px] w-[25px] h-[25px] rounded-full bg-white border"
+        style={{
+          borderColor: checked ? 'rgba(15,23,42,0.08)' : '#9CA3AF',
+          boxShadow: '0 2px 6px rgba(15,23,42,0.18)',
+        }}
+        animate={{ x: checked ? 21 : 0 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+      />
+    </button>
+  );
+}
+
 function Counter({ value, max }: { value: number; max: number }) {
   return (
     <p className="text-[10px] text-right mt-1" style={{ color: MUTED }}>{value}/{max}</p>
