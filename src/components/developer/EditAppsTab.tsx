@@ -606,19 +606,19 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
         {tab === 'monetize' && (
           <motion.div key="monetize" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }} className="space-y-4">
             <SectionCard title="Monetization" desc="How your app makes money.">
-              <div className="flex items-center justify-between p-3 rounded-2xl" style={{ background: SURFACE }}>
+              <div className="flex items-center justify-between p-3.5 rounded-2xl" style={{ background: SURFACE }}>
                 <div>
                   <p className="text-[14px] font-semibold" style={{ color: TEXT }}>Contains Ads</p>
                   <p className="text-[11px]" style={{ color: MUTED }}>Your app displays advertisements</p>
                 </div>
-                <Switch checked={form.contains_ads} onCheckedChange={(v) => update('contains_ads', v)} />
+                <PremiumToggle checked={form.contains_ads} onChange={(v) => update('contains_ads', v)} label="Contains ads" />
               </div>
-              <div className="flex items-center justify-between p-3 rounded-2xl" style={{ background: SURFACE }}>
+              <div className="flex items-center justify-between p-3.5 rounded-2xl" style={{ background: SURFACE }}>
                 <div>
                   <p className="text-[14px] font-semibold" style={{ color: TEXT }}>In-App Purchases</p>
                   <p className="text-[11px]" style={{ color: MUTED }}>Offer paid content or subscriptions</p>
                 </div>
-                <Switch checked={form.in_app_purchases} onCheckedChange={(v) => update('in_app_purchases', v)} />
+                <PremiumToggle checked={form.in_app_purchases} onChange={(v) => update('in_app_purchases', v)} label="In-app purchases" />
               </div>
             </SectionCard>
           </motion.div>
@@ -628,8 +628,9 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       {/* Sticky Bottom Save Bar */}
       <div
         className="fixed left-3 right-3 z-40 pointer-events-none"
-        style={{ bottom: 'calc(112px + env(safe-area-inset-bottom, 0px))' }}
+        style={{ bottom: 'calc(148px + env(safe-area-inset-bottom, 0px))' }}
       >
+
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
