@@ -81,7 +81,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isAdmin, developerProfile, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin, developerProfile, logout } = useAuth();
   const { apps } = useApps();
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
@@ -96,6 +96,12 @@ export default function Profile() {
   const [savingName, setSavingName] = useState(false);
   const [reviewCount, setReviewCount] = useState<number>(0);
   const [savedCount, setSavedCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      window.location.href = '/login';
+    }
+  }, [isLoading, isAuthenticated]);
 
   useEffect(() => {
     setAvatarUrl((user?.user_metadata as any)?.avatar_url || null);
