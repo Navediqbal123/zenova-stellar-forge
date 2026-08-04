@@ -517,8 +517,9 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   onChange={(e) => update('short_description', e.target.value.slice(0, 100))}
                   maxLength={100}
                   rows={2}
-                  className="rounded-2xl border resize-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
-                  style={{ borderColor: BORDER }}
+                  placeholder="A short, catchy summary of your app"
+                  className="rounded-2xl border bg-white resize-none text-[14px] placeholder:text-[#9CA3AF] shadow-[0_2px_10px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
+                  style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
                 />
                 <Counter value={form.short_description.length} max={100} />
               </div>
@@ -529,8 +530,9 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   onChange={(e) => update('description', e.target.value.slice(0, 4000))}
                   maxLength={4000}
                   rows={5}
-                  className="rounded-2xl border resize-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
-                  style={{ borderColor: BORDER }}
+                  placeholder="Describe features, highlights and what makes your app great"
+                  className="rounded-2xl border bg-white resize-none text-[14px] placeholder:text-[#9CA3AF] shadow-[0_2px_10px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
+                  style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
                 />
                 <Counter value={form.description.length} max={4000} />
               </div>
