@@ -215,7 +215,6 @@ export default function Profile() {
           <h1 className="text-[22px] font-bold tracking-tight">Profile</h1>
         </header>
 
-        <>
             {/* Avatar + name */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
