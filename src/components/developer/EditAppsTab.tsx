@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Pencil, Search, SlidersHorizontal, ChevronLeft, FlaskConical, Rocket,
   Save, ShieldCheck, Loader2, Image as ImageIcon, Trash2, Plus, X,
-  Smartphone, Apple, Package, Upload,
+  Smartphone, Apple, Package, Upload, Info, Tag, CircleDollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
