@@ -184,6 +184,16 @@ export default function Profile() {
   const devStatus = developerProfile?.status;
   const isApprovedDev = devStatus === 'approved';
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: PAGE_BG }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: ACCENT }} />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
+
   return (
     <div
       className="min-h-screen w-full max-w-[100vw] overflow-x-hidden"
@@ -205,24 +215,7 @@ export default function Profile() {
           <h1 className="text-[22px] font-bold tracking-tight">Profile</h1>
         </header>
 
-        {!isAuthenticated ? (
-          <div className="bg-white rounded-2xl p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-4">
-              <UserIcon className="w-10 h-10 text-slate-400" />
-            </div>
-            <h2 className="text-lg font-bold mb-1">You're not signed in</h2>
-            <p className="text-sm text-slate-500 mb-5">Sign in to manage your profile.</p>
-            <div className="flex flex-col gap-2">
-              <Link to="/login" className="inline-flex items-center justify-center gap-2 h-11 rounded-full text-white font-semibold text-sm" style={{ backgroundColor: ACCENT }}>
-                <LogIn className="w-4 h-4" /> Sign In
-              </Link>
-              <Link to="/register" className="inline-flex items-center justify-center gap-2 h-11 rounded-full bg-slate-100 font-semibold text-sm text-slate-800">
-                <UserPlus className="w-4 h-4" /> Create Account
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <>
+        <>
             {/* Avatar + name */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
