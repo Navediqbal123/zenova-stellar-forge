@@ -7,8 +7,6 @@ import {
   Rocket,
   LayoutDashboard,
   Shield,
-  LogIn,
-  UserPlus,
   ChevronRight,
   User as UserIcon,
   Star,
@@ -23,6 +21,7 @@ import {
   AppWindow,
   TrendingUp,
   Search as SearchIcon,
+  Loader2,
 } from 'lucide-react';
 import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 import { useAuth } from '@/contexts/AuthContext';
