@@ -7,8 +7,6 @@ import {
   Rocket,
   LayoutDashboard,
   Shield,
-  LogIn,
-  UserPlus,
   ChevronRight,
   User as UserIcon,
   Star,
@@ -23,6 +21,7 @@ import {
   AppWindow,
   TrendingUp,
   Search as SearchIcon,
+  Loader2,
 } from 'lucide-react';
 import { BottomNavigation } from '@/components/navigation/BottomNavigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -82,7 +81,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isAdmin, developerProfile, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin, developerProfile, logout } = useAuth();
   const { apps } = useApps();
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
@@ -97,6 +96,12 @@ export default function Profile() {
   const [savingName, setSavingName] = useState(false);
   const [reviewCount, setReviewCount] = useState<number>(0);
   const [savedCount, setSavedCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      window.location.href = '/login';
+    }
+  }, [isLoading, isAuthenticated]);
 
   useEffect(() => {
     setAvatarUrl((user?.user_metadata as any)?.avatar_url || null);
@@ -170,17 +175,24 @@ export default function Profile() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch {
-      window.location.href = '/login';
-    }
+  const handleLogout = () => {
+    window.location.href = '/login';
+    logout().catch(() => {});
   };
 
   const initials = (name || user?.email || '?').slice(0, 1).toUpperCase();
   const devStatus = developerProfile?.status;
   const isApprovedDev = devStatus === 'approved';
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: PAGE_BG }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: ACCENT }} />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   return (
     <div
@@ -203,24 +215,6 @@ export default function Profile() {
           <h1 className="text-[22px] font-bold tracking-tight">Profile</h1>
         </header>
 
-        {!isAuthenticated ? (
-          <div className="bg-white rounded-2xl p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-4">
-              <UserIcon className="w-10 h-10 text-slate-400" />
-            </div>
-            <h2 className="text-lg font-bold mb-1">You're not signed in</h2>
-            <p className="text-sm text-slate-500 mb-5">Sign in to manage your profile.</p>
-            <div className="flex flex-col gap-2">
-              <Link to="/login" className="inline-flex items-center justify-center gap-2 h-11 rounded-full text-white font-semibold text-sm" style={{ backgroundColor: ACCENT }}>
-                <LogIn className="w-4 h-4" /> Sign In
-              </Link>
-              <Link to="/register" className="inline-flex items-center justify-center gap-2 h-11 rounded-full bg-slate-100 font-semibold text-sm text-slate-800">
-                <UserPlus className="w-4 h-4" /> Create Account
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <>
             {/* Avatar + name */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -337,8 +331,6 @@ export default function Profile() {
             <div className="bg-white rounded-2xl overflow-hidden mt-6">
               <Row icon={LogOut} label="Logout" onClick={handleLogout} danger />
             </div>
-          </>
-        )}
       </div>
 
       {/* Edit Profile Sheet */}
