@@ -332,8 +332,6 @@ export default function Profile() {
             <div className="bg-white rounded-2xl overflow-hidden mt-6">
               <Row icon={LogOut} label="Logout" onClick={handleLogout} danger />
             </div>
-          </>
-        )}
       </div>
 
       {/* Edit Profile Sheet */}
