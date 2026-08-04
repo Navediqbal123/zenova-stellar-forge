@@ -359,11 +359,11 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
     }
   };
 
-  const tabs: { id: EditTab; label: string }[] = [
-    { id: 'basic', label: 'Basic Info' },
-    { id: 'store', label: 'Store Details' },
-    { id: 'media', label: 'Media & Assets' },
-    { id: 'monetize', label: 'Monetization' },
+  const tabs: { id: EditTab; label: string; icon: React.ElementType; iconColor: string }[] = [
+    { id: 'basic', label: 'Basic Info', icon: Info, iconColor: ACCENT },
+    { id: 'store', label: 'Store Details', icon: Tag, iconColor: TEXT },
+    { id: 'media', label: 'Media & Assets', icon: ImageIcon, iconColor: TEXT },
+    { id: 'monetize', label: 'Monetization', icon: CircleDollarSign, iconColor: TEXT },
   ];
 
   return (
