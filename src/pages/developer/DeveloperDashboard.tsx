@@ -95,7 +95,7 @@ function Sparkline({ color = ACCENT, points = [4, 9, 6, 12, 8, 14, 11] }: { colo
 
 export default function DeveloperDashboard() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading, developerProfile, isDeveloperApproved, logout } = useAuth();
+  const { user, isAuthenticated, developerProfile, isDeveloperApproved, logout } = useAuth();
   const { getAppsByDeveloper, refreshApps } = useApps();
   const { toast } = useToast();
 
@@ -106,14 +106,6 @@ export default function DeveloperDashboard() {
   const [editForm, setEditForm] = useState<{ name: string; description: string; icon_url: string }>({ name: '', description: '', icon_url: '' });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
-  // Grace window so a refresh never flashes the registration card while the
-  // developer profile request is still in flight.
-  const [profileResolved, setProfileResolved] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setProfileResolved(true), 1500);
-    return () => clearTimeout(t);
-  }, []);
 
   const prevStatusesRef = useRef<Record<string, string>>({});
   const myApps = developerProfile ? getAppsByDeveloper(developerProfile.id) : [];
@@ -142,27 +134,6 @@ export default function DeveloperDashboard() {
     );
   }
 
-  // While the session/profile is still resolving, show a shimmer skeleton instead of
-  // flashing the "Become a Developer" registration card on refresh.
-  if (isLoading || (!developerProfile && !profileResolved)) {
-    return (
-      <div className="min-h-screen px-4 pt-6 pb-28" style={{ background: PAGE_BG }}>
-        <div className="max-w-6xl mx-auto space-y-5 animate-pulse">
-          <div className="h-11 w-56 rounded-2xl bg-[#EDEFF3]" />
-          <div className="grid grid-cols-2 gap-3">
-            <div className="h-32 rounded-[22px] bg-[#EDEFF3]" />
-            <div className="h-32 rounded-[22px] bg-[#EDEFF3]" />
-          </div>
-          <div className="h-20 rounded-[22px] bg-[#EDEFF3]" />
-          <div className="h-24 rounded-[22px] bg-[#EDEFF3]" />
-          <div className="grid grid-cols-2 gap-3">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-28 rounded-[22px] bg-[#EDEFF3]" />)}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (!developerProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: PAGE_BG }}>
@@ -175,7 +146,6 @@ export default function DeveloperDashboard() {
       </div>
     );
   }
-
 
   if (!isDeveloperApproved) {
     const isPending = developerProfile.status === 'pending';
@@ -263,7 +233,7 @@ export default function DeveloperDashboard() {
       >
         <div className="max-w-6xl mx-auto space-y-6 min-w-0">
           {/* ============ Header ============ */}
-          {activeTab !== 'analytics' && activeTab !== 'edit-apps' && (
+          {activeTab !== 'analytics' && (
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -286,23 +256,22 @@ export default function DeveloperDashboard() {
               >
                 {activeTab === 'dashboard' && 'Developer Console'}
                 {activeTab === 'my-apps' && 'My Apps'}
+                {activeTab === 'edit-apps' && 'Edit Apps'}
+                
                 {activeTab === 'settings' && 'Developer Settings'}
               </h1>
             </div>
 
-            {activeTab !== 'settings' && (
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => setQuickActionsOpen(true)}
-                  aria-label="Quick actions"
-                  className="w-11 h-11 rounded-full flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(10,132,255,0.5)] active:scale-95 transition-transform"
-                  style={{ background: ACCENT }}
-                >
-                  <Plus className="w-5 h-5" strokeWidth={2.4} />
-                </button>
-              </div>
-            )}
-
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setQuickActionsOpen(true)}
+                aria-label="Quick actions"
+                className="w-11 h-11 rounded-full flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(10,132,255,0.5)] active:scale-95 transition-transform"
+                style={{ background: ACCENT }}
+              >
+                <Plus className="w-5 h-5" strokeWidth={2.4} />
+              </button>
+            </div>
           </motion.header>
           )}
 

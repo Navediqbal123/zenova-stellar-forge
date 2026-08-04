@@ -1,18 +1,17 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Pencil, Search, SlidersHorizontal, FlaskConical, Rocket,
-  Save, ShieldCheck, Loader2, Image as ImageIcon, Plus, X,
-  Smartphone, Apple, Package, Upload, Info, Tag, CircleDollarSign,
+  Pencil, Search, SlidersHorizontal, ChevronLeft, FlaskConical, Rocket,
+  Save, ShieldCheck, Loader2, Image as ImageIcon, Trash2, Plus, X,
+  Smartphone, Apple, Package, Upload,
 } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-
+import { Switch } from '@/components/ui/switch';
 import { useApps, type AppWithDeveloper } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, STORAGE_BUCKETS, getStorageUrl } from '@/lib/supabase';
@@ -360,11 +359,11 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
     }
   };
 
-  const tabs: { id: EditTab; label: string; icon: React.ElementType; iconColor: string }[] = [
-    { id: 'basic', label: 'Basic Info', icon: Info, iconColor: ACCENT },
-    { id: 'store', label: 'Store Details', icon: Tag, iconColor: TEXT },
-    { id: 'media', label: 'Media & Assets', icon: ImageIcon, iconColor: TEXT },
-    { id: 'monetize', label: 'Monetization', icon: CircleDollarSign, iconColor: TEXT },
+  const tabs: { id: EditTab; label: string }[] = [
+    { id: 'basic', label: 'Basic Info' },
+    { id: 'store', label: 'Store Details' },
+    { id: 'media', label: 'Media & Assets' },
+    { id: 'monetize', label: 'Monetization' },
   ];
 
   return (
@@ -373,13 +372,35 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className="space-y-4"
-      style={{ paddingBottom: 'calc(220px + env(safe-area-inset-bottom, 0px))' }}
+      style={{ paddingBottom: 'calc(200px + env(safe-area-inset-bottom, 0px))' }}
     >
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <button
+            onClick={onBack}
+            aria-label="Back"
+            className="w-10 h-10 rounded-xl bg-white border flex items-center justify-center active:scale-95 transition-transform shrink-0"
+            style={{ borderColor: BORDER }}
+          >
+            <ChevronLeft className="w-5 h-5" style={{ color: TEXT }} />
+          </button>
+          <div className="min-w-0">
+            <h2 className="text-[22px] font-bold tracking-tight leading-tight" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
+              Edit App
+            </h2>
+            <p className="text-[12px] mt-0.5" style={{ color: MUTED }}>
+              Update your app details and store information
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Top right actions */}
-      <div className="flex items-center justify-end gap-2.5">
+      <div className="flex items-center gap-2">
         <button
           onClick={() => toast({ title: 'Test build queued', description: 'We will notify you when it is ready.' })}
-          className="h-10 px-4 rounded-xl bg-white border inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold active:scale-[0.98] transition-transform shadow-[0_2px_10px_rgba(15,23,42,0.06)]"
+          className="flex-1 h-10 rounded-xl bg-white border inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold active:scale-[0.98] transition-transform"
           style={{ borderColor: '#DBEAFE', color: ACCENT }}
         >
           <FlaskConical className="w-4 h-4" strokeWidth={2} />
@@ -388,14 +409,13 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
         <button
           onClick={handleSave}
           disabled={isSaving || !isDirty}
-          className="h-10 px-4 rounded-xl inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-white active:scale-[0.98] transition-transform disabled:opacity-50 shadow-[0_6px_16px_-6px_rgba(37,99,235,0.55)]"
+          className="flex-1 h-10 rounded-xl inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-white active:scale-[0.98] transition-transform disabled:opacity-50 shadow-[0_6px_16px_-6px_rgba(37,99,235,0.55)]"
           style={{ background: ACCENT }}
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" strokeWidth={2} />}
           Publish Update
         </button>
       </div>
-
 
       {/* App Summary Card */}
       <div className={cn(cardCls, 'p-4')} style={{ borderColor: BORDER }}>
@@ -434,19 +454,13 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       <div className="flex gap-1 border-b overflow-x-auto -mx-1 px-1" style={{ borderColor: BORDER }}>
         {tabs.map((t) => {
           const active = tab === t.id;
-          const Icon = t.icon;
           return (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className="relative shrink-0 px-3 py-2.5 text-[13px] font-semibold transition-colors inline-flex items-center gap-1.5"
-              style={{ color: active ? ACCENT : '#4B5563' }}
+              className="relative shrink-0 px-3 py-2.5 text-[13px] font-semibold transition-colors"
+              style={{ color: active ? ACCENT : MUTED }}
             >
-              <Icon
-                className="w-[15px] h-[15px]"
-                strokeWidth={2}
-                style={{ color: active ? ACCENT : t.iconColor }}
-              />
               {t.label}
               {active && (
                 <motion.span
@@ -459,7 +473,6 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
             </button>
           );
         })}
-
       </div>
 
       <AnimatePresence mode="wait">
@@ -504,9 +517,8 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   onChange={(e) => update('short_description', e.target.value.slice(0, 100))}
                   maxLength={100}
                   rows={2}
-                  placeholder="A short, catchy summary of your app"
-                  className="rounded-2xl border bg-white resize-none text-[14px] placeholder:text-[#9CA3AF] shadow-[0_2px_10px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
-                  style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
+                  className="rounded-2xl border resize-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
+                  style={{ borderColor: BORDER }}
                 />
                 <Counter value={form.short_description.length} max={100} />
               </div>
@@ -517,26 +529,22 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   onChange={(e) => update('description', e.target.value.slice(0, 4000))}
                   maxLength={4000}
                   rows={5}
-                  placeholder="Describe features, highlights and what makes your app great"
-                  className="rounded-2xl border bg-white resize-none text-[14px] placeholder:text-[#9CA3AF] shadow-[0_2px_10px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
-                  style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
+                  className="rounded-2xl border resize-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
+                  style={{ borderColor: BORDER }}
                 />
                 <Counter value={form.description.length} max={4000} />
               </div>
             </SectionCard>
 
             <SectionCard title="Category & Version" desc="Choose the appropriate category and version.">
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <FieldLabel>Category</FieldLabel>
                   <Select value={form.category} onValueChange={(v) => update('category', v)}>
-                    <SelectTrigger
-                      className="h-12 rounded-2xl border bg-white text-[14px] shadow-[0_2px_10px_rgba(15,23,42,0.04)] [&>svg]:text-[#4B5563] [&>svg]:opacity-100"
-                      style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
-                    >
-                      <SelectValue placeholder="Choose a category" />
+                    <SelectTrigger className="h-11 rounded-2xl border" style={{ borderColor: BORDER }}>
+                      <SelectValue placeholder="Choose" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent>
                       {categories.map((c) => (
                         <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
                       ))}
@@ -545,16 +553,9 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                 </div>
                 <div>
                   <FieldLabel>Version</FieldLabel>
-                  <Input
-                    value={form.version}
-                    onChange={(e) => update('version', e.target.value)}
-                    placeholder="1.0.0"
-                    className="h-12 rounded-2xl border bg-white text-[14px] placeholder:text-[#9CA3AF] shadow-[0_2px_10px_rgba(15,23,42,0.04)] focus-visible:ring-2 focus-visible:ring-[#2563EB]/25"
-                    style={{ borderColor: '#E5E7EB', color: TEXT, backgroundColor: '#FFFFFF' }}
-                  />
+                  <PremiumInput value={form.version} onChange={(v) => update('version', v)} placeholder="1.0.0" />
                 </div>
               </div>
-
             </SectionCard>
           </motion.div>
         )}
@@ -606,19 +607,19 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
         {tab === 'monetize' && (
           <motion.div key="monetize" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }} className="space-y-4">
             <SectionCard title="Monetization" desc="How your app makes money.">
-              <div className="flex items-center justify-between p-3.5 rounded-2xl" style={{ background: SURFACE }}>
+              <div className="flex items-center justify-between p-3 rounded-2xl" style={{ background: SURFACE }}>
                 <div>
                   <p className="text-[14px] font-semibold" style={{ color: TEXT }}>Contains Ads</p>
                   <p className="text-[11px]" style={{ color: MUTED }}>Your app displays advertisements</p>
                 </div>
-                <PremiumToggle checked={form.contains_ads} onChange={(v) => update('contains_ads', v)} label="Contains ads" />
+                <Switch checked={form.contains_ads} onCheckedChange={(v) => update('contains_ads', v)} />
               </div>
-              <div className="flex items-center justify-between p-3.5 rounded-2xl" style={{ background: SURFACE }}>
+              <div className="flex items-center justify-between p-3 rounded-2xl" style={{ background: SURFACE }}>
                 <div>
                   <p className="text-[14px] font-semibold" style={{ color: TEXT }}>In-App Purchases</p>
                   <p className="text-[11px]" style={{ color: MUTED }}>Offer paid content or subscriptions</p>
                 </div>
-                <PremiumToggle checked={form.in_app_purchases} onChange={(v) => update('in_app_purchases', v)} label="In-app purchases" />
+                <Switch checked={form.in_app_purchases} onCheckedChange={(v) => update('in_app_purchases', v)} />
               </div>
             </SectionCard>
           </motion.div>
@@ -628,9 +629,8 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       {/* Sticky Bottom Save Bar */}
       <div
         className="fixed left-3 right-3 z-40 pointer-events-none"
-        style={{ bottom: 'calc(148px + env(safe-area-inset-bottom, 0px))' }}
+        style={{ bottom: 'calc(112px + env(safe-area-inset-bottom, 0px))' }}
       >
-
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -696,33 +696,6 @@ function PremiumInput({ value, onChange, placeholder, maxLength }: { value: stri
       className="h-11 rounded-2xl border bg-white focus-visible:ring-2 focus-visible:ring-[#2563EB]/25 text-[14px]"
       style={{ borderColor: BORDER, color: TEXT }}
     />
-  );
-}
-
-function PremiumToggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className="relative w-[52px] h-[31px] rounded-full shrink-0 transition-colors duration-300 border"
-      style={{
-        background: checked ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)' : '#E5E7EB',
-        borderColor: checked ? 'transparent' : '#D1D5DB',
-      }}
-    >
-      <motion.span
-        className="absolute top-[2px] left-[2px] w-[25px] h-[25px] rounded-full bg-white border"
-        style={{
-          borderColor: checked ? 'rgba(15,23,42,0.08)' : '#9CA3AF',
-          boxShadow: '0 2px 6px rgba(15,23,42,0.18)',
-        }}
-        animate={{ x: checked ? 21 : 0 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-      />
-    </button>
   );
 }
 

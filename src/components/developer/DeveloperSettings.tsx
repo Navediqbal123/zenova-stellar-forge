@@ -6,7 +6,7 @@ import {
   Users as UsersIcon, CreditCard, FileText, HelpCircle, LogOut, Camera,
   BadgeCheck, Calendar, ChevronRight, X, Save, Loader2, Trash2, Image as ImageIcon,
   CheckCircle, XCircle, Clock, ExternalLink, Twitter, Github, Facebook, Instagram,
-  Unlock, BarChart3,
+  Unlock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -392,28 +392,6 @@ export function DeveloperSettings() {
         </div>
       </div>
 
-      {/* Quick actions */}
-      <div className="space-y-2.5">
-        {[
-          { icon: UserIcon, label: 'Developer Profile', desc: 'Your personal developer details', onClick: () => openPanel('profile') },
-          { icon: ShieldCheck, label: 'Verification', desc: 'Status and verification documents', onClick: () => openPanel('verification') },
-          { icon: Store, label: 'Studio', desc: 'Studio or company information', onClick: () => openPanel('studio') },
-          { icon: BarChart3, label: 'Analytics', desc: 'Performance and install insights', onClick: () => openPanel('payments') },
-        ].map((c) => (
-          <button
-            key={c.label}
-            onClick={c.onClick}
-            className="w-full flex items-center gap-3.5 p-4 rounded-[20px] bg-white border border-[#EAEAEA] shadow-[0_2px_12px_rgba(15,23,42,0.05)] active:scale-[0.99] transition-transform text-left"
-          >
-            <c.icon className="w-[22px] h-[22px] shrink-0" style={{ color: '#0A0A0A' }} strokeWidth={1.8} />
-            <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-semibold truncate" style={{ color: '#0A0A0A' }}>{c.label}</p>
-              <p className="text-[12px] truncate" style={{ color: '#6B7280' }}>{c.desc}</p>
-            </div>
-            <ChevronRight className="w-4 h-4 shrink-0" style={{ color: ACCENT }} strokeWidth={2.4} />
-          </button>
-        ))}
-      </div>
 
 
       <SettingsGroup
