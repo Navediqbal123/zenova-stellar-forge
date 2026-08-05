@@ -254,11 +254,8 @@ export default function DeveloperDashboard() {
                   letterSpacing: '-0.02em',
                 }}
               >
-                {activeTab === 'dashboard' && 'Developer Console'}
-                {activeTab === 'my-apps' && 'My Apps'}
-                {activeTab === 'edit-apps' && 'Edit Apps'}
-                
-                {activeTab === 'settings' && 'Developer Settings'}
+                Developer Console
+
               </h1>
             </div>
 
