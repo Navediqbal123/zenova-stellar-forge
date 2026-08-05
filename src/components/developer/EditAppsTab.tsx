@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { IOSSwitch } from '@/components/developer/IOSSwitch';
 import { useApps, type AppWithDeveloper } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, STORAGE_BUCKETS, getStorageUrl } from '@/lib/supabase';
@@ -374,48 +374,8 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       className="space-y-4"
       style={{ paddingBottom: 'calc(200px + env(safe-area-inset-bottom, 0px))' }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <button
-            onClick={onBack}
-            aria-label="Back"
-            className="w-10 h-10 rounded-xl bg-white border flex items-center justify-center active:scale-95 transition-transform shrink-0"
-            style={{ borderColor: BORDER }}
-          >
-            <ChevronLeft className="w-5 h-5" style={{ color: TEXT }} />
-          </button>
-          <div className="min-w-0">
-            <h2 className="text-[22px] font-bold tracking-tight leading-tight" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
-              Edit App
-            </h2>
-            <p className="text-[12px] mt-0.5" style={{ color: MUTED }}>
-              Update your app details and store information
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Header removed — page opens directly with the App Information Card */}
 
-      {/* Top right actions */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => toast({ title: 'Test build queued', description: 'We will notify you when it is ready.' })}
-          className="flex-1 h-10 rounded-xl bg-white border inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold active:scale-[0.98] transition-transform"
-          style={{ borderColor: '#DBEAFE', color: ACCENT }}
-        >
-          <FlaskConical className="w-4 h-4" strokeWidth={2} />
-          Test Build
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isSaving || !isDirty}
-          className="flex-1 h-10 rounded-xl inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-white active:scale-[0.98] transition-transform disabled:opacity-50 shadow-[0_6px_16px_-6px_rgba(37,99,235,0.55)]"
-          style={{ background: ACCENT }}
-        >
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" strokeWidth={2} />}
-          Publish Update
-        </button>
-      </div>
 
       {/* App Summary Card */}
       <div className={cn(cardCls, 'p-4')} style={{ borderColor: BORDER }}>
@@ -620,14 +580,14 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   <p className="text-[14px] font-semibold" style={{ color: TEXT }}>Contains Ads</p>
                   <p className="text-[11px]" style={{ color: MUTED }}>Your app displays advertisements</p>
                 </div>
-                <Switch checked={form.contains_ads} onCheckedChange={(v) => update('contains_ads', v)} />
+                <IOSSwitch label="Contains Ads" checked={form.contains_ads} onCheckedChange={(v) => update('contains_ads', v)} />
               </div>
               <div className="flex items-center justify-between p-3 rounded-2xl" style={{ background: SURFACE }}>
                 <div>
                   <p className="text-[14px] font-semibold" style={{ color: TEXT }}>In-App Purchases</p>
                   <p className="text-[11px]" style={{ color: MUTED }}>Offer paid content or subscriptions</p>
                 </div>
-                <Switch checked={form.in_app_purchases} onCheckedChange={(v) => update('in_app_purchases', v)} />
+                <IOSSwitch label="In-App Purchases" checked={form.in_app_purchases} onCheckedChange={(v) => update('in_app_purchases', v)} />
               </div>
             </SectionCard>
           </motion.div>

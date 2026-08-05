@@ -233,7 +233,7 @@ export default function DeveloperDashboard() {
       >
         <div className="max-w-6xl mx-auto space-y-6 min-w-0">
           {/* ============ Header ============ */}
-          {activeTab !== 'analytics' && (
+          {activeTab === 'dashboard' && (
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -254,11 +254,8 @@ export default function DeveloperDashboard() {
                   letterSpacing: '-0.02em',
                 }}
               >
-                {activeTab === 'dashboard' && 'Developer Console'}
-                {activeTab === 'my-apps' && 'My Apps'}
-                {activeTab === 'edit-apps' && 'Edit Apps'}
-                
-                {activeTab === 'settings' && 'Developer Settings'}
+                Developer Console
+
               </h1>
             </div>
 
@@ -594,7 +591,7 @@ export default function DeveloperDashboard() {
         activeId={activeTab}
         items={[
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-          { id: 'my-apps', label: 'My Apps', icon: Package },
+          
           { id: 'edit-apps', label: 'Edit', icon: Pencil },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
           
