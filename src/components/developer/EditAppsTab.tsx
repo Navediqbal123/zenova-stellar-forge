@@ -374,48 +374,8 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
       className="space-y-4"
       style={{ paddingBottom: 'calc(200px + env(safe-area-inset-bottom, 0px))' }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <button
-            onClick={onBack}
-            aria-label="Back"
-            className="w-10 h-10 rounded-xl bg-white border flex items-center justify-center active:scale-95 transition-transform shrink-0"
-            style={{ borderColor: BORDER }}
-          >
-            <ChevronLeft className="w-5 h-5" style={{ color: TEXT }} />
-          </button>
-          <div className="min-w-0">
-            <h2 className="text-[22px] font-bold tracking-tight leading-tight" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
-              Edit App
-            </h2>
-            <p className="text-[12px] mt-0.5" style={{ color: MUTED }}>
-              Update your app details and store information
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Header removed — page opens directly with the App Information Card */}
 
-      {/* Top right actions */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => toast({ title: 'Test build queued', description: 'We will notify you when it is ready.' })}
-          className="flex-1 h-10 rounded-xl bg-white border inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold active:scale-[0.98] transition-transform"
-          style={{ borderColor: '#DBEAFE', color: ACCENT }}
-        >
-          <FlaskConical className="w-4 h-4" strokeWidth={2} />
-          Test Build
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isSaving || !isDirty}
-          className="flex-1 h-10 rounded-xl inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-white active:scale-[0.98] transition-transform disabled:opacity-50 shadow-[0_6px_16px_-6px_rgba(37,99,235,0.55)]"
-          style={{ background: ACCENT }}
-        >
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" strokeWidth={2} />}
-          Publish Update
-        </button>
-      </div>
 
       {/* App Summary Card */}
       <div className={cn(cardCls, 'p-4')} style={{ borderColor: BORDER }}>
