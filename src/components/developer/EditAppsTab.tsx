@@ -587,7 +587,7 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   <p className="text-[14px] font-semibold" style={{ color: TEXT }}>In-App Purchases</p>
                   <p className="text-[11px]" style={{ color: MUTED }}>Offer paid content or subscriptions</p>
                 </div>
-                <Switch checked={form.in_app_purchases} onCheckedChange={(v) => update('in_app_purchases', v)} />
+                <IOSSwitch label="In-App Purchases" checked={form.in_app_purchases} onCheckedChange={(v) => update('in_app_purchases', v)} />
               </div>
             </SectionCard>
           </motion.div>
