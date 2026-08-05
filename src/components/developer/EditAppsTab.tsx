@@ -580,7 +580,7 @@ function EditAppInner({ app, onBack }: { app: AppWithDeveloper; onBack: () => vo
                   <p className="text-[14px] font-semibold" style={{ color: TEXT }}>Contains Ads</p>
                   <p className="text-[11px]" style={{ color: MUTED }}>Your app displays advertisements</p>
                 </div>
-                <Switch checked={form.contains_ads} onCheckedChange={(v) => update('contains_ads', v)} />
+                <IOSSwitch label="Contains Ads" checked={form.contains_ads} onCheckedChange={(v) => update('contains_ads', v)} />
               </div>
               <div className="flex items-center justify-between p-3 rounded-2xl" style={{ background: SURFACE }}>
                 <div>
