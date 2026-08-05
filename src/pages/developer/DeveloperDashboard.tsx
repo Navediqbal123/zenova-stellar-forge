@@ -591,7 +591,7 @@ export default function DeveloperDashboard() {
         activeId={activeTab}
         items={[
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-          { id: 'my-apps', label: 'My Apps', icon: Package },
+          
           { id: 'edit-apps', label: 'Edit', icon: Pencil },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
           
