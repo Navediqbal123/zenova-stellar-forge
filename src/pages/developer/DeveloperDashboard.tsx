@@ -233,7 +233,7 @@ export default function DeveloperDashboard() {
       >
         <div className="max-w-6xl mx-auto space-y-6 min-w-0">
           {/* ============ Header ============ */}
-          {activeTab !== 'analytics' && (
+          {activeTab === 'dashboard' && (
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
