@@ -612,8 +612,21 @@ export function DeveloperSettings() {
             <LightRow k="Country" v={developerProfile?.country || '—'} />
             <LightRow k="Verified Email" v={developerProfile?.email || '—'} />
             <LightRow k="Verified Phone" v={developerProfile?.phone || '—'} />
+            <LightRow
+              k="Form Submitted On"
+              v={developerProfile?.created_at
+                ? `${new Date(developerProfile.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} • ${new Date(developerProfile.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+                : '—'}
+            />
+            <LightRow
+              k="Verified On"
+              v={verificationStatus === 'approved' && developerProfile?.updated_at
+                ? `${new Date(developerProfile.updated_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} • ${new Date(developerProfile.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+                : 'Pending'}
+            />
             <LightRow k="Verified Since" v={developerProfile?.updated_at ? new Date(developerProfile.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'} />
             <LightRow k="Verification Method" v="Government ID + Email" />
+
             <LightRow k="Account Status" v={verificationStatus === 'approved' ? 'Active' : 'Pending Review'} highlight={verificationStatus === 'approved' ? 'green' : 'amber'} />
           </div>
         </div>
