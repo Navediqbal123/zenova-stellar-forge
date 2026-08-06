@@ -6,8 +6,11 @@ import {
   Users as UsersIcon, CreditCard, FileText, HelpCircle, LogOut, Camera,
   BadgeCheck, Calendar, ChevronRight, X, Save, Loader2, Trash2, Image as ImageIcon,
   CheckCircle, XCircle, Clock, ExternalLink, Twitter, Github, Facebook, Instagram,
-  Unlock,
+  Unlock, UploadCloud, Eye, EyeOff, Headphones, Palette, MessageCircle, Mail,
+  Paperclip, Check, Building2, Phone, Languages, Send, Sparkles,
 } from 'lucide-react';
+import { PremiumSheet, GradientButton, SheetField, SheetCard } from './PremiumSheet';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
