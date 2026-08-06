@@ -247,8 +247,26 @@ export function DeveloperSettings() {
   };
 
   // ============ Security: password change ============
-  const [pwForm, setPwForm] = useState({ next: '', confirm: '' });
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
+  const [pwVisible, setPwVisible] = useState({ current: false, next: false, confirm: false });
   const [savingPw, setSavingPw] = useState(false);
+
+  // UI-only premium extras (persisted in auth metadata)
+  const [prefs, setPrefs] = useState({
+    language: meta.language || 'English',
+    timezone: meta.timezone || '(GMT+05:30) Asia/Kolkata',
+    accent: meta.brand_accent || '#6C4DFF',
+  });
+  const [savingBranding, setSavingBranding] = useState(false);
+
+  const pwChecks = useMemo(() => ({
+    length: pwForm.next.length >= 8,
+    number: /\d/.test(pwForm.next),
+    upper: /[A-Z]/.test(pwForm.next),
+    special: /[^A-Za-z0-9]/.test(pwForm.next),
+  }), [pwForm.next]);
+  const pwScore = Object.values(pwChecks).filter(Boolean).length;
+
   const changePassword = async () => {
     if (pwForm.next.length < 8) { toast({ title: 'Weak password', description: 'Use at least 8 characters.', variant: 'destructive' }); return; }
     if (pwForm.next !== pwForm.confirm) { toast({ title: 'Mismatch', description: 'Passwords do not match.', variant: 'destructive' }); return; }
