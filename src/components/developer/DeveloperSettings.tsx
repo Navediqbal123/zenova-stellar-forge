@@ -1069,115 +1069,8 @@ export function DeveloperSettings() {
   );
 }
 
+
 // ============ Helpers ============
-function PanelSheet({
-  open, onClose, title, description, children, lockable = false,
-}: {
-  open: boolean; onClose: () => void; title: string; description?: string;
-  children: React.ReactNode | ((ctx: { locked: boolean }) => React.ReactNode);
-  lockable?: boolean;
-}) {
-  const [locked, setLocked] = useState(true);
-
-  // reset lock state whenever the panel opens
-  useEffect(() => {
-    if (open) setLocked(true);
-  }, [open]);
-
-  return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent
-        side="bottom"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        className="rounded-t-[28px] p-0 pb-8 border-none max-h-[92vh] overflow-hidden bg-white text-[#0A0A0A] shadow-[0_20px_60px_rgba(0,0,0,0.18)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
-        style={{ borderTop: '1px solid #EAEAEA' }}
-      >
-        {/* drag handle */}
-        <div className="pt-3 pb-2 flex justify-center">
-          <div className="w-10 h-[5px] rounded-full bg-black/15" />
-        </div>
-
-        <div className="px-6 overflow-y-auto max-h-[calc(92vh-48px)]">
-          <SheetHeader className="text-left mb-5">
-            <SheetTitle className="text-[#0A0A0A] text-[19px] font-bold tracking-tight">{title}</SheetTitle>
-            {description && <SheetDescription className="text-[#6B7280] text-[13px]">{description}</SheetDescription>}
-          </SheetHeader>
-
-          <fieldset
-            disabled={lockable && locked}
-            className={cn(
-              "space-y-4 disabled:opacity-100 group",
-              // Dark premium input styling inside the popup
-              "[&_input]:bg-white [&_input]:border-[#E5E5EA] [&_input]:text-[#0A0A0A] [&_input]:placeholder:text-[#9CA3AF]",
-              "[&_input]:h-[52px] [&_input]:rounded-[16px] [&_input]:px-4 [&_input]:text-[14px]",
-              "[&_input:focus-visible]:ring-2 [&_input:focus-visible]:ring-[#3B82F6]/40 [&_input:focus-visible]:border-[#3B82F6]",
-              "[&_textarea]:bg-white [&_textarea]:border-[#E5E5EA] [&_textarea]:text-[#0A0A0A] [&_textarea]:placeholder:text-[#9CA3AF]",
-              "[&_textarea]:rounded-[16px] [&_textarea]:p-4 [&_textarea]:text-[14px]",
-              "[&_textarea:focus-visible]:ring-2 [&_textarea:focus-visible]:ring-[#3B82F6]/40 [&_textarea:focus-visible]:border-[#3B82F6]",
-              // disabled state visual
-              "group-disabled:[&_input]:opacity-70 group-disabled:[&_input]:cursor-not-allowed",
-              "group-disabled:[&_textarea]:opacity-70 group-disabled:[&_textarea]:cursor-not-allowed",
-            )}
-          >
-            {typeof children === 'function' ? children({ locked: lockable && locked }) : children}
-          </fieldset>
-
-          {lockable && locked && (
-            <button
-              onClick={() => setLocked(false)}
-              className="w-full mt-6 h-[54px] rounded-[14px] font-semibold text-[15px] text-white flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-              style={{
-                background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-                boxShadow: '0 8px 20px -6px rgba(59,130,246,0.55)',
-              }}
-            >
-              <Unlock className="w-4 h-4" />
-              Enable Editing
-            </button>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-function FormField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-[12px] font-semibold mb-2 block text-[#6B7280]">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function SaveBar({ loading, onSave, hidden }: { loading: boolean; onSave: () => void; hidden?: boolean }) {
-  if (hidden) return null;
-  return (
-    <Button
-      disabled={loading}
-      onClick={onSave}
-      className="w-full h-[54px] rounded-[14px] text-white text-[15px] font-semibold mt-2 border-0"
-      style={{
-        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-        boxShadow: '0 8px 20px -6px rgba(59,130,246,0.55)',
-      }}
-    >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
-      Save Changes
-    </Button>
-  );
-}
-
-function RowKV({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex items-center justify-between text-[13px]">
-      <span className="text-white/60">{k}</span>
-      <span className="font-semibold capitalize text-white">{v}</span>
-    </div>
-  );
-}
-
 function LightRow({ k, v, mono, highlight }: { k: string; v: string; mono?: boolean; highlight?: 'green' | 'red' | 'amber' }) {
   const color =
     highlight === 'green' ? '#16A34A' :
@@ -1196,61 +1089,163 @@ function LightRow({ k, v, mono, highlight }: { k: string; v: string; mono?: bool
   );
 }
 
-
-function BrandingRow({
-  label, url, onPick, uploading, shape,
+function PremiumInput({
+  icon: Icon, value, onChange, placeholder, type = 'text', readOnly,
 }: {
-  label: string; url: string | null; onPick: () => void; uploading: boolean;
-  shape: 'circle' | 'square' | 'wide';
+  icon?: React.ElementType; value: string; onChange?: (v: string) => void;
+  placeholder?: string; type?: string; readOnly?: boolean;
 }) {
-  const box =
-    shape === 'circle' ? 'w-16 h-16 rounded-full'
-      : shape === 'square' ? 'w-16 h-16 rounded-2xl'
-      : 'w-24 h-14 rounded-2xl';
   return (
-    <div
-      className="p-4 flex items-center gap-3 rounded-[18px] border transition-transform active:scale-[0.99]"
-      style={{
-        background: '#1F2937',
-        borderColor: 'rgba(255,255,255,0.08)',
-      }}
-    >
-      <div className={cn(box, 'overflow-hidden bg-white/5 flex items-center justify-center shrink-0 border border-white/10')}>
-        {url ? (
-          <img src={url} alt={label} className="w-full h-full object-cover" />
-        ) : (
-          <ImageIcon className="w-5 h-5 text-white/50" />
+    <div className="relative">
+      {Icon && (
+        <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#6B7280] z-10" strokeWidth={1.8} />
+      )}
+      <input
+        type={type}
+        value={value}
+        readOnly={readOnly}
+        onChange={(e) => onChange?.(e.target.value)}
+        placeholder={placeholder}
+        className={cn(
+          'w-full h-[54px] rounded-[18px] border border-[#ECECEC] bg-white text-[14px] text-[#111111] placeholder:text-[#9CA3AF] outline-none transition-all duration-200',
+          'focus:border-[#6C4DFF] focus:ring-[3px] focus:ring-[#6C4DFF]/18 focus:shadow-[0_6px_18px_-10px_rgba(108,77,255,0.6)]',
+          Icon ? 'pl-12 pr-4' : 'px-4',
+          readOnly && 'bg-[#FAFAFB] text-[#6B7280]'
         )}
+      />
+    </div>
+  );
+}
+
+function PasswordInput({
+  value, onChange, visible, toggle, placeholder,
+}: { value: string; onChange: (v: string) => void; visible: boolean; toggle: () => void; placeholder?: string }) {
+  return (
+    <div className="relative">
+      <input
+        type={visible ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full h-[54px] rounded-[18px] border border-[#ECECEC] bg-white pl-4 pr-12 text-[14px] text-[#111111] placeholder:text-[#9CA3AF] outline-none transition-all duration-200 focus:border-[#10B981] focus:ring-[3px] focus:ring-[#10B981]/18"
+      />
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        className="absolute right-4 top-1/2 -translate-y-1/2 active:scale-90 transition-transform"
+      >
+        {visible
+          ? <EyeOff className="w-[18px] h-[18px] text-[#6B7280]" strokeWidth={1.8} />
+          : <Eye className="w-[18px] h-[18px] text-[#6B7280]" strokeWidth={1.8} />}
+      </button>
+    </div>
+  );
+}
+
+function InfoField({
+  icon: Icon, label, value, onChange, placeholder, readOnly, verified,
+}: {
+  icon: React.ElementType; label: string; value: string;
+  onChange?: (v: string) => void; placeholder?: string; readOnly?: boolean; verified?: boolean;
+}) {
+  return (
+    <div className="rounded-[20px] border border-[#ECECEC] bg-white shadow-[0_2px_12px_rgba(15,23,42,0.04)] px-4 py-3 flex items-center gap-3.5 transition-shadow focus-within:border-[#6C4DFF] focus-within:shadow-[0_8px_22px_-12px_rgba(108,77,255,0.55)]">
+      <div className="w-9 h-9 rounded-[12px] bg-[#F5F3FF] flex items-center justify-center shrink-0">
+        <Icon className="w-[18px] h-[18px] text-[#4F46E5]" strokeWidth={1.8} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-semibold text-white">{label}</p>
-        <p className="text-[11px] text-white/50">{url ? 'Uploaded' : 'Not set'}</p>
+        <p className="text-[11.5px] font-semibold text-[#9CA3AF]">{label}</p>
+        <input
+          value={value}
+          readOnly={readOnly}
+          onChange={(e) => onChange?.(e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-transparent outline-none text-[15px] font-semibold text-[#111111] placeholder:font-normal placeholder:text-[#C7C7CC] mt-0.5"
+        />
       </div>
-      <Button
-        disabled={uploading}
-        onClick={onPick}
-        size="sm"
-        className="rounded-full h-9 px-4 text-[12px] font-semibold border-0 text-white"
-        style={{ background: 'rgba(59,130,246,0.18)', color: '#93C5FD' }}
-      >
-        {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : url ? 'Replace' : 'Upload'}
-      </Button>
+      {verified && (
+        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#ECFDF5] border border-[#D1FAE5]">
+          <BadgeCheck className="w-3 h-3 text-[#059669]" strokeWidth={2.4} />
+          <span className="text-[10.5px] font-semibold text-[#059669]">Verified</span>
+        </span>
+      )}
     </div>
+  );
+}
+
+function BrandAssetRow({
+  label, hint, url, shape, uploading, onPick, cta,
+}: {
+  label: string; hint: string; url: string | null; shape: 'circle' | 'square';
+  uploading: boolean; onPick: () => void; cta: string;
+}) {
+  return (
+    <div>
+      <p className="text-[12.5px] font-semibold text-[#6B7280] mb-2">{label}</p>
+      <div className="grid grid-cols-[104px_1fr] gap-3">
+        <div className="relative">
+          <div className={cn(
+            'w-full h-[104px] overflow-hidden border border-[#ECECEC] bg-[#0B1020] flex items-center justify-center',
+            shape === 'circle' ? 'rounded-full' : 'rounded-[20px]'
+          )}>
+            {url ? <img src={url} alt={label} className="w-full h-full object-cover" />
+              : <ImageIcon className="w-6 h-6 text-white/40" strokeWidth={1.6} />}
+          </div>
+          <button
+            onClick={onPick}
+            aria-label={cta}
+            className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-white border-[2.5px] border-white"
+            style={{ background: 'linear-gradient(135deg, #6C4DFF, #4F46E5)' }}
+          >
+            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />}
+          </button>
+        </div>
+        <button
+          onClick={onPick}
+          disabled={uploading}
+          className="rounded-[20px] border border-dashed border-[#DCD7FF] bg-[#FBFAFF] flex flex-col items-center justify-center gap-1 active:scale-[0.99] transition-transform"
+        >
+          {uploading
+            ? <Loader2 className="w-5 h-5 animate-spin text-[#6C4DFF]" />
+            : <UploadCloud className="w-6 h-6 text-[#6C4DFF]" strokeWidth={1.7} />}
+          <span className="text-[13.5px] font-semibold text-[#4F46E5]">{cta}</span>
+          <span className="text-[11px] text-[#9CA3AF]">{hint}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SupportRow({
+  icon: Icon, title, sub, badge, href,
+}: { icon: React.ElementType; title: string; sub: string; badge?: string; href: string }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3.5 active:bg-[#F9F9FB]">
+      <div className="w-9 h-9 rounded-[12px] bg-[#F5F5F7] flex items-center justify-center shrink-0">
+        <Icon className="w-[18px] h-[18px] text-[#111111]" strokeWidth={1.8} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[14.5px] font-semibold text-[#111111] truncate">{title}</p>
+        <p className="text-[12px] text-[#6B7280] truncate">{sub}</p>
+      </div>
+      {badge && (
+        <span className="shrink-0 px-2 py-1 rounded-full bg-[#ECFDF5] border border-[#D1FAE5] text-[10.5px] font-semibold text-[#059669]">{badge}</span>
+      )}
+      <ChevronRight className="w-4 h-4 text-[#C7C7CC] shrink-0" strokeWidth={2.2} />
+    </a>
   );
 }
 
 function ComingSoon({ icon: Icon, title, desc }: { icon: React.ElementType; title: string; desc: string }) {
   return (
-    <div
-      className="p-6 text-center rounded-[18px] border"
-      style={{ background: '#1F2937', borderColor: 'rgba(255,255,255,0.08)' }}
-    >
-      <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ background: 'rgba(59,130,246,0.15)' }}>
-        <Icon className="w-6 h-6" style={{ color: '#60A5FA' }} strokeWidth={1.8} />
+    <div className="p-7 text-center rounded-[20px] border border-[#ECECEC] bg-white shadow-[0_2px_14px_rgba(15,23,42,0.05)]">
+      <div className="w-16 h-16 rounded-[20px] mx-auto flex items-center justify-center mb-3"
+        style={{ background: 'linear-gradient(135deg, #8B7CFF, #4F46E5)', boxShadow: '0 12px 26px -12px rgba(108,77,255,0.7)' }}>
+        <Icon className="w-7 h-7 text-white" strokeWidth={1.8} />
       </div>
-      <p className="text-[16px] font-bold text-white">{title}</p>
-      <p className="text-[13px] mt-1.5 text-white/60">{desc}</p>
+      <p className="text-[16.5px] font-bold text-[#111111]">{title}</p>
+      <p className="text-[13px] mt-1.5 text-[#6B7280] leading-relaxed">{desc}</p>
     </div>
   );
 }
-
