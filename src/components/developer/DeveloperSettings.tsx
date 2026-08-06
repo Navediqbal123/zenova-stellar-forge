@@ -6,8 +6,11 @@ import {
   Users as UsersIcon, CreditCard, FileText, HelpCircle, LogOut, Camera,
   BadgeCheck, Calendar, ChevronRight, X, Save, Loader2, Trash2, Image as ImageIcon,
   CheckCircle, XCircle, Clock, ExternalLink, Twitter, Github, Facebook, Instagram,
-  Unlock,
+  Unlock, UploadCloud, Eye, EyeOff, Headphones, Palette, MessageCircle, Mail,
+  Paperclip, Check, Building2, Phone, Languages, Send, Sparkles,
 } from 'lucide-react';
+import { PremiumSheet, GradientButton, SheetField, SheetCard } from './PremiumSheet';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -199,6 +202,8 @@ export function DeveloperSettings() {
     developer_type: developerProfile?.developer_type || 'individual',
     bio: developerProfile?.bio || '',
     website: developerProfile?.website || '',
+    support_email: meta.support_email || '',
+
     twitter: meta.twitter || '',
     github: meta.github || '',
     facebook: meta.facebook || '',
@@ -244,8 +249,26 @@ export function DeveloperSettings() {
   };
 
   // ============ Security: password change ============
-  const [pwForm, setPwForm] = useState({ next: '', confirm: '' });
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
+  const [pwVisible, setPwVisible] = useState({ current: false, next: false, confirm: false });
   const [savingPw, setSavingPw] = useState(false);
+
+  // UI-only premium extras (persisted in auth metadata)
+  const [prefs, setPrefs] = useState({
+    language: meta.language || 'English',
+    timezone: meta.timezone || '(GMT+05:30) Asia/Kolkata',
+    accent: meta.brand_accent || '#6C4DFF',
+  });
+  const [savingBranding, setSavingBranding] = useState(false);
+
+  const pwChecks = useMemo(() => ({
+    length: pwForm.next.length >= 8,
+    number: /\d/.test(pwForm.next),
+    upper: /[A-Z]/.test(pwForm.next),
+    special: /[^A-Za-z0-9]/.test(pwForm.next),
+  }), [pwForm.next]);
+  const pwScore = Object.values(pwChecks).filter(Boolean).length;
+
   const changePassword = async () => {
     if (pwForm.next.length < 8) { toast({ title: 'Weak password', description: 'Use at least 8 characters.', variant: 'destructive' }); return; }
     if (pwForm.next !== pwForm.confirm) { toast({ title: 'Mismatch', description: 'Passwords do not match.', variant: 'destructive' }); return; }
@@ -254,7 +277,7 @@ export function DeveloperSettings() {
       const { error } = await supabase.auth.updateUser({ password: pwForm.next });
       if (error) throw error;
       toast({ title: 'Password changed', description: 'Your password has been updated.' });
-      setPwForm({ next: '', confirm: '' });
+      setPwForm({ current: '', next: '', confirm: '' });
       setPanel(null);
     } catch (err: any) {
       toast({ title: 'Update failed', description: err?.message || 'Please try again.', variant: 'destructive' });
@@ -453,110 +476,290 @@ export function DeveloperSettings() {
         </SheetContent>
       </Sheet>
 
-      {/* ============ Developer Profile Panel ============ */}
-      <PanelSheet open={panel === 'profile'} onClose={closePanel} title="Developer Profile" description="Personal information" lockable>
-        {({ locked }) => (
-          <>
-            <FormField label="Full Name">
-              <Input autoFocus={false} value={devForm.full_name} onChange={(e) => setDevForm((p) => ({ ...p, full_name: e.target.value }))} />
-            </FormField>
-            <FormField label="Email">
-              <Input autoFocus={false} value={developerProfile?.email || ''} disabled />
-            </FormField>
-            <FormField label="Phone">
-              <Input autoFocus={false} value={devForm.phone} onChange={(e) => setDevForm((p) => ({ ...p, phone: e.target.value }))} />
-            </FormField>
-            <FormField label="Country">
-              <Input autoFocus={false} value={devForm.country} onChange={(e) => setDevForm((p) => ({ ...p, country: e.target.value }))} />
-            </FormField>
-            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields({
-              full_name: devForm.full_name.trim(),
-              phone: devForm.phone.trim(),
-              country: devForm.country.trim(),
-            })} />
-          </>
-        )}
-      </PanelSheet>
+      {/* ============ Developer Profile Sheet ============ */}
+      <PremiumSheet
+        open={panel === 'profile'}
+        onClose={closePanel}
+        title="Developer Profile"
+        description="Manage your personal information"
+        icon={<UserIcon className="w-5 h-5 text-[#6C4DFF]" strokeWidth={1.9} />}
+        footer={
+          <GradientButton
+            disabled={savingDev}
+            onClick={() => saveDevFields(
+              {
+                full_name: devForm.full_name.trim(),
+                phone: devForm.phone.trim(),
+                country: devForm.country.trim(),
+              },
+              { language: prefs.language, timezone: prefs.timezone }
+            )}
+          >
+            {savingDev ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Save className="w-[18px] h-[18px]" strokeWidth={2} />}
+            Save Changes
+          </GradientButton>
+        }
+      >
+        {/* Avatar with glowing purple ring */}
+        <div className="flex flex-col items-center pt-1 pb-6">
+          <div className="relative">
+            <div
+              className="w-[132px] h-[132px] rounded-full p-[4px]"
+              style={{
+                background: 'linear-gradient(135deg, #6C4DFF 0%, #A78BFA 50%, #4F46E5 100%)',
+                boxShadow: '0 0 0 8px rgba(108,77,255,0.10), 0 14px 34px -12px rgba(108,77,255,0.6)',
+              }}
+            >
+              <div className="w-full h-full rounded-full overflow-hidden bg-white p-[3px]">
+                <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-[#8B7CFF] to-[#4F46E5] flex items-center justify-center text-white text-4xl font-bold">
+                  {avatarUrl ? <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" /> : <span>{avatarLetter}</span>}
+                </div>
+              </div>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setAvatarSheetOpen(true)}
+              aria-label="Change photo"
+              className="absolute bottom-1 right-1 w-10 h-10 rounded-full flex items-center justify-center text-white"
+              style={{ background: 'linear-gradient(135deg, #6C4DFF, #4F46E5)', boxShadow: '0 8px 20px -6px rgba(108,77,255,0.8)', border: '3px solid #FFFFFF' }}
+            >
+              {uploading === 'avatar' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-[18px] h-[18px]" strokeWidth={1.9} />}
+            </motion.button>
+          </div>
+          <button
+            onClick={() => setAvatarSheetOpen(true)}
+            className="mt-4 h-9 px-4 rounded-full text-[13px] font-semibold bg-[#F5F3FF] text-[#4F46E5] border border-[#E9E4FF] active:scale-95 transition-transform"
+          >
+            Change Photo
+          </button>
+        </div>
 
-      {/* ============ Studio Info Panel ============ */}
-      <PanelSheet open={panel === 'studio'} onClose={closePanel} title="Studio Information" description="Your developer or company details" lockable>
-        {({ locked }) => (
-          <>
-            <FormField label="Studio / Developer Name">
-              <Input autoFocus={false} value={devForm.developer_name} onChange={(e) => setDevForm((p) => ({ ...p, developer_name: e.target.value }))} />
-            </FormField>
-            <FormField label="Type">
-              <div className="grid grid-cols-2 gap-2">
-                {(['individual', 'company'] as const).map((t) => (
+        <div className="space-y-3">
+          <InfoField icon={UserIcon} label="Full Name" value={devForm.full_name}
+            onChange={(v) => setDevForm((p) => ({ ...p, full_name: v }))} placeholder="Your full name" />
+          <InfoField icon={Mail} label="Email" value={developerProfile?.email || user?.email || ''} readOnly verified />
+          <InfoField icon={Phone} label="Phone" value={devForm.phone}
+            onChange={(v) => setDevForm((p) => ({ ...p, phone: v }))} placeholder="+91 00000 00000"
+            verified={!!developerProfile?.phone} />
+          <InfoField icon={Globe} label="Country" value={devForm.country}
+            onChange={(v) => setDevForm((p) => ({ ...p, country: v }))} placeholder="Country" />
+          <InfoField icon={Languages} label="Language" value={prefs.language}
+            onChange={(v) => setPrefs((p) => ({ ...p, language: v }))} placeholder="English" />
+          <InfoField icon={Clock} label="Time Zone" value={prefs.timezone}
+            onChange={(v) => setPrefs((p) => ({ ...p, timezone: v }))} placeholder="(GMT+05:30) Asia/Kolkata" />
+        </div>
+      </PremiumSheet>
+
+      {/* ============ Studio Information Sheet ============ */}
+      <PremiumSheet
+        open={panel === 'studio'}
+        onClose={closePanel}
+        title="Studio Information"
+        description="Manage your developer or company details"
+        icon={<Building2 className="w-5 h-5 text-[#6C4DFF]" strokeWidth={1.9} />}
+        footer={
+          <GradientButton
+            disabled={savingDev}
+            onClick={() => saveDevFields(
+              {
+                developer_name: devForm.developer_name.trim(),
+                developer_type: devForm.developer_type as any,
+                bio: devForm.bio.trim(),
+                website: devForm.website.trim(),
+              },
+              { support_email: devForm.support_email.trim() }
+            )}
+          >
+            {savingDev ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <ShieldCheck className="w-[18px] h-[18px]" strokeWidth={2} />}
+            Save Studio
+          </GradientButton>
+        }
+      >
+        <div className="space-y-5">
+          <SheetField label="Studio Logo">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="aspect-square rounded-[20px] overflow-hidden border border-[#ECECEC] bg-[#0B1020] flex items-center justify-center">
+                {logoUrl ? <img src={logoUrl} alt="Studio logo" className="w-full h-full object-cover" />
+                  : <Sparkles className="w-8 h-8 text-white/40" strokeWidth={1.6} />}
+              </div>
+              <button
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploading === 'logo'}
+                className="aspect-square rounded-[20px] border border-dashed border-[#DCD7FF] bg-[#FBFAFF] flex flex-col items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
+              >
+                {uploading === 'logo'
+                  ? <Loader2 className="w-6 h-6 animate-spin text-[#6C4DFF]" />
+                  : <UploadCloud className="w-7 h-7 text-[#6C4DFF]" strokeWidth={1.7} />}
+                <span className="text-[13px] font-semibold text-[#4F46E5]">Upload / Replace</span>
+                <span className="text-[11px] text-[#9CA3AF]">PNG, JPG • Max 2MB</span>
+              </button>
+            </div>
+          </SheetField>
+
+          <SheetField label="Studio / Developer Name">
+            <PremiumInput icon={Store} value={devForm.developer_name}
+              onChange={(v) => setDevForm((p) => ({ ...p, developer_name: v }))} placeholder="Elora X Studio" />
+          </SheetField>
+
+          <SheetField label="Type">
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-[18px] bg-[#F5F5F7] border border-[#ECECEC]">
+              {([
+                { id: 'individual', label: 'Individual', icon: UserIcon },
+                { id: 'company', label: 'Company', icon: Building2 },
+              ] as const).map((t) => {
+                const active = devForm.developer_type === t.id;
+                return (
                   <button
-                    key={t}
+                    key={t.id}
                     type="button"
-                    disabled={locked}
-                    onClick={() => setDevForm((p) => ({ ...p, developer_type: t }))}
-                    className={cn(
-                      'h-11 rounded-2xl border text-[13px] font-semibold capitalize transition-colors disabled:opacity-70',
-                      devForm.developer_type === t
-                        ? 'border-transparent text-white'
-                        : 'bg-white border-[#E5E5EA] text-[#0A0A0A]'
-                    )}
-                    style={devForm.developer_type === t ? { background: '#2563EB' } : undefined}
+                    onClick={() => setDevForm((p) => ({ ...p, developer_type: t.id }))}
+                    className="relative h-12 rounded-[14px] text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors"
+                    style={active
+                      ? { background: 'linear-gradient(135deg, #6C4DFF, #4F46E5)', color: '#FFFFFF', boxShadow: '0 8px 18px -8px rgba(108,77,255,0.7)' }
+                      : { color: '#111111' }}
                   >
-                    {t}
+                    <t.icon className="w-4 h-4" strokeWidth={1.9} />
+                    {t.label}
                   </button>
-                ))}
-              </div>
-            </FormField>
-            <FormField label="Bio">
-              <Textarea autoFocus={false} rows={4} value={devForm.bio} onChange={(e) => setDevForm((p) => ({ ...p, bio: e.target.value }))} placeholder="Tell users about your studio..." />
-            </FormField>
-            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields({
-              developer_name: devForm.developer_name.trim(),
-              developer_type: devForm.developer_type as any,
-              bio: devForm.bio.trim(),
-            })} />
-          </>
-        )}
-      </PanelSheet>
+                );
+              })}
+            </div>
+          </SheetField>
 
-      {/* ============ Branding Panel ============ */}
-      <PanelSheet open={panel === 'branding'} onClose={closePanel} title="Branding" description="Upload your logo, banner and profile image">
-        <BrandingRow label="Profile Photo" url={avatarUrl} onPick={() => galleryInputRef.current?.click()} uploading={uploading === 'avatar'} shape="circle" />
-        <BrandingRow label="Studio Logo" url={logoUrl} onPick={() => logoInputRef.current?.click()} uploading={uploading === 'logo'} shape="square" />
-        <BrandingRow label="Banner Image" url={bannerUrl} onPick={() => bannerInputRef.current?.click()} uploading={uploading === 'banner'} shape="wide" />
-      </PanelSheet>
+          <SheetField label="Bio">
+            <div className="relative">
+              <Textarea
+                rows={5}
+                maxLength={200}
+                value={devForm.bio}
+                onChange={(e) => setDevForm((p) => ({ ...p, bio: e.target.value }))}
+                placeholder="Tell users about your studio..."
+                className="rounded-[18px] border-[#ECECEC] bg-white text-[#111111] p-4 pb-8 text-[14px] resize-none focus-visible:ring-2 focus-visible:ring-[#6C4DFF]/30 focus-visible:border-[#6C4DFF]"
+              />
+              <span className="absolute bottom-3 right-4 text-[11px] font-medium text-[#9CA3AF]">{devForm.bio.length}/200</span>
+            </div>
+          </SheetField>
 
-      {/* ============ Store Presence Panel ============ */}
-      <PanelSheet open={panel === 'presence'} onClose={closePanel} title="Store Presence" description="Your website and social links" lockable>
-        {({ locked }) => (
-          <>
-            <FormField label="Website">
-              <Input autoFocus={false} placeholder="https://yourstudio.com" value={devForm.website} onChange={(e) => setDevForm((p) => ({ ...p, website: e.target.value }))} />
-            </FormField>
-            <FormField label="Twitter / X">
-              <div className="relative">
-                <Twitter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#0A0A0A] z-10" />
-                <Input autoFocus={false} className="!pl-11" placeholder="@handle" value={devForm.twitter} onChange={(e) => setDevForm((p) => ({ ...p, twitter: e.target.value }))} />
+          <SheetField label="Website">
+            <PremiumInput icon={Globe} value={devForm.website}
+              onChange={(v) => setDevForm((p) => ({ ...p, website: v }))} placeholder="https://elorax.studio" />
+          </SheetField>
+
+          <SheetField label="Support Email">
+            <PremiumInput icon={Mail} value={devForm.support_email}
+              onChange={(v) => setDevForm((p) => ({ ...p, support_email: v }))} placeholder="support@elorax.studio" />
+          </SheetField>
+        </div>
+      </PremiumSheet>
+
+      {/* ============ Branding Sheet ============ */}
+      <PremiumSheet
+        open={panel === 'branding'}
+        onClose={closePanel}
+        title="Branding"
+        description="Customize your brand identity"
+        icon={<Palette className="w-5 h-5 text-[#EC4899]" strokeWidth={1.9} />}
+        footer={
+          <GradientButton
+            gradient="pink"
+            disabled={savingBranding}
+            onClick={async () => {
+              setSavingBranding(true);
+              try {
+                const { error } = await supabase.auth.updateUser({ data: { brand_accent: prefs.accent } });
+                if (error) throw error;
+                toast({ title: 'Branding saved', description: 'Your brand identity has been updated.' });
+                setPanel(null);
+              } catch (err: any) {
+                toast({ title: 'Save failed', description: err?.message || 'Please try again.', variant: 'destructive' });
+              } finally {
+                setSavingBranding(false);
+              }
+            }}
+          >
+            {savingBranding ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Palette className="w-[18px] h-[18px]" strokeWidth={2} />}
+            Save Branding
+          </GradientButton>
+        }
+      >
+        <div className="space-y-5">
+          <SheetField label="Banner Image">
+            <div className="relative h-[120px] rounded-[20px] overflow-hidden border border-[#ECECEC] bg-gradient-to-br from-[#0B1020] via-[#4F46E5] to-[#EC4899]">
+              {bannerUrl && <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />}
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => bannerInputRef.current?.click()}
+                aria-label="Replace banner"
+                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.22)]"
+              >
+                {uploading === 'banner' ? <Loader2 className="w-4 h-4 animate-spin text-[#4F46E5]" /> : <Pencil className="w-4 h-4 text-[#4F46E5]" strokeWidth={2} />}
+              </motion.button>
+            </div>
+            <button
+              onClick={() => bannerInputRef.current?.click()}
+              className="mt-3 w-full h-[62px] rounded-[18px] border border-dashed border-[#DCD7FF] bg-[#FBFAFF] flex flex-col items-center justify-center active:scale-[0.99] transition-transform"
+            >
+              <span className="text-[13.5px] font-semibold text-[#4F46E5] inline-flex items-center gap-1.5">
+                <Pencil className="w-3.5 h-3.5" strokeWidth={2} /> Replace Banner
+              </span>
+              <span className="text-[11px] text-[#9CA3AF] mt-0.5">JPG, PNG • Recommended 1200x400</span>
+            </button>
+          </SheetField>
+
+          <BrandAssetRow
+            label="Studio Logo" hint="PNG, JPG • Max 2MB" url={logoUrl} shape="square"
+            uploading={uploading === 'logo'} onPick={() => logoInputRef.current?.click()} cta={logoUrl ? 'Replace Logo' : 'Upload Logo'}
+          />
+          <BrandAssetRow
+            label="Profile Photo" hint="PNG, JPG • Max 2MB" url={avatarUrl} shape="circle"
+            uploading={uploading === 'avatar'} onPick={() => galleryInputRef.current?.click()} cta={avatarUrl ? 'Replace Photo' : 'Upload Photo'}
+          />
+
+          <SheetField label="Brand Accent Color">
+            <div className="flex items-center gap-3">
+              {['#6C4DFF', '#4F46E5', '#10B981', '#F97316', '#EC4899'].map((c) => (
+                <motion.button
+                  key={c}
+                  whileTap={{ scale: 0.88 }}
+                  onClick={() => setPrefs((p) => ({ ...p, accent: c }))}
+                  aria-label={`Accent ${c}`}
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ background: c, boxShadow: prefs.accent === c ? `0 0 0 4px ${c}33` : '0 4px 12px rgba(15,23,42,0.14)' }}
+                >
+                  {prefs.accent === c && <Check className="w-5 h-5 text-white" strokeWidth={3} />}
+                </motion.button>
+              ))}
+            </div>
+          </SheetField>
+
+          <SheetField label="Brand Preview">
+            <SheetCard className="p-4 flex items-center gap-3" >
+              <div className="w-12 h-12 rounded-[14px] overflow-hidden bg-[#0B1020] flex items-center justify-center shrink-0">
+                {logoUrl ? <img src={logoUrl} alt="logo" className="w-full h-full object-cover" />
+                  : <Sparkles className="w-5 h-5 text-white/50" />}
               </div>
-            </FormField>
-            <FormField label="GitHub">
-              <div className="relative">
-                <Github className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#0A0A0A] z-10" />
-                <Input autoFocus={false} className="!pl-11" placeholder="username" value={devForm.github} onChange={(e) => setDevForm((p) => ({ ...p, github: e.target.value }))} />
+              <div className="min-w-0">
+                <p className="text-[15px] font-bold text-[#111111] truncate">{devForm.developer_name || displayName}</p>
+                <p className="text-[12.5px] inline-flex items-center gap-1.5" style={{ color: prefs.accent }}>
+                  Premium Developer <BadgeCheck className="w-3.5 h-3.5" />
+                </p>
               </div>
-            </FormField>
-            <FormField label="Instagram">
-              <div className="relative">
-                <Instagram className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#0A0A0A] z-10" />
-                <Input autoFocus={false} className="!pl-11" placeholder="@handle" value={devForm.instagram} onChange={(e) => setDevForm((p) => ({ ...p, instagram: e.target.value }))} />
-              </div>
-            </FormField>
-            <FormField label="Facebook">
-              <div className="relative">
-                <Facebook className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#0A0A0A] z-10" />
-                <Input autoFocus={false} className="!pl-11" placeholder="page-name" value={devForm.facebook} onChange={(e) => setDevForm((p) => ({ ...p, facebook: e.target.value }))} />
-              </div>
-            </FormField>
-            <SaveBar hidden={locked} loading={savingDev} onSave={() => saveDevFields(
+            </SheetCard>
+          </SheetField>
+        </div>
+      </PremiumSheet>
+
+      {/* ============ Store Presence Sheet ============ */}
+      <PremiumSheet
+        open={panel === 'presence'}
+        onClose={closePanel}
+        title="Store Presence"
+        description="Website and social links"
+        icon={<Globe className="w-5 h-5 text-[#6C4DFF]" strokeWidth={1.9} />}
+        footer={
+          <GradientButton
+            disabled={savingDev}
+            onClick={() => saveDevFields(
               { website: devForm.website.trim() },
               {
                 twitter: devForm.twitter.trim(),
@@ -564,14 +767,41 @@ export function DeveloperSettings() {
                 instagram: devForm.instagram.trim(),
                 facebook: devForm.facebook.trim(),
               }
-            )} />
-          </>
-        )}
-      </PanelSheet>
+            )}
+          >
+            {savingDev ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Save className="w-[18px] h-[18px]" strokeWidth={2} />}
+            Save Changes
+          </GradientButton>
+        }
+      >
+        <div className="space-y-4">
+          <SheetField label="Website">
+            <PremiumInput icon={Globe} value={devForm.website} onChange={(v) => setDevForm((p) => ({ ...p, website: v }))} placeholder="https://yourstudio.com" />
+          </SheetField>
+          <SheetField label="Twitter / X">
+            <PremiumInput icon={Twitter} value={devForm.twitter} onChange={(v) => setDevForm((p) => ({ ...p, twitter: v }))} placeholder="@handle" />
+          </SheetField>
+          <SheetField label="GitHub">
+            <PremiumInput icon={Github} value={devForm.github} onChange={(v) => setDevForm((p) => ({ ...p, github: v }))} placeholder="username" />
+          </SheetField>
+          <SheetField label="Instagram">
+            <PremiumInput icon={Instagram} value={devForm.instagram} onChange={(v) => setDevForm((p) => ({ ...p, instagram: v }))} placeholder="@handle" />
+          </SheetField>
+          <SheetField label="Facebook">
+            <PremiumInput icon={Facebook} value={devForm.facebook} onChange={(v) => setDevForm((p) => ({ ...p, facebook: v }))} placeholder="page-name" />
+          </SheetField>
+        </div>
+      </PremiumSheet>
 
-      {/* ============ Verification Panel ============ */}
-      <PanelSheet open={panel === 'verification'} onClose={closePanel} title="Verification" description="Your account verification status">
-        <div className={cn(cardBase, 'p-5 flex flex-col items-center text-center')}>
+      {/* ============ Verification Sheet ============ */}
+      <PremiumSheet
+        open={panel === 'verification'}
+        onClose={closePanel}
+        title="Verification"
+        description="Your account verification status"
+        icon={<ShieldCheck className="w-5 h-5 text-[#10B981]" strokeWidth={1.9} />}
+      >
+        <SheetCard className="p-5 flex flex-col items-center text-center">
           <div className={cn(
             'w-16 h-16 rounded-full flex items-center justify-center mb-3',
             verificationStatus === 'approved' ? 'bg-green-50' :
@@ -589,9 +819,9 @@ export function DeveloperSettings() {
               ? developerProfile?.rejection_reason || 'Your application was not approved.'
               : 'Your application is being reviewed.'}
           </p>
-        </div>
-        {/* Premium white details card */}
-        <div className="mt-3 mb-4 rounded-2xl bg-white p-5 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.35)] border border-black/5 space-y-3">
+        </SheetCard>
+
+        <SheetCard className="mt-3 p-5 space-y-3">
           <div className="flex items-center justify-between pb-3 border-b border-[#F1F1F3]">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>Verification Details</p>
@@ -624,89 +854,193 @@ export function DeveloperSettings() {
                 ? `${new Date(developerProfile.updated_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} • ${new Date(developerProfile.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
                 : 'Pending'}
             />
-            <LightRow k="Verified Since" v={developerProfile?.updated_at ? new Date(developerProfile.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'} />
             <LightRow k="Verification Method" v="Government ID + Email" />
-
             <LightRow k="Account Status" v={verificationStatus === 'approved' ? 'Active' : 'Pending Review'} highlight={verificationStatus === 'approved' ? 'green' : 'amber'} />
           </div>
+        </SheetCard>
+      </PremiumSheet>
+
+      {/* ============ Security Sheet ============ */}
+      <PremiumSheet
+        open={panel === 'security'}
+        onClose={closePanel}
+        title="Security"
+        description="Change your account password"
+        icon={<ShieldCheck className="w-5 h-5 text-[#10B981]" strokeWidth={1.9} />}
+        footer={
+          <GradientButton gradient="green" disabled={savingPw || !pwForm.next || !pwForm.confirm} onClick={changePassword}>
+            {savingPw ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Lock className="w-[18px] h-[18px]" strokeWidth={2} />}
+            Update Password
+          </GradientButton>
+        }
+      >
+        <div className="rounded-[20px] p-6 text-center mb-5" style={{ background: 'linear-gradient(160deg, #ECFDF5 0%, #F0FDFA 100%)', border: '1px solid #D1FAE5' }}>
+          <div className="w-[74px] h-[74px] mx-auto rounded-[24px] flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #34D399, #059669)', boxShadow: '0 14px 30px -12px rgba(5,150,105,0.7)' }}>
+            <Lock className="w-8 h-8 text-white" strokeWidth={2} />
+          </div>
+          <p className="text-[16px] font-bold text-[#111111] mt-3">Keep your account secure</p>
+          <p className="text-[13px] text-[#6B7280] mt-1">Use a strong password that you don't use on other websites.</p>
         </div>
-      </PanelSheet>
 
-      {/* ============ Security Panel ============ */}
-      <PanelSheet open={panel === 'security'} onClose={closePanel} title="Security" description="Change your account password">
-        <FormField label="New Password">
-          <Input type="password" value={pwForm.next} onChange={(e) => setPwForm((p) => ({ ...p, next: e.target.value }))} placeholder="At least 8 characters" />
-        </FormField>
-        <FormField label="Confirm Password">
-          <Input type="password" value={pwForm.confirm} onChange={(e) => setPwForm((p) => ({ ...p, confirm: e.target.value }))} />
-        </FormField>
-        <Button
-          disabled={savingPw || !pwForm.next || !pwForm.confirm}
-          onClick={changePassword}
-          className="w-full h-11 rounded-full text-white text-[15px] font-semibold"
-          style={{ background: ACCENT }}
-        >
-          {savingPw ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
-          Update Password
-        </Button>
-      </PanelSheet>
+        <div className="space-y-4">
+          <SheetField label="Current Password">
+            <PasswordInput value={pwForm.current} onChange={(v) => setPwForm((p) => ({ ...p, current: v }))}
+              visible={pwVisible.current} toggle={() => setPwVisible((p) => ({ ...p, current: !p.current }))}
+              placeholder="Enter current password" />
+          </SheetField>
+          <SheetField label="New Password">
+            <PasswordInput value={pwForm.next} onChange={(v) => setPwForm((p) => ({ ...p, next: v }))}
+              visible={pwVisible.next} toggle={() => setPwVisible((p) => ({ ...p, next: !p.next }))}
+              placeholder="Enter new password" />
+            <div className="flex items-center gap-2 mt-2.5">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="h-[5px] flex-1 rounded-full overflow-hidden bg-[#EFEFF4]">
+                  <motion.div
+                    className="h-full rounded-full"
+                    initial={false}
+                    animate={{ width: pwScore > i ? '100%' : '0%' }}
+                    transition={{ duration: 0.25 }}
+                    style={{ background: pwScore <= 1 ? '#EF4444' : pwScore === 2 ? '#F59E0B' : pwScore === 3 ? '#84CC16' : '#10B981' }}
+                  />
+                </div>
+              ))}
+              <span className="text-[11.5px] font-semibold w-[52px] text-right"
+                style={{ color: pwScore <= 1 ? '#EF4444' : pwScore === 2 ? '#F59E0B' : pwScore === 3 ? '#65A30D' : '#059669' }}>
+                {pwForm.next ? (pwScore <= 1 ? 'Weak' : pwScore === 2 ? 'Fair' : pwScore === 3 ? 'Good' : 'Strong') : ''}
+              </span>
+            </div>
+          </SheetField>
+          <SheetField label="Confirm Password">
+            <PasswordInput value={pwForm.confirm} onChange={(v) => setPwForm((p) => ({ ...p, confirm: v }))}
+              visible={pwVisible.confirm} toggle={() => setPwVisible((p) => ({ ...p, confirm: !p.confirm }))}
+              placeholder="Confirm new password" />
+          </SheetField>
 
-      {/* ============ Access & Permissions Panel ============ */}
-      <PanelSheet open={panel === 'access'} onClose={closePanel} title="Access & Permissions" description="Team members and roles">
-        <ComingSoon
-          icon={UsersIcon}
-          title="Team access coming soon"
-          desc="Soon you'll be able to invite team members and assign granular roles like Admin, Editor, and Viewer to collaborate on your apps."
-        />
-      </PanelSheet>
+          <div className="rounded-[20px] p-4 space-y-2.5" style={{ background: '#F7FDF9', border: '1px solid #E4F5EA' }}>
+            {[
+              { ok: pwChecks.length, label: 'At least 8 characters' },
+              { ok: pwChecks.number, label: 'Include a number' },
+              { ok: pwChecks.upper, label: 'Include an uppercase letter' },
+              { ok: pwChecks.special, label: 'Include a special character' },
+            ].map((c) => (
+              <div key={c.label} className="flex items-center gap-2.5">
+                <span className="w-[18px] h-[18px] rounded-full flex items-center justify-center transition-colors"
+                  style={{ background: c.ok ? '#10B981' : '#E5E7EB' }}>
+                  <Check className="w-3 h-3 text-white" strokeWidth={3.2} />
+                </span>
+                <span className="text-[13px] font-medium" style={{ color: c.ok ? '#111111' : '#9CA3AF' }}>{c.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </PremiumSheet>
 
-      {/* ============ Payments Panel ============ */}
-      <PanelSheet open={panel === 'payments'} onClose={closePanel} title="Payments & Payouts" description="Payout methods and tax info">
-        <ComingSoon
-          icon={CreditCard}
-          title="Payouts coming soon"
-          desc="Connect a bank account or payment provider to receive earnings from paid apps and in-app purchases."
-        />
-      </PanelSheet>
+      {/* ============ Access & Permissions Sheet ============ */}
+      <PremiumSheet open={panel === 'access'} onClose={closePanel} title="Access & Permissions" description="Team members and roles"
+        icon={<UsersIcon className="w-5 h-5 text-[#6C4DFF]" strokeWidth={1.9} />}>
+        <ComingSoon icon={UsersIcon} title="Team access coming soon"
+          desc="Soon you'll be able to invite team members and assign granular roles like Admin, Editor, and Viewer to collaborate on your apps." />
+      </PremiumSheet>
 
-      {/* ============ Legal & Policies Panel ============ */}
-      <PanelSheet open={panel === 'legal'} onClose={closePanel} title="Legal & Policies" description="Agreements and compliance">
-        <div className={cn(cardBase, 'overflow-hidden divide-y divide-[#F1F1F3]')}>
+      {/* ============ Payments Sheet ============ */}
+      <PremiumSheet open={panel === 'payments'} onClose={closePanel} title="Payments & Payouts" description="Payout methods and tax info"
+        icon={<CreditCard className="w-5 h-5 text-[#6C4DFF]" strokeWidth={1.9} />}>
+        <ComingSoon icon={CreditCard} title="Payouts coming soon"
+          desc="Connect a bank account or payment provider to receive earnings from paid apps and in-app purchases." />
+      </PremiumSheet>
+
+      {/* ============ Legal Sheet ============ */}
+      <PremiumSheet open={panel === 'legal'} onClose={closePanel} title="Legal & Policies" description="Agreements and compliance"
+        icon={<FileText className="w-5 h-5 text-[#6C4DFF]" strokeWidth={1.9} />}>
+        <SheetCard className="overflow-hidden divide-y divide-[#F1F1F3]">
           {[
             { label: 'Developer Agreement', url: 'https://elorax.app/legal/developer-agreement' },
             { label: 'Terms of Service', url: 'https://elorax.app/legal/terms' },
             { label: 'Privacy Policy', url: 'https://elorax.app/legal/privacy' },
             { label: 'Content Guidelines', url: 'https://elorax.app/legal/guidelines' },
           ].map((l) => (
-            <a
-              key={l.label}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-between px-4 py-3.5 active:bg-[#F5F5F7]"
-            >
+            <a key={l.label} href={l.url} target="_blank" rel="noreferrer"
+              className="flex items-center justify-between px-4 py-3.5 active:bg-[#F5F5F7]">
               <span className="text-[15px] font-semibold" style={{ color: TEXT }}>{l.label}</span>
               <ExternalLink className="w-4 h-4" style={{ color: MUTED }} />
             </a>
           ))}
-        </div>
-      </PanelSheet>
+        </SheetCard>
+      </PremiumSheet>
 
-      {/* ============ Help & Support Panel ============ */}
-      <PanelSheet open={panel === 'help'} onClose={closePanel} title="Help & Support" description="We usually respond within 24 hours">
-        <FormField label="Subject">
-          <Input value={help.subject} onChange={(e) => setHelp((p) => ({ ...p, subject: e.target.value }))} placeholder="What do you need help with?" />
-        </FormField>
-        <FormField label="Message">
-          <Textarea rows={5} value={help.message} onChange={(e) => setHelp((p) => ({ ...p, message: e.target.value }))} placeholder="Describe your issue..." />
-        </FormField>
-        <Button onClick={submitHelp} disabled={sendingHelp} className="w-full h-11 rounded-full text-white text-[15px] font-semibold" style={{ background: ACCENT }}>
-          {sendingHelp ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />} Send Message
-        </Button>
-        <p className="text-[12px] text-center mt-3" style={{ color: MUTED }}>
-          Or email us at <a className="underline" style={{ color: ACCENT }} href="mailto:support@elorax.app">support@elorax.app</a>
-        </p>
-      </PanelSheet>
+      {/* ============ Help & Support Sheet ============ */}
+      <PremiumSheet
+        open={panel === 'help'}
+        onClose={closePanel}
+        title="Help & Support"
+        description="We usually respond within 24 hours"
+        icon={<Headphones className="w-5 h-5 text-[#F97316]" strokeWidth={1.9} />}
+        footer={
+          <GradientButton gradient="orange" disabled={sendingHelp} onClick={submitHelp}>
+            {sendingHelp ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Send className="w-[18px] h-[18px]" strokeWidth={2} />}
+            Send Message
+          </GradientButton>
+        }
+      >
+        <div className="rounded-[20px] p-6 text-center mb-5" style={{ background: 'linear-gradient(160deg, #FFF7ED 0%, #FEF2F2 100%)', border: '1px solid #FFEDD5' }}>
+          <div className="w-[74px] h-[74px] mx-auto rounded-[24px] flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #FDBA74, #F97316)', boxShadow: '0 14px 30px -12px rgba(249,115,22,0.7)' }}>
+            <Headphones className="w-8 h-8 text-white" strokeWidth={2} />
+          </div>
+          <p className="text-[16px] font-bold text-[#111111] mt-3">How can we help?</p>
+          <p className="text-[13px] text-[#6B7280] mt-1">Our support team replies within 24 hours.</p>
+        </div>
+
+        <div className="space-y-4">
+          <SheetField label="Subject">
+            <select
+              value={help.subject}
+              onChange={(e) => setHelp((p) => ({ ...p, subject: e.target.value }))}
+              className="w-full h-[54px] rounded-[18px] border border-[#ECECEC] bg-white px-4 text-[14px] text-[#111111] outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[#F97316]/25 appearance-none"
+              style={{ backgroundImage: 'none' }}
+            >
+              <option value="">Select a subject</option>
+              {['App review issue', 'Account & verification', 'Payments & payouts', 'Technical problem', 'Other'].map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </SheetField>
+
+          <SheetField label="Message">
+            <div className="relative">
+              <Textarea
+                rows={6}
+                maxLength={1000}
+                value={help.message}
+                onChange={(e) => setHelp((p) => ({ ...p, message: e.target.value }))}
+                placeholder="Describe your issue in detail..."
+                className="rounded-[18px] border-[#ECECEC] bg-white text-[#111111] p-4 pb-8 text-[14px] resize-none focus-visible:ring-2 focus-visible:ring-[#F97316]/25 focus-visible:border-[#F97316]"
+              />
+              <span className="absolute bottom-3 right-4 text-[11px] font-medium text-[#9CA3AF]">{help.message.length}/1000</span>
+            </div>
+          </SheetField>
+
+          <SheetField label="Attach Screenshot (Optional)">
+            <button
+              onClick={() => galleryInputRef.current?.click()}
+              className="w-full h-[62px] rounded-[18px] border border-dashed border-[#FFD8B5] bg-[#FFFBF7] flex flex-col items-center justify-center active:scale-[0.99] transition-transform"
+            >
+              <span className="text-[13.5px] font-semibold text-[#EA580C] inline-flex items-center gap-1.5">
+                <Paperclip className="w-3.5 h-3.5" strokeWidth={2} /> Tap to upload a screenshot
+              </span>
+              <span className="text-[11px] text-[#9CA3AF] mt-0.5">PNG, JPG • Max 5MB</span>
+            </button>
+          </SheetField>
+
+          <SheetCard className="overflow-hidden divide-y divide-[#F1F1F3]">
+            <SupportRow icon={HelpCircle} title="View FAQs" sub="Find answers to common questions" href="https://elorax.app/faq" />
+            <SupportRow icon={MessageCircle} title="Live Chat" sub="Chat with our support team" badge="Online" href="https://elorax.app/chat" />
+            <SupportRow icon={Mail} title="Email Us" sub="support@elorax.app" href="mailto:support@elorax.app" />
+          </SheetCard>
+        </div>
+      </PremiumSheet>
+
 
       {/* ============ Logout Confirm ============ */}
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
@@ -735,115 +1069,8 @@ export function DeveloperSettings() {
   );
 }
 
+
 // ============ Helpers ============
-function PanelSheet({
-  open, onClose, title, description, children, lockable = false,
-}: {
-  open: boolean; onClose: () => void; title: string; description?: string;
-  children: React.ReactNode | ((ctx: { locked: boolean }) => React.ReactNode);
-  lockable?: boolean;
-}) {
-  const [locked, setLocked] = useState(true);
-
-  // reset lock state whenever the panel opens
-  useEffect(() => {
-    if (open) setLocked(true);
-  }, [open]);
-
-  return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent
-        side="bottom"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        className="rounded-t-[28px] p-0 pb-8 border-none max-h-[92vh] overflow-hidden bg-white text-[#0A0A0A] shadow-[0_20px_60px_rgba(0,0,0,0.18)] data-[state=open]:duration-300 data-[state=closed]:duration-200"
-        style={{ borderTop: '1px solid #EAEAEA' }}
-      >
-        {/* drag handle */}
-        <div className="pt-3 pb-2 flex justify-center">
-          <div className="w-10 h-[5px] rounded-full bg-black/15" />
-        </div>
-
-        <div className="px-6 overflow-y-auto max-h-[calc(92vh-48px)]">
-          <SheetHeader className="text-left mb-5">
-            <SheetTitle className="text-[#0A0A0A] text-[19px] font-bold tracking-tight">{title}</SheetTitle>
-            {description && <SheetDescription className="text-[#6B7280] text-[13px]">{description}</SheetDescription>}
-          </SheetHeader>
-
-          <fieldset
-            disabled={lockable && locked}
-            className={cn(
-              "space-y-4 disabled:opacity-100 group",
-              // Dark premium input styling inside the popup
-              "[&_input]:bg-white [&_input]:border-[#E5E5EA] [&_input]:text-[#0A0A0A] [&_input]:placeholder:text-[#9CA3AF]",
-              "[&_input]:h-[52px] [&_input]:rounded-[16px] [&_input]:px-4 [&_input]:text-[14px]",
-              "[&_input:focus-visible]:ring-2 [&_input:focus-visible]:ring-[#3B82F6]/40 [&_input:focus-visible]:border-[#3B82F6]",
-              "[&_textarea]:bg-white [&_textarea]:border-[#E5E5EA] [&_textarea]:text-[#0A0A0A] [&_textarea]:placeholder:text-[#9CA3AF]",
-              "[&_textarea]:rounded-[16px] [&_textarea]:p-4 [&_textarea]:text-[14px]",
-              "[&_textarea:focus-visible]:ring-2 [&_textarea:focus-visible]:ring-[#3B82F6]/40 [&_textarea:focus-visible]:border-[#3B82F6]",
-              // disabled state visual
-              "group-disabled:[&_input]:opacity-70 group-disabled:[&_input]:cursor-not-allowed",
-              "group-disabled:[&_textarea]:opacity-70 group-disabled:[&_textarea]:cursor-not-allowed",
-            )}
-          >
-            {typeof children === 'function' ? children({ locked: lockable && locked }) : children}
-          </fieldset>
-
-          {lockable && locked && (
-            <button
-              onClick={() => setLocked(false)}
-              className="w-full mt-6 h-[54px] rounded-[14px] font-semibold text-[15px] text-white flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-              style={{
-                background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-                boxShadow: '0 8px 20px -6px rgba(59,130,246,0.55)',
-              }}
-            >
-              <Unlock className="w-4 h-4" />
-              Enable Editing
-            </button>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-function FormField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-[12px] font-semibold mb-2 block text-[#6B7280]">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function SaveBar({ loading, onSave, hidden }: { loading: boolean; onSave: () => void; hidden?: boolean }) {
-  if (hidden) return null;
-  return (
-    <Button
-      disabled={loading}
-      onClick={onSave}
-      className="w-full h-[54px] rounded-[14px] text-white text-[15px] font-semibold mt-2 border-0"
-      style={{
-        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-        boxShadow: '0 8px 20px -6px rgba(59,130,246,0.55)',
-      }}
-    >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
-      Save Changes
-    </Button>
-  );
-}
-
-function RowKV({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex items-center justify-between text-[13px]">
-      <span className="text-white/60">{k}</span>
-      <span className="font-semibold capitalize text-white">{v}</span>
-    </div>
-  );
-}
-
 function LightRow({ k, v, mono, highlight }: { k: string; v: string; mono?: boolean; highlight?: 'green' | 'red' | 'amber' }) {
   const color =
     highlight === 'green' ? '#16A34A' :
@@ -862,61 +1089,163 @@ function LightRow({ k, v, mono, highlight }: { k: string; v: string; mono?: bool
   );
 }
 
-
-function BrandingRow({
-  label, url, onPick, uploading, shape,
+function PremiumInput({
+  icon: Icon, value, onChange, placeholder, type = 'text', readOnly,
 }: {
-  label: string; url: string | null; onPick: () => void; uploading: boolean;
-  shape: 'circle' | 'square' | 'wide';
+  icon?: React.ElementType; value: string; onChange?: (v: string) => void;
+  placeholder?: string; type?: string; readOnly?: boolean;
 }) {
-  const box =
-    shape === 'circle' ? 'w-16 h-16 rounded-full'
-      : shape === 'square' ? 'w-16 h-16 rounded-2xl'
-      : 'w-24 h-14 rounded-2xl';
   return (
-    <div
-      className="p-4 flex items-center gap-3 rounded-[18px] border transition-transform active:scale-[0.99]"
-      style={{
-        background: '#1F2937',
-        borderColor: 'rgba(255,255,255,0.08)',
-      }}
-    >
-      <div className={cn(box, 'overflow-hidden bg-white/5 flex items-center justify-center shrink-0 border border-white/10')}>
-        {url ? (
-          <img src={url} alt={label} className="w-full h-full object-cover" />
-        ) : (
-          <ImageIcon className="w-5 h-5 text-white/50" />
+    <div className="relative">
+      {Icon && (
+        <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#6B7280] z-10" strokeWidth={1.8} />
+      )}
+      <input
+        type={type}
+        value={value}
+        readOnly={readOnly}
+        onChange={(e) => onChange?.(e.target.value)}
+        placeholder={placeholder}
+        className={cn(
+          'w-full h-[54px] rounded-[18px] border border-[#ECECEC] bg-white text-[14px] text-[#111111] placeholder:text-[#9CA3AF] outline-none transition-all duration-200',
+          'focus:border-[#6C4DFF] focus:ring-[3px] focus:ring-[#6C4DFF]/18 focus:shadow-[0_6px_18px_-10px_rgba(108,77,255,0.6)]',
+          Icon ? 'pl-12 pr-4' : 'px-4',
+          readOnly && 'bg-[#FAFAFB] text-[#6B7280]'
         )}
+      />
+    </div>
+  );
+}
+
+function PasswordInput({
+  value, onChange, visible, toggle, placeholder,
+}: { value: string; onChange: (v: string) => void; visible: boolean; toggle: () => void; placeholder?: string }) {
+  return (
+    <div className="relative">
+      <input
+        type={visible ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full h-[54px] rounded-[18px] border border-[#ECECEC] bg-white pl-4 pr-12 text-[14px] text-[#111111] placeholder:text-[#9CA3AF] outline-none transition-all duration-200 focus:border-[#10B981] focus:ring-[3px] focus:ring-[#10B981]/18"
+      />
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        className="absolute right-4 top-1/2 -translate-y-1/2 active:scale-90 transition-transform"
+      >
+        {visible
+          ? <EyeOff className="w-[18px] h-[18px] text-[#6B7280]" strokeWidth={1.8} />
+          : <Eye className="w-[18px] h-[18px] text-[#6B7280]" strokeWidth={1.8} />}
+      </button>
+    </div>
+  );
+}
+
+function InfoField({
+  icon: Icon, label, value, onChange, placeholder, readOnly, verified,
+}: {
+  icon: React.ElementType; label: string; value: string;
+  onChange?: (v: string) => void; placeholder?: string; readOnly?: boolean; verified?: boolean;
+}) {
+  return (
+    <div className="rounded-[20px] border border-[#ECECEC] bg-white shadow-[0_2px_12px_rgba(15,23,42,0.04)] px-4 py-3 flex items-center gap-3.5 transition-shadow focus-within:border-[#6C4DFF] focus-within:shadow-[0_8px_22px_-12px_rgba(108,77,255,0.55)]">
+      <div className="w-9 h-9 rounded-[12px] bg-[#F5F3FF] flex items-center justify-center shrink-0">
+        <Icon className="w-[18px] h-[18px] text-[#4F46E5]" strokeWidth={1.8} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-semibold text-white">{label}</p>
-        <p className="text-[11px] text-white/50">{url ? 'Uploaded' : 'Not set'}</p>
+        <p className="text-[11.5px] font-semibold text-[#9CA3AF]">{label}</p>
+        <input
+          value={value}
+          readOnly={readOnly}
+          onChange={(e) => onChange?.(e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-transparent outline-none text-[15px] font-semibold text-[#111111] placeholder:font-normal placeholder:text-[#C7C7CC] mt-0.5"
+        />
       </div>
-      <Button
-        disabled={uploading}
-        onClick={onPick}
-        size="sm"
-        className="rounded-full h-9 px-4 text-[12px] font-semibold border-0 text-white"
-        style={{ background: 'rgba(59,130,246,0.18)', color: '#93C5FD' }}
-      >
-        {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : url ? 'Replace' : 'Upload'}
-      </Button>
+      {verified && (
+        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#ECFDF5] border border-[#D1FAE5]">
+          <BadgeCheck className="w-3 h-3 text-[#059669]" strokeWidth={2.4} />
+          <span className="text-[10.5px] font-semibold text-[#059669]">Verified</span>
+        </span>
+      )}
     </div>
+  );
+}
+
+function BrandAssetRow({
+  label, hint, url, shape, uploading, onPick, cta,
+}: {
+  label: string; hint: string; url: string | null; shape: 'circle' | 'square';
+  uploading: boolean; onPick: () => void; cta: string;
+}) {
+  return (
+    <div>
+      <p className="text-[12.5px] font-semibold text-[#6B7280] mb-2">{label}</p>
+      <div className="grid grid-cols-[104px_1fr] gap-3">
+        <div className="relative">
+          <div className={cn(
+            'w-full h-[104px] overflow-hidden border border-[#ECECEC] bg-[#0B1020] flex items-center justify-center',
+            shape === 'circle' ? 'rounded-full' : 'rounded-[20px]'
+          )}>
+            {url ? <img src={url} alt={label} className="w-full h-full object-cover" />
+              : <ImageIcon className="w-6 h-6 text-white/40" strokeWidth={1.6} />}
+          </div>
+          <button
+            onClick={onPick}
+            aria-label={cta}
+            className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-white border-[2.5px] border-white"
+            style={{ background: 'linear-gradient(135deg, #6C4DFF, #4F46E5)' }}
+          >
+            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />}
+          </button>
+        </div>
+        <button
+          onClick={onPick}
+          disabled={uploading}
+          className="rounded-[20px] border border-dashed border-[#DCD7FF] bg-[#FBFAFF] flex flex-col items-center justify-center gap-1 active:scale-[0.99] transition-transform"
+        >
+          {uploading
+            ? <Loader2 className="w-5 h-5 animate-spin text-[#6C4DFF]" />
+            : <UploadCloud className="w-6 h-6 text-[#6C4DFF]" strokeWidth={1.7} />}
+          <span className="text-[13.5px] font-semibold text-[#4F46E5]">{cta}</span>
+          <span className="text-[11px] text-[#9CA3AF]">{hint}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SupportRow({
+  icon: Icon, title, sub, badge, href,
+}: { icon: React.ElementType; title: string; sub: string; badge?: string; href: string }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3.5 active:bg-[#F9F9FB]">
+      <div className="w-9 h-9 rounded-[12px] bg-[#F5F5F7] flex items-center justify-center shrink-0">
+        <Icon className="w-[18px] h-[18px] text-[#111111]" strokeWidth={1.8} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[14.5px] font-semibold text-[#111111] truncate">{title}</p>
+        <p className="text-[12px] text-[#6B7280] truncate">{sub}</p>
+      </div>
+      {badge && (
+        <span className="shrink-0 px-2 py-1 rounded-full bg-[#ECFDF5] border border-[#D1FAE5] text-[10.5px] font-semibold text-[#059669]">{badge}</span>
+      )}
+      <ChevronRight className="w-4 h-4 text-[#C7C7CC] shrink-0" strokeWidth={2.2} />
+    </a>
   );
 }
 
 function ComingSoon({ icon: Icon, title, desc }: { icon: React.ElementType; title: string; desc: string }) {
   return (
-    <div
-      className="p-6 text-center rounded-[18px] border"
-      style={{ background: '#1F2937', borderColor: 'rgba(255,255,255,0.08)' }}
-    >
-      <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ background: 'rgba(59,130,246,0.15)' }}>
-        <Icon className="w-6 h-6" style={{ color: '#60A5FA' }} strokeWidth={1.8} />
+    <div className="p-7 text-center rounded-[20px] border border-[#ECECEC] bg-white shadow-[0_2px_14px_rgba(15,23,42,0.05)]">
+      <div className="w-16 h-16 rounded-[20px] mx-auto flex items-center justify-center mb-3"
+        style={{ background: 'linear-gradient(135deg, #8B7CFF, #4F46E5)', boxShadow: '0 12px 26px -12px rgba(108,77,255,0.7)' }}>
+        <Icon className="w-7 h-7 text-white" strokeWidth={1.8} />
       </div>
-      <p className="text-[16px] font-bold text-white">{title}</p>
-      <p className="text-[13px] mt-1.5 text-white/60">{desc}</p>
+      <p className="text-[16.5px] font-bold text-[#111111]">{title}</p>
+      <p className="text-[13px] mt-1.5 text-[#6B7280] leading-relaxed">{desc}</p>
     </div>
   );
 }
-
