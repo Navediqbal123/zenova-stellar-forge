@@ -275,7 +275,7 @@ export function DeveloperSettings() {
       const { error } = await supabase.auth.updateUser({ password: pwForm.next });
       if (error) throw error;
       toast({ title: 'Password changed', description: 'Your password has been updated.' });
-      setPwForm({ next: '', confirm: '' });
+      setPwForm({ current: '', next: '', confirm: '' });
       setPanel(null);
     } catch (err: any) {
       toast({ title: 'Update failed', description: err?.message || 'Please try again.', variant: 'destructive' });
