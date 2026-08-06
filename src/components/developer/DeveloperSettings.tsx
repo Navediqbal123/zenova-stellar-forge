@@ -567,7 +567,7 @@ export function DeveloperSettings() {
                 bio: devForm.bio.trim(),
                 website: devForm.website.trim(),
               },
-              { support_email: (meta.support_email || '') }
+              { support_email: devForm.support_email.trim() }
             )}
           >
             {savingDev ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <ShieldCheck className="w-[18px] h-[18px]" strokeWidth={2} />}
