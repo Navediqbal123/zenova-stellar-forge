@@ -202,6 +202,8 @@ export function DeveloperSettings() {
     developer_type: developerProfile?.developer_type || 'individual',
     bio: developerProfile?.bio || '',
     website: developerProfile?.website || '',
+    support_email: meta.support_email || '',
+
     twitter: meta.twitter || '',
     github: meta.github || '',
     facebook: meta.facebook || '',
