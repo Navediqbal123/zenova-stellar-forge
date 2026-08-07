@@ -130,6 +130,8 @@ export default function DeveloperDashboard() {
   }, [myApps]);
 
   // ============ Auth Guards (Light Theme) ============
+  if (booting) return null;
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: PAGE_BG }}>
@@ -249,13 +251,6 @@ export default function DeveloperDashboard() {
             className="flex items-center justify-between gap-3"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <button
-                onClick={() => setMobileSidebarOpen(true)}
-                aria-label="Open menu"
-                className="w-11 h-11 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.06)] lg:hidden flex items-center justify-center active:scale-95 transition-transform shrink-0"
-              >
-                <Menu className="w-5 h-5" style={{ color: TEXT }} />
-              </button>
               <h1
                 className="text-2xl sm:text-3xl font-bold tracking-tight truncate bg-clip-text text-transparent"
                 style={{
