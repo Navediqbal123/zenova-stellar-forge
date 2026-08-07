@@ -391,13 +391,13 @@ export default function Profile() {
 
 function StatCard({ label, value, Icon }: { label: string; value: string | number; Icon: React.ElementType }) {
   return (
-    <div className="bg-white rounded-2xl p-3.5 flex items-center justify-between">
-      <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-        <p className="text-xl font-bold mt-0.5 truncate">{value}</p>
+    <div className="bg-white rounded-2xl p-3.5 flex items-center justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 truncate">{label}</p>
+        <p className="text-lg font-bold mt-0.5 truncate">{value}</p>
       </div>
-      <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: '#E0EFFF' }}>
-        <Icon className="w-5 h-5" style={{ color: ACCENT }} strokeWidth={2.2} />
+      <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: '#E0EFFF' }}>
+        <Icon className="w-4 h-4" style={{ color: ACCENT }} strokeWidth={2.2} />
       </div>
     </div>
   );
