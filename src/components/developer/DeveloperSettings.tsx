@@ -854,6 +854,12 @@ export function DeveloperSettings() {
                 ? `${new Date(developerProfile.updated_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} • ${new Date(developerProfile.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
                 : 'Pending'}
             />
+            <LightRow
+              k="Verified Since"
+              v={verificationStatus === 'approved' && developerProfile?.updated_at
+                ? `${new Date(developerProfile.updated_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} • ${new Date(developerProfile.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+                : 'Pending'}
+            />
             <LightRow k="Verification Method" v="Government ID + Email" />
             <LightRow k="Account Status" v={verificationStatus === 'approved' ? 'Active' : 'Pending Review'} highlight={verificationStatus === 'approved' ? 'green' : 'amber'} />
           </div>
