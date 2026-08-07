@@ -18,7 +18,6 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronRight,
-  Menu,
   Bell,
   Settings,
   Save,
