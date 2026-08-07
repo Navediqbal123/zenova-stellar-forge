@@ -18,7 +18,6 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronRight,
-  Menu,
   Bell,
   Settings,
   Save,
@@ -95,7 +94,7 @@ function Sparkline({ color = ACCENT, points = [4, 9, 6, 12, 8, 14, 11] }: { colo
 
 export default function DeveloperDashboard() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, developerProfile, isDeveloperApproved, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, developerProfile, isDeveloperApproved, logout } = useAuth();
   const { getAppsByDeveloper, refreshApps } = useApps();
   const { toast } = useToast();
 
@@ -106,6 +105,15 @@ export default function DeveloperDashboard() {
   const [editForm, setEditForm] = useState<{ name: string; description: string; icon_url: string }>({ name: '', description: '', icon_url: '' });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+
+  // Prevent flashing "Become a Developer" / "Access Denied" while auth + profile load
+  const [booting, setBooting] = useState(true);
+  useEffect(() => {
+    if (isLoading) return;
+    if (developerProfile) { setBooting(false); return; }
+    const t = setTimeout(() => setBooting(false), 600);
+    return () => clearTimeout(t);
+  }, [isLoading, developerProfile]);
 
   const prevStatusesRef = useRef<Record<string, string>>({});
   const myApps = developerProfile ? getAppsByDeveloper(developerProfile.id) : [];
@@ -121,6 +129,8 @@ export default function DeveloperDashboard() {
   }, [myApps]);
 
   // ============ Auth Guards (Light Theme) ============
+  if (booting) return null;
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: PAGE_BG }}>
@@ -240,13 +250,6 @@ export default function DeveloperDashboard() {
             className="flex items-center justify-between gap-3"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <button
-                onClick={() => setMobileSidebarOpen(true)}
-                aria-label="Open menu"
-                className="w-11 h-11 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_2px_8px_rgba(0,0,0,0.06)] lg:hidden flex items-center justify-center active:scale-95 transition-transform shrink-0"
-              >
-                <Menu className="w-5 h-5" style={{ color: TEXT }} />
-              </button>
               <h1
                 className="text-2xl sm:text-3xl font-bold tracking-tight truncate bg-clip-text text-transparent"
                 style={{

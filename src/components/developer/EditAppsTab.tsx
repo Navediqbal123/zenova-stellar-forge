@@ -98,12 +98,9 @@ export function EditAppsTab() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-[26px] leading-tight font-bold tracking-tight" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
-            Manage Your Apps
+          <h2 className="text-[22px] leading-tight font-bold tracking-tight" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
+            Edit Apps
           </h2>
-          <p className="text-[13px] mt-1" style={{ color: MUTED }}>
-            Edit, test and publish your applications.
-          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button

@@ -326,6 +326,11 @@ export function DeveloperSettings() {
 
   return (
     <div className="space-y-5">
+      {/* Page title */}
+      <h2 className="text-[22px] font-bold tracking-tight" style={{ color: TEXT, letterSpacing: '-0.02em' }}>
+        Developer Profile
+      </h2>
+
       {/* Hidden file inputs */}
       <input ref={cameraInputRef} type="file" accept="image/*" capture="user" className="hidden"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f, 'avatar'); e.target.value = ''; }} />
