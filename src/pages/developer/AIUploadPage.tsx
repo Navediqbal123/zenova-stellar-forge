@@ -17,6 +17,8 @@ import {
   AlertTriangle,
   Megaphone,
   ShoppingCart,
+  RefreshCw,
+  UploadCloud,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +52,7 @@ interface AIResult {
   iap_sdks: string[];
   icon_url: string | null;
   screenshot_urls: string[];
+  privacy_summary: string;
 }
 
 export default function AIUploadPage() {
@@ -58,11 +61,15 @@ export default function AIUploadPage() {
   const { categories, addApp, refreshApps } = useApps();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const iconInputRef = useRef<HTMLInputElement>(null);
+  const screenshotInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const [appName, setAppName] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [phase, setPhase] = useState<'input' | 'scanning' | 'review'>('input');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [regeneratingAsset, setRegeneratingAsset] = useState<'icon' | number | null>(null);
+  const [uploadingAsset, setUploadingAsset] = useState<'icon' | number | null>(null);
 
   // Availability — never auto-selected by AI, developer picks manually
   const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('worldwide');
@@ -89,6 +96,7 @@ export default function AIUploadPage() {
     iap_sdks: [],
     icon_url: null,
     screenshot_urls: [],
+    privacy_summary: '',
   });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,7 +122,7 @@ export default function AIUploadPage() {
     // Simulate scanning steps with delays
     const stepDelay = (index: number) => new Promise(resolve => setTimeout(resolve, 1200 + index * 800));
 
-    // Try to get AI-generated description from backend
+    // Generate the editable content from the connected AI upload API.
     let aiDescription = '';
     let aiCategory = 'tools';
 
@@ -170,21 +178,45 @@ export default function AIUploadPage() {
           break;
         }
         case 'description':
-          // Call AI API for description
           try {
-            const resp = await adminAPI.aiGenerateDescription({ name: appName, category: aiCategory });
-            aiDescription = resp.data?.description || `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
-            aiCategory = resp.data?.category || 'tools';
-          } catch {
+            const categoryName = categories.find(category => category.id === aiCategory)?.name || aiCategory;
+            const resp = await adminAPI.aiUpload({
+              appName,
+              category: categoryName,
+              permissions: [],
+              fileType: file.name.split('.').pop()?.toLowerCase() || 'apk',
+            });
+            const data = resp.data || {};
+            aiDescription = data.description || `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
+            aiCategory = data.category || aiCategory;
+            const responseTags = Array.isArray(data.tags)
+              ? data.tags.filter((tag: unknown): tag is string => typeof tag === 'string')
+              : typeof data.tags === 'string'
+                ? data.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean)
+                : [];
+            setAiResult(prev => ({
+              ...prev,
+              description: aiDescription,
+              short_description: aiDescription.substring(0, 80),
+              category: aiCategory,
+              tags: responseTags.length > 0 ? responseTags : [appName.toLowerCase(), aiCategory, 'android', 'mobile'],
+              privacy_summary: data.privacy_summary || '',
+            }));
+          } catch (error) {
             aiDescription = `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
+            toast({
+              title: 'AI content unavailable',
+              description: error instanceof Error ? error.message : 'Using editable fallback content.',
+              variant: 'destructive',
+            });
+            setAiResult(prev => ({
+              ...prev,
+              description: aiDescription,
+              short_description: aiDescription.substring(0, 80),
+              category: aiCategory,
+              tags: [appName.toLowerCase(), aiCategory, 'android', 'mobile'],
+            }));
           }
-          setAiResult(prev => ({
-            ...prev,
-            description: aiDescription,
-            short_description: aiDescription.substring(0, 80),
-            category: aiCategory,
-            tags: [appName.toLowerCase(), aiCategory, 'android', 'mobile'],
-          }));
           result = '✅ Description & tags generated successfully.';
           break;
         case 'icon':
@@ -193,16 +225,17 @@ export default function AIUploadPage() {
             const imgResp = await adminAPI.aiGenerateImages({
               name: appName,
               description: aiDescription || `${appName} is an innovative mobile application.`,
+              category: aiCategory,
             });
             const iconUrl = imgResp.data?.icon_url || null;
-            const screenshotUrls = imgResp.data?.screenshot_urls || [];
+            const screenshotUrls = (imgResp.data?.screenshot_urls || []).slice(0, 4);
             setAiResult(prev => ({
               ...prev,
               icon_url: iconUrl,
               screenshot_urls: screenshotUrls,
             }));
             result = iconUrl
-              ? `✅ AI generated icon + ${screenshotUrls.length} screenshots.`
+              ? `✅ AI generated icon + ${screenshotUrls.length} premium screenshots.`
               : '⚠️ AI image generation returned no results. Default assets will be used.';
           } catch {
             result = '⚠️ AI image generation failed. Default assets will be used.';
@@ -225,6 +258,85 @@ export default function AIUploadPage() {
     }
 
     setPhase('review');
+  };
+
+  const regenerateIcon = async () => {
+    setRegeneratingAsset('icon');
+    try {
+      const response = await adminAPI.aiGenerateImages({
+        name: appName,
+        description: aiResult.description,
+        category: aiResult.category,
+        assetType: 'icon',
+      });
+      const nextIcon = response.data?.icon_url;
+      if (!nextIcon) throw new Error('The AI service did not return a new icon.');
+      setAiResult(prev => ({ ...prev, icon_url: nextIcon }));
+    } catch (error) {
+      toast({ title: 'Icon regeneration failed', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setRegeneratingAsset(null);
+    }
+  };
+
+  const regenerateScreenshot = async (index: number) => {
+    setRegeneratingAsset(index);
+    try {
+      const response = await adminAPI.aiGenerateImages({
+        name: appName,
+        description: aiResult.description,
+        category: aiResult.category,
+        assetType: 'screenshot',
+        screenshotIndex: index,
+      });
+      const nextScreenshot = response.data?.screenshot_url || response.data?.screenshot_urls?.[index] || response.data?.screenshot_urls?.[0];
+      if (!nextScreenshot) throw new Error('The AI service did not return a new screenshot.');
+      setAiResult(prev => ({
+        ...prev,
+        screenshot_urls: prev.screenshot_urls.map((url, screenshotIndex) => screenshotIndex === index ? nextScreenshot : url),
+      }));
+    } catch (error) {
+      toast({ title: `Screenshot ${index + 1} regeneration failed`, description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setRegeneratingAsset(null);
+    }
+  };
+
+  const uploadAsset = async (fileToUpload: File, type: 'icon' | 'screenshot', index?: number) => {
+    const assetKey = type === 'icon' ? 'icon' : index ?? 0;
+    setUploadingAsset(assetKey);
+    try {
+      const bucket = type === 'icon' ? 'app-icons' : 'app-screenshots';
+      const safeName = fileToUpload.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const path = `ai-upload/${Date.now()}-${safeName}`;
+      const { data, error } = await supabase.storage.from(bucket).upload(path, fileToUpload, { upsert: true });
+      if (error) throw error;
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
+      if (type === 'icon') {
+        setAiResult(prev => ({ ...prev, icon_url: publicUrlData.publicUrl }));
+      } else if (typeof index === 'number') {
+        setAiResult(prev => ({
+          ...prev,
+          screenshot_urls: prev.screenshot_urls.map((url, screenshotIndex) => screenshotIndex === index ? publicUrlData.publicUrl : url),
+        }));
+      }
+    } catch (error) {
+      toast({ title: 'Asset upload failed', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setUploadingAsset(null);
+    }
+  };
+
+  const handleIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0];
+    if (selected) void uploadAsset(selected, 'icon');
+    event.target.value = '';
+  };
+
+  const handleScreenshotUpload = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const selected = event.target.files?.[0];
+    if (selected) void uploadAsset(selected, 'screenshot', index);
+    event.target.value = '';
   };
 
   const handleSubmit = async () => {
