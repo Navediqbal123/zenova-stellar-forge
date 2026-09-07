@@ -620,13 +620,33 @@ export default function AIUploadPage() {
                   </div>
                 </div>
 
-                {/* Description */}
-                <div>
-                  <label className="text-sm font-medium mb-1 block">AI-Generated Description</label>
-                  <p className="text-sm text-muted-foreground p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                    {aiResult.description}
-                  </p>
-                </div>
+                 {/* Editable AI content */}
+                 <div className="space-y-4">
+                   <div>
+                     <label className="text-sm font-medium mb-1 block">Description</label>
+                     <textarea
+                       value={aiResult.description}
+                       onChange={(event) => setAiResult(prev => ({ ...prev, description: event.target.value, short_description: event.target.value.slice(0, 80) }))}
+                       className="flex min-h-[120px] w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-1 block">Short Description</label>
+                     <Input
+                       value={aiResult.short_description}
+                       onChange={(event) => setAiResult(prev => ({ ...prev, short_description: event.target.value }))}
+                       className="bg-white/[0.03] border-white/10"
+                     />
+                   </div>
+                   {aiResult.privacy_summary && (
+                     <div>
+                       <label className="text-sm font-medium mb-1 block">Privacy Summary</label>
+                       <p className="text-sm text-muted-foreground p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                         {aiResult.privacy_summary}
+                       </p>
+                     </div>
+                   )}
+                 </div>
 
                 {/* AI-Generated Assets Preview - Large Format */}
                 {(aiResult.icon_url || aiResult.screenshot_urls.length > 0) && (
@@ -636,14 +656,14 @@ export default function AIUploadPage() {
                       AI-Generated App Assets
                     </label>
                     
-                    {/* Large Icon Preview */}
+                     {/* Large Icon Preview */}
                     {aiResult.icon_url && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="p-6 rounded-2xl bg-gradient-to-br from-primary/5 via-background to-secondary/5 border border-primary/20"
                       >
-                        <div className="flex flex-col items-center gap-4">
+                         <div className="flex flex-col items-center gap-4">
                           <div className="relative">
                             <div className="absolute -inset-3 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-[2rem] blur-xl" />
                             <img
@@ -659,6 +679,17 @@ export default function AIUploadPage() {
                             <p className="font-semibold text-lg">{appName}</p>
                             <p className="text-sm text-muted-foreground">App Icon • 512×512px</p>
                           </div>
+                           <div className="flex flex-wrap justify-center gap-2">
+                             <input ref={iconInputRef} type="file" accept="image/*" className="hidden" onChange={handleIconUpload} />
+                             <Button type="button" variant="outline" size="sm" onClick={() => iconInputRef.current?.click()} disabled={uploadingAsset === 'icon'}>
+                               {uploadingAsset === 'icon' ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5 mr-1" />}
+                               Upload Icon
+                             </Button>
+                             <Button type="button" variant="outline" size="sm" onClick={() => void regenerateIcon()} disabled={regeneratingAsset === 'icon'}>
+                               {regeneratingAsset === 'icon' ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                               Regenerate Icon
+                             </Button>
+                           </div>
                         </div>
                       </motion.div>
                     )}
@@ -673,7 +704,7 @@ export default function AIUploadPage() {
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {aiResult.screenshot_urls.map((url, i) => (
+                           {aiResult.screenshot_urls.slice(0, 4).map((url, i) => (
                             <motion.div
                               key={i}
                               initial={{ opacity: 0, scale: 0.95 }}
@@ -688,16 +719,31 @@ export default function AIUploadPage() {
                                   alt={`Screenshot ${i + 1}`}
                                   className="w-full h-full object-cover"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="absolute bottom-0 inset-x-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform">
-                                  <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2">
-                                    <p className="text-sm font-medium text-white">Screenshot {i + 1}</p>
-                                    <p className="text-xs text-white/70">AI Generated • 1080×1920px</p>
-                                  </div>
-                                </div>
+                                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                 <div className="absolute bottom-0 inset-x-0 p-3 flex items-end justify-between gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                   <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2">
+                                     <p className="text-sm font-medium text-white">Screenshot {i + 1}</p>
+                                     <p className="text-xs text-white/70">AI Generated • 1080×1920px</p>
+                                   </div>
+                                   <div className="flex gap-1.5">
+                                     <input
+                                       ref={(element) => { screenshotInputRefs.current[i] = element; }}
+                                       type="file"
+                                       accept="image/*"
+                                       className="hidden"
+                                       onChange={(event) => handleScreenshotUpload(event, i)}
+                                     />
+                                     <Button type="button" size="icon" variant="secondary" className="h-8 w-8" onClick={() => screenshotInputRefs.current[i]?.click()} disabled={uploadingAsset === i} aria-label={`Upload screenshot ${i + 1}`}>
+                                       {uploadingAsset === i ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                                     </Button>
+                                     <Button type="button" size="icon" variant="secondary" className="h-8 w-8" onClick={() => void regenerateScreenshot(i)} disabled={regeneratingAsset === i} aria-label={`Regenerate screenshot ${i + 1}`}>
+                                       {regeneratingAsset === i ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                                     </Button>
+                                   </div>
+                                 </div>
                               </div>
-                              <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full opacity-80">
-                                AI
+                               <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full opacity-90">
+                                 AI Generated
                               </div>
                             </motion.div>
                           ))}
