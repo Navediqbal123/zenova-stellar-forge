@@ -74,11 +74,23 @@ export const adminAPI = {
     }),
   
   // AI Upload
+  aiUpload: (data: {
+    appName: string;
+    category: string;
+    permissions: string[];
+    fileType: string;
+  }) => apiClient.post('/ai-upload', data),
   aiGenerateDescription: (data: { name: string; category: string }) => 
     apiClient.post('/api/ai-upload', data),
   
   // AI Image Generation
-  aiGenerateImages: (data: { name: string; description: string }) =>
+  aiGenerateImages: (data: {
+    name: string;
+    description: string;
+    category?: string;
+    assetType?: 'icon' | 'screenshot';
+    screenshotIndex?: number;
+  }) =>
     apiClient.post('/api/ai-image/generate', data),
   
   // Clone Check
