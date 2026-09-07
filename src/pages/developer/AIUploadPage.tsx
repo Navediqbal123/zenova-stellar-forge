@@ -17,6 +17,8 @@ import {
   AlertTriangle,
   Megaphone,
   ShoppingCart,
+  RefreshCw,
+  UploadCloud,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +52,7 @@ interface AIResult {
   iap_sdks: string[];
   icon_url: string | null;
   screenshot_urls: string[];
+  privacy_summary: string;
 }
 
 export default function AIUploadPage() {
@@ -58,11 +61,15 @@ export default function AIUploadPage() {
   const { categories, addApp, refreshApps } = useApps();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const iconInputRef = useRef<HTMLInputElement>(null);
+  const screenshotInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const [appName, setAppName] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [phase, setPhase] = useState<'input' | 'scanning' | 'review'>('input');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [regeneratingAsset, setRegeneratingAsset] = useState<'icon' | number | null>(null);
+  const [uploadingAsset, setUploadingAsset] = useState<'icon' | number | null>(null);
 
   // Availability — never auto-selected by AI, developer picks manually
   const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('worldwide');
@@ -89,6 +96,7 @@ export default function AIUploadPage() {
     iap_sdks: [],
     icon_url: null,
     screenshot_urls: [],
+    privacy_summary: '',
   });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,7 +122,7 @@ export default function AIUploadPage() {
     // Simulate scanning steps with delays
     const stepDelay = (index: number) => new Promise(resolve => setTimeout(resolve, 1200 + index * 800));
 
-    // Try to get AI-generated description from backend
+    // Generate the editable content from the connected AI upload API.
     let aiDescription = '';
     let aiCategory = 'tools';
 
@@ -170,21 +178,45 @@ export default function AIUploadPage() {
           break;
         }
         case 'description':
-          // Call AI API for description
           try {
-            const resp = await adminAPI.aiGenerateDescription({ name: appName, category: aiCategory });
-            aiDescription = resp.data?.description || `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
-            aiCategory = resp.data?.category || 'tools';
-          } catch {
+            const categoryName = categories.find(category => category.id === aiCategory)?.name || aiCategory;
+            const resp = await adminAPI.aiUpload({
+              appName,
+              category: categoryName,
+              permissions: [],
+              fileType: file.name.split('.').pop()?.toLowerCase() || 'apk',
+            });
+            const data = resp.data || {};
+            aiDescription = data.description || `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
+            aiCategory = data.category || aiCategory;
+            const responseTags = Array.isArray(data.tags)
+              ? data.tags.filter((tag: unknown): tag is string => typeof tag === 'string')
+              : typeof data.tags === 'string'
+                ? data.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean)
+                : [];
+            setAiResult(prev => ({
+              ...prev,
+              description: aiDescription,
+              short_description: aiDescription.substring(0, 80),
+              category: aiCategory,
+              tags: responseTags.length > 0 ? responseTags : [appName.toLowerCase(), aiCategory, 'android', 'mobile'],
+              privacy_summary: data.privacy_summary || '',
+            }));
+          } catch (error) {
             aiDescription = `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
+            toast({
+              title: 'AI content unavailable',
+              description: error instanceof Error ? error.message : 'Using editable fallback content.',
+              variant: 'destructive',
+            });
+            setAiResult(prev => ({
+              ...prev,
+              description: aiDescription,
+              short_description: aiDescription.substring(0, 80),
+              category: aiCategory,
+              tags: [appName.toLowerCase(), aiCategory, 'android', 'mobile'],
+            }));
           }
-          setAiResult(prev => ({
-            ...prev,
-            description: aiDescription,
-            short_description: aiDescription.substring(0, 80),
-            category: aiCategory,
-            tags: [appName.toLowerCase(), aiCategory, 'android', 'mobile'],
-          }));
           result = '✅ Description & tags generated successfully.';
           break;
         case 'icon':
@@ -193,16 +225,17 @@ export default function AIUploadPage() {
             const imgResp = await adminAPI.aiGenerateImages({
               name: appName,
               description: aiDescription || `${appName} is an innovative mobile application.`,
+              category: aiCategory,
             });
             const iconUrl = imgResp.data?.icon_url || null;
-            const screenshotUrls = imgResp.data?.screenshot_urls || [];
+            const screenshotUrls = (imgResp.data?.screenshot_urls || []).slice(0, 4);
             setAiResult(prev => ({
               ...prev,
               icon_url: iconUrl,
               screenshot_urls: screenshotUrls,
             }));
             result = iconUrl
-              ? `✅ AI generated icon + ${screenshotUrls.length} screenshots.`
+              ? `✅ AI generated icon + ${screenshotUrls.length} premium screenshots.`
               : '⚠️ AI image generation returned no results. Default assets will be used.';
           } catch {
             result = '⚠️ AI image generation failed. Default assets will be used.';
@@ -225,6 +258,85 @@ export default function AIUploadPage() {
     }
 
     setPhase('review');
+  };
+
+  const regenerateIcon = async () => {
+    setRegeneratingAsset('icon');
+    try {
+      const response = await adminAPI.aiGenerateImages({
+        name: appName,
+        description: aiResult.description,
+        category: aiResult.category,
+        assetType: 'icon',
+      });
+      const nextIcon = response.data?.icon_url;
+      if (!nextIcon) throw new Error('The AI service did not return a new icon.');
+      setAiResult(prev => ({ ...prev, icon_url: nextIcon }));
+    } catch (error) {
+      toast({ title: 'Icon regeneration failed', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setRegeneratingAsset(null);
+    }
+  };
+
+  const regenerateScreenshot = async (index: number) => {
+    setRegeneratingAsset(index);
+    try {
+      const response = await adminAPI.aiGenerateImages({
+        name: appName,
+        description: aiResult.description,
+        category: aiResult.category,
+        assetType: 'screenshot',
+        screenshotIndex: index,
+      });
+      const nextScreenshot = response.data?.screenshot_url || response.data?.screenshot_urls?.[index] || response.data?.screenshot_urls?.[0];
+      if (!nextScreenshot) throw new Error('The AI service did not return a new screenshot.');
+      setAiResult(prev => ({
+        ...prev,
+        screenshot_urls: prev.screenshot_urls.map((url, screenshotIndex) => screenshotIndex === index ? nextScreenshot : url),
+      }));
+    } catch (error) {
+      toast({ title: `Screenshot ${index + 1} regeneration failed`, description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setRegeneratingAsset(null);
+    }
+  };
+
+  const uploadAsset = async (fileToUpload: File, type: 'icon' | 'screenshot', index?: number) => {
+    const assetKey = type === 'icon' ? 'icon' : index ?? 0;
+    setUploadingAsset(assetKey);
+    try {
+      const bucket = type === 'icon' ? 'app-icons' : 'app-screenshots';
+      const safeName = fileToUpload.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const path = `ai-upload/${Date.now()}-${safeName}`;
+      const { data, error } = await supabase.storage.from(bucket).upload(path, fileToUpload, { upsert: true });
+      if (error) throw error;
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
+      if (type === 'icon') {
+        setAiResult(prev => ({ ...prev, icon_url: publicUrlData.publicUrl }));
+      } else if (typeof index === 'number') {
+        setAiResult(prev => ({
+          ...prev,
+          screenshot_urls: prev.screenshot_urls.map((url, screenshotIndex) => screenshotIndex === index ? publicUrlData.publicUrl : url),
+        }));
+      }
+    } catch (error) {
+      toast({ title: 'Asset upload failed', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setUploadingAsset(null);
+    }
+  };
+
+  const handleIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0];
+    if (selected) void uploadAsset(selected, 'icon');
+    event.target.value = '';
+  };
+
+  const handleScreenshotUpload = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const selected = event.target.files?.[0];
+    if (selected) void uploadAsset(selected, 'screenshot', index);
+    event.target.value = '';
   };
 
   const handleSubmit = async () => {
@@ -508,13 +620,33 @@ export default function AIUploadPage() {
                   </div>
                 </div>
 
-                {/* Description */}
-                <div>
-                  <label className="text-sm font-medium mb-1 block">AI-Generated Description</label>
-                  <p className="text-sm text-muted-foreground p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                    {aiResult.description}
-                  </p>
-                </div>
+                 {/* Editable AI content */}
+                 <div className="space-y-4">
+                   <div>
+                     <label className="text-sm font-medium mb-1 block">Description</label>
+                     <textarea
+                       value={aiResult.description}
+                       onChange={(event) => setAiResult(prev => ({ ...prev, description: event.target.value, short_description: event.target.value.slice(0, 80) }))}
+                       className="flex min-h-[120px] w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-1 block">Short Description</label>
+                     <Input
+                       value={aiResult.short_description}
+                       onChange={(event) => setAiResult(prev => ({ ...prev, short_description: event.target.value }))}
+                       className="bg-white/[0.03] border-white/10"
+                     />
+                   </div>
+                   {aiResult.privacy_summary && (
+                     <div>
+                       <label className="text-sm font-medium mb-1 block">Privacy Summary</label>
+                       <p className="text-sm text-muted-foreground p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                         {aiResult.privacy_summary}
+                       </p>
+                     </div>
+                   )}
+                 </div>
 
                 {/* AI-Generated Assets Preview - Large Format */}
                 {(aiResult.icon_url || aiResult.screenshot_urls.length > 0) && (
@@ -524,14 +656,14 @@ export default function AIUploadPage() {
                       AI-Generated App Assets
                     </label>
                     
-                    {/* Large Icon Preview */}
+                     {/* Large Icon Preview */}
                     {aiResult.icon_url && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="p-6 rounded-2xl bg-gradient-to-br from-primary/5 via-background to-secondary/5 border border-primary/20"
                       >
-                        <div className="flex flex-col items-center gap-4">
+                         <div className="flex flex-col items-center gap-4">
                           <div className="relative">
                             <div className="absolute -inset-3 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-[2rem] blur-xl" />
                             <img
@@ -547,6 +679,17 @@ export default function AIUploadPage() {
                             <p className="font-semibold text-lg">{appName}</p>
                             <p className="text-sm text-muted-foreground">App Icon • 512×512px</p>
                           </div>
+                           <div className="flex flex-wrap justify-center gap-2">
+                             <input ref={iconInputRef} type="file" accept="image/*" className="hidden" onChange={handleIconUpload} />
+                             <Button type="button" variant="outline" size="sm" onClick={() => iconInputRef.current?.click()} disabled={uploadingAsset === 'icon'}>
+                               {uploadingAsset === 'icon' ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5 mr-1" />}
+                               Upload Icon
+                             </Button>
+                             <Button type="button" variant="outline" size="sm" onClick={() => void regenerateIcon()} disabled={regeneratingAsset === 'icon'}>
+                               {regeneratingAsset === 'icon' ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                               Regenerate Icon
+                             </Button>
+                           </div>
                         </div>
                       </motion.div>
                     )}
@@ -561,7 +704,7 @@ export default function AIUploadPage() {
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {aiResult.screenshot_urls.map((url, i) => (
+                           {aiResult.screenshot_urls.slice(0, 4).map((url, i) => (
                             <motion.div
                               key={i}
                               initial={{ opacity: 0, scale: 0.95 }}
@@ -576,16 +719,31 @@ export default function AIUploadPage() {
                                   alt={`Screenshot ${i + 1}`}
                                   className="w-full h-full object-cover"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="absolute bottom-0 inset-x-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform">
-                                  <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2">
-                                    <p className="text-sm font-medium text-white">Screenshot {i + 1}</p>
-                                    <p className="text-xs text-white/70">AI Generated • 1080×1920px</p>
-                                  </div>
-                                </div>
+                                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                 <div className="absolute bottom-0 inset-x-0 p-3 flex items-end justify-between gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                   <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2">
+                                     <p className="text-sm font-medium text-white">Screenshot {i + 1}</p>
+                                     <p className="text-xs text-white/70">AI Generated • 1080×1920px</p>
+                                   </div>
+                                   <div className="flex gap-1.5">
+                                     <input
+                                       ref={(element) => { screenshotInputRefs.current[i] = element; }}
+                                       type="file"
+                                       accept="image/*"
+                                       className="hidden"
+                                       onChange={(event) => handleScreenshotUpload(event, i)}
+                                     />
+                                     <Button type="button" size="icon" variant="secondary" className="h-8 w-8" onClick={() => screenshotInputRefs.current[i]?.click()} disabled={uploadingAsset === i} aria-label={`Upload screenshot ${i + 1}`}>
+                                       {uploadingAsset === i ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                                     </Button>
+                                     <Button type="button" size="icon" variant="secondary" className="h-8 w-8" onClick={() => void regenerateScreenshot(i)} disabled={regeneratingAsset === i} aria-label={`Regenerate screenshot ${i + 1}`}>
+                                       {regeneratingAsset === i ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                                     </Button>
+                                   </div>
+                                 </div>
                               </div>
-                              <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full opacity-80">
-                                AI
+                               <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full opacity-90">
+                                 AI Generated
                               </div>
                             </motion.div>
                           ))}
