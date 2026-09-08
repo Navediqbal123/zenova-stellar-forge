@@ -79,7 +79,21 @@ export const adminAPI = {
     category: string;
     permissions: string[];
     fileType: string;
-  }) => apiClient.post('/ai-upload', data),
+  }) => {
+    const endpoint = `${API_BASE_URL}/ai-upload`;
+    console.info('[AI Upload Request]', { method: 'POST', url: endpoint, data });
+
+    const sendRequest = () => apiClient.post('/ai-upload', data, { timeout: 10000 });
+
+    return sendRequest().catch(async (error) => {
+      if (!axios.isAxiosError(error) || error.response?.status !== 404) throw error;
+
+      console.warn('[AI Upload Request] 404 received; retrying once in 2 seconds', { url: endpoint });
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.info('[AI Upload Request Retry]', { method: 'POST', url: endpoint, data });
+      return sendRequest();
+    });
+  },
   aiGenerateDescription: (data: { name: string; category: string }) => 
     apiClient.post('/api/ai-upload', data),
   
