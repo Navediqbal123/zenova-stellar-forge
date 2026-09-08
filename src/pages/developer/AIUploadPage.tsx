@@ -51,9 +51,45 @@ interface AIResult {
   ad_networks: string[];
   iap_sdks: string[];
   icon_url: string | null;
-  screenshot_urls: string[];
+  screenshot_urls: Array<string | null>;
   privacy_summary: string;
 }
+
+type AssetCache = {
+  icon_url: string | null;
+  screenshot_urls: Array<string | null>;
+};
+
+const ASSET_CACHE_PREFIX = 'elorax_ai_assets_';
+
+const getAssetCacheKey = (name: string) => `${ASSET_CACHE_PREFIX}${name.trim().toLowerCase()}`;
+
+const readAssetCache = (name: string): AssetCache | null => {
+  try {
+    const cached = sessionStorage.getItem(getAssetCacheKey(name));
+    if (!cached) return null;
+    const parsed = JSON.parse(cached) as Partial<AssetCache>;
+    return {
+      icon_url: typeof parsed.icon_url === 'string' ? parsed.icon_url : null,
+      screenshot_urls: Array.from({ length: 4 }, (_, index) => parsed.screenshot_urls?.[index] ?? null),
+    };
+  } catch {
+    return null;
+  }
+};
+
+const writeAssetCache = (name: string, assets: AssetCache) => {
+  try {
+    sessionStorage.setItem(getAssetCacheKey(name), JSON.stringify(assets));
+  } catch {
+    // Previews remain available in memory when browser storage is unavailable.
+  }
+};
+
+const getErrorStatus = (error: unknown) => {
+  if (typeof error !== 'object' || error === null || !('response' in error)) return undefined;
+  return (error as { response?: { status?: number } }).response?.status;
+};
 
 export default function AIUploadPage() {
   const navigate = useNavigate();
@@ -68,6 +104,7 @@ export default function AIUploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [phase, setPhase] = useState<'input' | 'scanning' | 'review'>('input');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [operationStatus, setOperationStatus] = useState<'Generating...' | 'Processing...' | 'Almost done...' | null>(null);
   const [regeneratingAsset, setRegeneratingAsset] = useState<'icon' | number | null>(null);
   const [uploadingAsset, setUploadingAsset] = useState<'icon' | number | null>(null);
 
@@ -95,7 +132,7 @@ export default function AIUploadPage() {
     ad_networks: [],
     iap_sdks: [],
     icon_url: null,
-    screenshot_urls: [],
+    screenshot_urls: [null, null, null, null],
     privacy_summary: '',
   });
 
