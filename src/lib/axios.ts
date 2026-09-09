@@ -2,6 +2,7 @@ import axios from 'axios';
 
 // Backend API URL
 const API_BASE_URL = 'https://app-store-backend-iodn.onrender.com';
+export const AI_UPLOAD_ENDPOINT = `${API_BASE_URL}/ai-upload`;
 
 // Static admin token
 const ADMIN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxOTIyYjAxLWU1YTgtNGQ2Yi04MWM1LWY2ZTQyYTk2MzlkMiIsImVtYWlsIjoibmF2ZWRhaG1hZDkwMTJAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY5MjgxMzczLCJleHAiOjE3Njk4ODYxNzN9.kA4wltUABPJn3IdvXdOFwQt6g04rOg1A_QPxRYuZZ2Y';
@@ -31,8 +32,16 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    console.error('[API Error]', error.config?.method?.toUpperCase(), error.config?.url, '-', errorMessage);
+    const requestUrl = error.config?.baseURL && error.config?.url
+      ? new URL(error.config.url, error.config.baseURL).toString()
+      : error.config?.url || 'Unknown URL';
+    const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'An error occurred';
+    console.error('[API Error]', {
+      message: errorMessage,
+      status: error.response?.status ?? 'Network error',
+      url: requestUrl,
+      method: error.config?.method?.toUpperCase() || 'UNKNOWN',
+    });
     return Promise.reject(error);
   }
 );
@@ -80,7 +89,7 @@ export const adminAPI = {
     permissions: string[];
     fileType: string;
   }) => {
-    const endpoint = `${API_BASE_URL}/ai-upload`;
+    const endpoint = AI_UPLOAD_ENDPOINT;
     console.info('[AI Upload Request]', { method: 'POST', url: endpoint, data });
 
     const sendRequest = () => apiClient.post('/ai-upload', data, { timeout: 10000 });
@@ -93,6 +102,11 @@ export const adminAPI = {
       console.info('[AI Upload Request Retry]', { method: 'POST', url: endpoint, data });
       return sendRequest();
     });
+  },
+  testBackend: () => {
+    const data = { appName: 'Backend Test', category: 'tools', permissions: [], fileType: 'apk' };
+    console.info('[AI Upload Backend Test]', { method: 'POST', url: AI_UPLOAD_ENDPOINT, data });
+    return apiClient.post('/ai-upload', data, { timeout: 10000 });
   },
   aiGenerateDescription: (data: { name: string; category: string }) => 
     apiClient.post('/api/ai-upload', data),

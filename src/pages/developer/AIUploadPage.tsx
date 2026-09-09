@@ -19,6 +19,7 @@ import {
   ShoppingCart,
   RefreshCw,
   UploadCloud,
+  Wifi,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,6 +92,35 @@ const getErrorStatus = (error: unknown) => {
   return (error as { response?: { status?: number } }).response?.status;
 };
 
+type ApiErrorDetails = {
+  message: string;
+  status: string;
+  url: string;
+};
+
+const AI_UPLOAD_URL = 'https://app-store-backend-iodn.onrender.com/ai-upload';
+
+const getApiErrorDetails = (error: unknown): ApiErrorDetails => {
+  if (typeof error !== 'object' || error === null) {
+    return { message: 'Unknown backend error', status: 'Unknown', url: AI_UPLOAD_URL };
+  }
+
+  const axiosError = error as {
+    message?: string;
+    response?: { status?: number; data?: { message?: string; error?: string } };
+    config?: { baseURL?: string; url?: string };
+  };
+  const configuredUrl = axiosError.config?.baseURL && axiosError.config.url
+    ? new URL(axiosError.config.url, axiosError.config.baseURL).toString()
+    : AI_UPLOAD_URL;
+
+  return {
+    message: axiosError.response?.data?.message || axiosError.response?.data?.error || axiosError.message || 'Request failed',
+    status: String(axiosError.response?.status ?? 'Network error'),
+    url: configuredUrl,
+  };
+};
+
 export default function AIUploadPage() {
   const navigate = useNavigate();
   const { developerProfile } = useAuth();
@@ -107,6 +137,8 @@ export default function AIUploadPage() {
   const [operationStatus, setOperationStatus] = useState<'Generating...' | 'Processing...' | 'Almost done...' | null>(null);
   const [regeneratingAsset, setRegeneratingAsset] = useState<'icon' | number | null>(null);
   const [uploadingAsset, setUploadingAsset] = useState<'icon' | number | null>(null);
+  const [apiError, setApiError] = useState<ApiErrorDetails | null>(null);
+  const [backendTestStatus, setBackendTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
 
   // Availability — never auto-selected by AI, developer picks manually
   const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('worldwide');
@@ -148,6 +180,20 @@ export default function AIUploadPage() {
     }
   };
 
+  const testBackend = async () => {
+    setBackendTestStatus('testing');
+    setApiError(null);
+    try {
+      await adminAPI.testBackend();
+      setBackendTestStatus('success');
+    } catch (error) {
+      const details = getApiErrorDetails(error);
+      console.error('[AI Upload Backend Test Error]', details);
+      setApiError(details);
+      setBackendTestStatus('error');
+    }
+  };
+
   const runScan = async () => {
     if (!appName.trim() || !file) {
       toast({ title: 'Missing Info', description: 'Please enter app name and upload a file.', variant: 'destructive' });
@@ -155,6 +201,8 @@ export default function AIUploadPage() {
     }
 
     setPhase('scanning');
+    setApiError(null);
+    setBackendTestStatus('idle');
 
     // Simulate scanning steps with delays
     const stepDelay = (index: number) => new Promise(resolve => setTimeout(resolve, 1200 + index * 800));
@@ -240,6 +288,9 @@ export default function AIUploadPage() {
               privacy_summary: data.privacy_summary || '',
             }));
           } catch (error) {
+            const details = getApiErrorDetails(error);
+            console.error('[AI Upload Scan Error]', details);
+            setApiError(details);
             aiDescription = `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
             toast({
               title: 'AI content unavailable',
@@ -491,6 +542,25 @@ export default function AIUploadPage() {
           </div>
         </div>
 
+        {apiError && (
+          <motion.div
+            role="alert"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+              <div className="min-w-0 space-y-1">
+                <p className="font-semibold text-destructive">Backend connection failed</p>
+                <p className="break-words text-foreground">Error: {apiError.message}</p>
+                <p className="text-muted-foreground">Status: {apiError.status}</p>
+                <p className="break-all text-muted-foreground">URL: {apiError.url}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
           {/* PHASE 1: Input */}
           {phase === 'input' && (
@@ -562,6 +632,24 @@ export default function AIUploadPage() {
               >
                 <Sparkles className="w-5 h-5 mr-2" />
                 Start AI Scan
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void testBackend()}
+                disabled={backendTestStatus === 'testing'}
+                className="w-full"
+              >
+                {backendTestStatus === 'testing' ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : backendTestStatus === 'success' ? (
+                  <CheckCircle className="mr-2 h-4 w-4 text-success" />
+                ) : backendTestStatus === 'error' ? (
+                  <AlertTriangle className="mr-2 h-4 w-4 text-destructive" />
+                ) : (
+                  <Wifi className="mr-2 h-4 w-4" />
+                )}
+                {backendTestStatus === 'testing' ? 'Testing Backend...' : backendTestStatus === 'success' ? 'Backend Working' : backendTestStatus === 'error' ? 'Test Backend Again' : 'Test Backend'}
               </Button>
             </motion.div>
           )}
