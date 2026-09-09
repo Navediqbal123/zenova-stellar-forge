@@ -92,12 +92,16 @@ export const adminAPI = {
     const endpoint = AI_UPLOAD_ENDPOINT;
     console.info('[AI Upload Request]', { method: 'POST', url: endpoint, data });
 
-    const sendRequest = () => apiClient.post('/ai-upload', data, { timeout: 10000 });
+    const sendRequest = () => apiClient.post('/ai-upload', data, { timeout: 30000 });
 
     return sendRequest().catch(async (error) => {
-      if (!axios.isAxiosError(error) || error.response?.status !== 404) throw error;
+      if (!axios.isAxiosError(error)) throw error;
 
-      console.warn('[AI Upload Request] 404 received; retrying once in 2 seconds', { url: endpoint });
+      console.warn('[AI Upload Request] Failed; retrying once in 2 seconds', {
+        url: endpoint,
+        status: error.response?.status ?? 'Network error',
+        message: error.message,
+      });
       await new Promise((resolve) => setTimeout(resolve, 2000));
       console.info('[AI Upload Request Retry]', { method: 'POST', url: endpoint, data });
       return sendRequest();
@@ -106,7 +110,7 @@ export const adminAPI = {
   testBackend: () => {
     const data = { appName: 'Backend Test', category: 'tools', permissions: [], fileType: 'apk' };
     console.info('[AI Upload Backend Test]', { method: 'POST', url: AI_UPLOAD_ENDPOINT, data });
-    return apiClient.post('/ai-upload', data, { timeout: 10000 });
+    return apiClient.post('/ai-upload', data, { timeout: 30000 });
   },
   aiGenerateDescription: (data: { name: string; category: string }) => 
     apiClient.post('/api/ai-upload', data),
