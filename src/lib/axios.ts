@@ -88,6 +88,8 @@ export const adminAPI = {
     category: string;
     permissions: string[];
     fileType: string;
+    iconUrl: string | null;
+    screenshotUrls: string[];
   }) => {
     const endpoint = AI_UPLOAD_ENDPOINT;
     console.info('[AI Upload Request]', { method: 'POST', url: endpoint, data });
@@ -108,7 +110,14 @@ export const adminAPI = {
     });
   },
   testBackend: () => {
-    const data = { appName: 'Backend Test', category: 'tools', permissions: [], fileType: 'apk' };
+    const data = {
+      appName: 'Backend Test',
+      category: 'tools',
+      permissions: [],
+      fileType: 'apk',
+      iconUrl: null,
+      screenshotUrls: [],
+    };
     console.info('[AI Upload Backend Test]', { method: 'POST', url: AI_UPLOAD_ENDPOINT, data });
     return apiClient.post('/api/ai-upload', data, { timeout: 30000 });
   },
