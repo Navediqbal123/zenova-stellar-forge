@@ -54,6 +54,9 @@ interface AIResult {
   icon_url: string | null;
   screenshot_urls: Array<string | null>;
   privacy_summary: string;
+  icon_analysis: unknown;
+  screenshot_analysis: unknown;
+  quality_score: number | null;
 }
 
 type AssetCache = {
@@ -98,7 +101,32 @@ type ApiErrorDetails = {
   url: string;
 };
 
-const AI_UPLOAD_URL = 'https://app-store-backend-iodn.onrender.com/ai-upload';
+const AI_UPLOAD_URL = 'https://app-store-backend-iodn.onrender.com/api/ai-upload';
+
+type AIUploadResponse = {
+  description?: unknown;
+  tags?: unknown;
+  privacy_summary?: unknown;
+  icon_analysis?: unknown;
+  screenshot_analysis?: unknown;
+  quality_score?: unknown;
+  generated_icon?: unknown;
+  generated_screenshots?: unknown;
+};
+
+const getAssetUrl = (asset: unknown): string | null => {
+  if (typeof asset === 'string' && asset.trim()) return asset;
+  if (typeof asset !== 'object' || asset === null) return null;
+
+  const value = asset as Record<string, unknown>;
+  const url = value.url ?? value.image_url ?? value.imageUrl;
+  return typeof url === 'string' && url.trim() ? url : null;
+};
+
+const getGeneratedScreenshots = (assets: unknown): string[] => {
+  if (!Array.isArray(assets)) return [];
+  return assets.map(getAssetUrl).filter((url): url is string => Boolean(url)).slice(0, 4);
+};
 
 const getApiErrorDetails = (error: unknown): ApiErrorDetails => {
   if (typeof error !== 'object' || error === null) {
@@ -166,6 +194,9 @@ export default function AIUploadPage() {
     icon_url: null,
     screenshot_urls: [null, null, null, null],
     privacy_summary: '',
+    icon_analysis: null,
+    screenshot_analysis: null,
+    quality_score: null,
   });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,152 +231,79 @@ export default function AIUploadPage() {
       return;
     }
 
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     setPhase('scanning');
     setApiError(null);
     setBackendTestStatus('idle');
 
-    // Simulate scanning steps with delays
-    const stepDelay = (index: number) => new Promise(resolve => setTimeout(resolve, 1200 + index * 800));
+    setOperationStatus('Generating...');
+    setScanSteps(prev => prev.map(step => ({ ...step, status: 'running', result: undefined })));
 
-    // Generate the editable content from the connected AI upload API.
-    let aiDescription = '';
-    let aiCategory = 'tools';
+    try {
+      const categoryName = categories.find(category => category.id === 'tools')?.name || 'tools';
+      const response = await adminAPI.aiUpload({
+        appName,
+        category: categoryName,
+        permissions: [],
+        fileType: file.name.split('.').pop()?.toLowerCase() || 'apk',
+        iconUrl: aiResult.icon_url,
+        screenshotUrls: aiResult.screenshot_urls.filter((url): url is string => Boolean(url)),
+      });
+      const data = (response.data || {}) as AIUploadResponse;
+      const description = typeof data.description === 'string' ? data.description : '';
+      const responseTags = Array.isArray(data.tags)
+        ? data.tags.filter((tag): tag is string => typeof tag === 'string')
+        : typeof data.tags === 'string'
+          ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+          : [];
+      const generatedIcon = getAssetUrl(data.generated_icon);
+      const generatedScreenshots = getGeneratedScreenshots(data.generated_screenshots);
+      const qualityScore = typeof data.quality_score === 'number' ? data.quality_score : null;
 
-    for (let i = 0; i < scanSteps.length; i++) {
-      setScanSteps(prev => prev.map((s, idx) =>
-        idx === i ? { ...s, status: 'running' } : s
-      ));
+      setOperationStatus('Processing...');
+      setAiResult(prev => ({
+        ...prev,
+        description,
+        short_description: description.slice(0, 80),
+        tags: responseTags,
+        privacy_summary: typeof data.privacy_summary === 'string' ? data.privacy_summary : '',
+        icon_url: generatedIcon || prev.icon_url,
+        screenshot_urls: [...generatedScreenshots, null, null, null, null].slice(0, 4),
+        icon_analysis: data.icon_analysis ?? null,
+        screenshot_analysis: data.screenshot_analysis ?? null,
+        quality_score: qualityScore,
+      }));
 
-      await stepDelay(i);
+      writeAssetCache(appName, {
+        icon_url: generatedIcon,
+        screenshot_urls: [...generatedScreenshots, null, null, null, null].slice(0, 4),
+      });
 
-      // Simulate results based on step
-      let result = '';
-      switch (scanSteps[i].id) {
-        case 'manifest':
-          result = '✅ Manifest parsed. 12 permissions found.';
-          break;
-        case 'ads': {
-          // Only flag ads if specific Ad SDK package strings are found in filename/metadata
-          const adSdkPatterns = ['com.google.android.gms.ads', 'admob', 'unity3d.ads', 'applovin', 'facebook.ads', 'mopub', 'ironsource'];
-          const fileNameLower = file.name.toLowerCase();
-          const hasAds = adSdkPatterns.some(pattern => fileNameLower.includes(pattern));
-          const detectedNetworks: string[] = [];
-          if (fileNameLower.includes('admob') || fileNameLower.includes('com.google.android.gms.ads')) detectedNetworks.push('Google AdMob');
-          if (fileNameLower.includes('unity3d.ads')) detectedNetworks.push('Unity Ads');
-          if (fileNameLower.includes('applovin')) detectedNetworks.push('AppLovin');
-          if (fileNameLower.includes('facebook.ads')) detectedNetworks.push('Facebook Ads');
-          if (fileNameLower.includes('ironsource')) detectedNetworks.push('ironSource');
-          result = hasAds
-            ? `⚠️ ${detectedNetworks.join(', ')} detected! Setting Ads to "Yes".`
-            : '✅ No Ad-Network SDKs detected.';
-          setAiResult(prev => ({
-            ...prev,
-            contains_ads: hasAds,
-            ad_networks: detectedNetworks,
-          }));
-          break;
-        }
-        case 'iap': {
-          const iapPatterns = ['com.android.vending.billing', 'billing', 'iap', 'in-app-purchase'];
-          const iapFileName = file.name.toLowerCase();
-          const hasIAP = iapPatterns.some(p => iapFileName.includes(p));
-          const detectedIAP: string[] = [];
-          if (iapFileName.includes('billing') || iapFileName.includes('com.android.vending.billing')) detectedIAP.push('Google Play Billing');
-          if (iapFileName.includes('iap') || iapFileName.includes('in-app-purchase')) detectedIAP.push('IAP SDK');
-          result = hasIAP
-            ? `⚠️ ${detectedIAP.join(', ')} detected!`
-            : '✅ No In-App Purchase SDKs found.';
-          setAiResult(prev => ({
-            ...prev,
-            in_app_purchases: hasIAP,
-            iap_sdks: detectedIAP,
-          }));
-          break;
-        }
-        case 'description':
-          try {
-            const categoryName = categories.find(category => category.id === aiCategory)?.name || aiCategory;
-            const resp = await adminAPI.aiUpload({
-              appName,
-              category: categoryName,
-              permissions: [],
-              fileType: file.name.split('.').pop()?.toLowerCase() || 'apk',
-            });
-            const data = resp.data || {};
-            aiDescription = data.description || `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
-            aiCategory = data.category || aiCategory;
-            const responseTags = Array.isArray(data.tags)
-              ? data.tags.filter((tag: unknown): tag is string => typeof tag === 'string')
-              : typeof data.tags === 'string'
-                ? data.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean)
-                : [];
-            setAiResult(prev => ({
-              ...prev,
-              description: aiDescription,
-              short_description: aiDescription.substring(0, 80),
-              category: aiCategory,
-              tags: responseTags.length > 0 ? responseTags : [appName.toLowerCase(), aiCategory, 'android', 'mobile'],
-              privacy_summary: data.privacy_summary || '',
-            }));
-          } catch (error) {
-            const details = getApiErrorDetails(error);
-            console.error('[AI Upload Scan Error]', details);
-            setApiError(details);
-            aiDescription = `${appName} is a powerful mobile application designed to enhance your daily productivity and streamline your workflow.`;
-            toast({
-              title: 'AI content unavailable',
-              description: error instanceof Error ? error.message : 'Using editable fallback content.',
-              variant: 'destructive',
-            });
-            setAiResult(prev => ({
-              ...prev,
-              description: aiDescription,
-              short_description: aiDescription.substring(0, 80),
-              category: aiCategory,
-              tags: [appName.toLowerCase(), aiCategory, 'android', 'mobile'],
-            }));
-          }
-          result = '✅ Description & tags generated successfully.';
-          break;
-        case 'icon':
-          // Call AI image generation API with auto-generated description
-          try {
-            const imgResp = await adminAPI.aiGenerateImages({
-              name: appName,
-              description: aiDescription || `${appName} is an innovative mobile application.`,
-              category: aiCategory,
-            });
-            const iconUrl = imgResp.data?.icon_url || null;
-            const screenshotUrls = (imgResp.data?.screenshot_urls || []).slice(0, 4);
-            setAiResult(prev => ({
-              ...prev,
-              icon_url: iconUrl,
-              screenshot_urls: screenshotUrls,
-            }));
-            result = iconUrl
-              ? `✅ AI generated icon + ${screenshotUrls.length} premium screenshots.`
-              : '⚠️ AI image generation returned no results. Default assets will be used.';
-          } catch {
-            result = '⚠️ AI image generation failed. Default assets will be used.';
-            toast({
-              title: 'AI generation failed',
-              description: 'AI generation failed, please try again',
-              variant: 'destructive',
-            });
-          }
-          break;
-        case 'security':
-          result = '✅ No malicious code detected. Status: Clean.';
-          setAiResult(prev => ({ ...prev, risk_level: 'clean' }));
-          break;
-      }
-
-      setScanSteps(prev => prev.map((s, idx) =>
-        idx === i ? { ...s, status: 'done', result } : s
-      ));
+      setOperationStatus('Almost done...');
+      setScanSteps(prev => prev.map(step => ({
+        ...step,
+        status: 'done',
+        result: step.id === 'icon'
+          ? `Received ${generatedIcon ? 'icon' : 'no icon'} and ${generatedScreenshots.length} screenshot${generatedScreenshots.length === 1 ? '' : 's'} from AI.`
+          : 'Completed from backend response.',
+      })));
+      setPhase('review');
+    } catch (error) {
+      const details = getApiErrorDetails(error);
+      console.error('[AI Upload Scan Error]', details);
+      setApiError(details);
+      setPhase('input');
+      toast({
+        title: 'AI generation failed',
+        description: details.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+      setOperationStatus(null);
     }
-
-    setPhase('review');
   };
 
   const regenerateIcon = async () => {
@@ -449,6 +407,9 @@ export default function AIUploadPage() {
         risk_level: aiResult.risk_level,
         ai_category: categoryName,
         ai_tags: aiResult.tags,
+        icon_analysis: aiResult.icon_analysis,
+        screenshot_analysis: aiResult.screenshot_analysis,
+        quality_score: aiResult.quality_score,
         scanned_at: new Date().toISOString(),
       });
 
@@ -627,11 +588,11 @@ export default function AIUploadPage() {
 
               <Button
                 onClick={runScan}
-                disabled={!appName.trim() || !file}
+                disabled={isSubmitting || !appName.trim() || !file}
                 className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 h-12 text-lg"
               >
-                <Sparkles className="w-5 h-5 mr-2" />
-                Start AI Scan
+                {isSubmitting ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Sparkles className="w-5 h-5 mr-2" />}
+                {isSubmitting ? operationStatus || 'Generating...' : 'Start AI Scan'}
               </Button>
               <Button
                 type="button"
@@ -667,7 +628,8 @@ export default function AIUploadPage() {
                   <div className="w-3 h-3 rounded-full bg-destructive" />
                   <div className="w-3 h-3 rounded-full bg-warning" />
                   <div className="w-3 h-3 rounded-full bg-success" />
-                  <span className="ml-2 text-sm text-muted-foreground">AI Scanner Terminal</span>
+                   <span className="ml-2 text-sm text-muted-foreground">AI Scanner Terminal</span>
+                   {operationStatus && <span className="ml-auto text-sm text-primary">{operationStatus}</span>}
                 </div>
 
                 <div className="space-y-4">
@@ -774,7 +736,7 @@ export default function AIUploadPage() {
                  </div>
 
                 {/* AI-Generated Assets Preview - Large Format */}
-                {(aiResult.icon_url || aiResult.screenshot_urls.length > 0) && (
+                 {(aiResult.icon_url || aiResult.screenshot_urls.some(Boolean)) && (
                   <div className="space-y-6">
                     <label className="text-sm font-medium flex items-center gap-2">
                       <Image className="w-4 h-4 text-primary" />
@@ -820,16 +782,16 @@ export default function AIUploadPage() {
                     )}
 
                     {/* Large Screenshots Preview */}
-                    {aiResult.screenshot_urls.length > 0 && (
+                     {aiResult.screenshot_urls.some(Boolean) && (
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <p className="font-medium">Screenshots</p>
                           <Badge variant="outline" className="bg-primary/10 border-primary/30">
-                            {aiResult.screenshot_urls.length} Generated
+                             {aiResult.screenshot_urls.filter(Boolean).length} Generated
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           {aiResult.screenshot_urls.slice(0, 4).map((url, i) => (
+                           {aiResult.screenshot_urls.slice(0, 4).map((url, i) => url && (
                             <motion.div
                               key={i}
                               initial={{ opacity: 0, scale: 0.95 }}
