@@ -175,9 +175,12 @@ export default function Profile() {
     }
   };
 
-  const handleLogout = () => {
-    window.location.href = '/login';
-    logout().catch(() => {});
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      window.location.href = '/login';
+    }
   };
 
   const initials = (name || user?.email || '?').slice(0, 1).toUpperCase();

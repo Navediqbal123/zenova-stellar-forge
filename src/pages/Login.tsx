@@ -35,7 +35,7 @@ const features = [
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isLoading, isAuthenticated, isAdmin, isDeveloperApproved, isLoggingOut } = useAuth();
+  const { login, isLoading, isAuthenticated, isLoggingOut } = useAuth();
   const { toast } = useToast();
 
   const [email, setEmail] = useState('');
@@ -46,11 +46,9 @@ export default function Login() {
   useEffect(() => {
     if (isLoggingOut) return;
     if (isAuthenticated) {
-      if (isAdmin) navigate('/admin', { replace: true });
-      else if (isDeveloperApproved) navigate('/developer/dashboard', { replace: true });
-      else navigate('/', { replace: true });
+      navigate('/', { replace: true });
     }
-  }, [isAuthenticated, isAdmin, isDeveloperApproved, isLoggingOut, navigate]);
+  }, [isAuthenticated, isLoggingOut, navigate]);
 
   const handleGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({

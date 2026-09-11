@@ -185,11 +185,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoggingOut(true);
 
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: 'global' });
+      setSession(null);
+      setUser(null);
+      setDeveloperProfile(null);
       window.location.href = '/login';
     } catch (e) {
       console.error('Sign out error:', e);
+      setSession(null);
+      setUser(null);
+      setDeveloperProfile(null);
       setIsLoggingOut(false);
+      window.location.href = '/login';
       throw e;
     }
   };
