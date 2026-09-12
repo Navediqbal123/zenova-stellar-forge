@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [developerProfile, setDeveloperProfile] = useState<Developer | null>(null);
   const authSubscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
   const developerChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const logoutInProgressRef = useRef(false);
 
   const fetchDeveloperProfile = useCallback(async (userId: string) => {
     try {
@@ -70,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (!mounted || isLoggingOut) return;
+      if (!mounted || logoutInProgressRef.current) return;
 
       setSession(newSession);
       setUser(newSession?.user ?? null);
@@ -92,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Then get the initial session
     supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
-      if (!mounted) return;
+      if (!mounted || logoutInProgressRef.current) return;
 
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
@@ -182,22 +183,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (logoutInProgressRef.current) return;
+
+    logoutInProgressRef.current = true;
     setIsLoggingOut(true);
 
     try {
       await supabase.auth.signOut({ scope: 'global' });
-      setSession(null);
-      setUser(null);
-      setDeveloperProfile(null);
-      window.location.href = '/login';
     } catch (e) {
       console.error('Sign out error:', e);
+      await supabase.auth.signOut({ scope: 'local' }).catch((localError) => {
+        console.error('Local session clear error:', localError);
+      });
+    } finally {
       setSession(null);
       setUser(null);
       setDeveloperProfile(null);
-      setIsLoggingOut(false);
-      window.location.href = '/login';
-      throw e;
+      window.location.replace('/login');
     }
   };
 
