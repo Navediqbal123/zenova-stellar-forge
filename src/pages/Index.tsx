@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, Mic, Star, Gamepad2, AppWindow, User, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, Menu, TrendingUp } from 'lucide-react';
+import { Search, Mic, Star, Gamepad2, AppWindow, User, X, Home, Code, LayoutDashboard, Shield, LogIn, UserPlus, TrendingUp } from 'lucide-react';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useApps } from '@/contexts/AppsContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -131,7 +131,16 @@ export default function Index() {
         <header className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <button onClick={() => setDrawerOpen(true)} className="p-2 -ml-2 rounded-lg hover:bg-slate-200/60 transition-colors" aria-label="Open menu">
-              <Menu className="w-7 h-7 text-slate-900" strokeWidth={2.5} />
+              <svg
+                viewBox="0 0 32 32"
+                className="w-7 h-7 text-sky-500"
+                aria-hidden="true"
+              >
+                <path
+                  fill="currentColor"
+                  d="M3.2 8.1a1.55 1.55 0 0 1 2.5-1.22l5.14 4.13 3.75-7.16a1.58 1.58 0 0 1 2.82 0l3.75 7.16 5.14-4.13a1.55 1.55 0 0 1 2.5 1.22l-2.14 13.42H5.34L3.2 8.1Zm3.02 16.03h19.56a1.52 1.52 0 0 1 0 3.04H6.22a1.52 1.52 0 0 1 0-3.04Z"
+                />
+              </svg>
             </button>
             <button onClick={() => setDrawerOpen(true)} className="text-left">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">Elora <span style={{ color: ACCENT }}>X</span></h1>

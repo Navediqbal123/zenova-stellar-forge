@@ -12,29 +12,47 @@ export function NotificationBell() {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const fetchUnread = async () => {
-    if (!user) return;
-    const { count } = await supabase
-      .from('notifications' as any)
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false);
-    setUnreadCount(count || 0);
-  };
-
   useEffect(() => {
-    if (!canSee || !user) return;
-    fetchUnread();
+    if (!canSee || !user) {
+      setUnreadCount(0);
+      return;
+    }
+
+    let active = true;
+    let requestId = 0;
+    const fetchUnread = async () => {
+      const currentRequest = ++requestId;
+      const { count } = await supabase
+        .from('notifications' as any)
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      if (active && currentRequest === requestId) {
+        setUnreadCount(count ?? 0);
+      }
+    };
+
+    void fetchUnread();
     const ch = supabase
       .channel(`notif_bell_${user.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        () => fetchUnread()
+        () => { void fetchUnread(); }
       )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    const syncWhenVisible = () => {
+      if (document.visibilityState === 'visible') void fetchUnread();
+    };
+    document.addEventListener('visibilitychange', syncWhenVisible);
+
+    return () => {
+      active = false;
+      document.removeEventListener('visibilitychange', syncWhenVisible);
+      void supabase.removeChannel(ch);
+    };
   }, [canSee, user?.id]);
 
   if (!canSee) return null;
