@@ -36,6 +36,9 @@ interface AdminSidebarProps {
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
   onOpenChatbot?: () => void;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
+  showMobileMenuButton?: boolean;
 }
 
 interface NavItem {
@@ -66,10 +69,12 @@ const generalNavItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home, type: 'link', path: '/' },
 ];
 
-export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSidebarProps) {
+export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot, mobileOpen: controlledMobileOpen, onMobileOpenChange, showMobileMenuButton = true }: AdminSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const mobileOpen = controlledMobileOpen ?? internalMobileOpen;
+  const setMobileOpen = onMobileOpenChange ?? setInternalMobileOpen;
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -287,7 +292,7 @@ export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSid
       </motion.aside>
 
       {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed top-4 right-4 z-[60]">
+      {showMobileMenuButton && <div className="lg:hidden fixed top-4 right-4 z-[60]">
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setMobileOpen(true)}
@@ -295,7 +300,7 @@ export function AdminSidebar({ activeTab, onTabChange, onOpenChatbot }: AdminSid
         >
           <Menu className="w-5 h-5" />
         </motion.button>
-      </div>
+      </div>}
 
       {/* Mobile Drawer */}
       <AnimatePresence>

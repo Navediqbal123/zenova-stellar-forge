@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdminEditAppsTab } from '@/components/admin/AdminEditAppsTab';
 import { AdminSupportTickets } from '@/components/admin/AdminSupportTickets';
@@ -29,6 +29,11 @@ import {
   AlertTriangle,
   Shield,
   Tag,
+  Menu,
+  CalendarDays,
+  Smartphone,
+  ArrowUpRight,
+  PieChart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,10 +49,12 @@ import { adminAPI } from '@/lib/axios';
 import { useDevelopersQuery } from '@/hooks/useDevelopersQuery';
 import { useAppsQuery } from '@/hooks/useAppsQuery';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
-import { StatsChart, TrendIndicator, MiniChart } from '@/components/admin/AdminStatsChart';
+import { TrendIndicator } from '@/components/admin/AdminStatsChart';
 import { triggerConfetti, triggerCelebrationConfetti } from '@/lib/confetti';
 import { LiveIndicator, DataFreshIndicator } from '@/components/ui/LiveIndicator';
 import { notifyDeveloperApproved, notifyAppApproved, getDeveloperUserIdById } from '@/lib/notifications';
+import { NotificationBell } from '@/components/NotificationBell';
+import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 // Animation variants
 const staggerContainer = {
@@ -100,9 +107,91 @@ export default function AdminPanel() {
 // Dashboard Tab with Charts and Trends
 function AdminDashboard() {
   const { developers, refresh: refreshDevelopers, isRefreshing: isRefreshingDev } = useDevelopersQuery();
-  const { pendingApps, refresh: refreshApps, isRefreshing: isRefreshingApps } = useAppsQuery();
+  const { apps, pendingApps, refresh: refreshApps, isRefreshing: isRefreshingApps } = useAppsQuery();
   const { stats, isLive, lastUpdated, refresh: refreshStats } = useRealTimeStats(30000); // Auto-refresh every 30s
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [chartRange, setChartRange] = useState(6);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const clock = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(clock);
+  }, []);
+
+  const growthData = useMemo(() => {
+    const buckets = Array.from({ length: chartRange }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - chartRange + index + 1, 1);
+      return {
+        key: `${date.getFullYear()}-${date.getMonth()}`,
+        month: date.toLocaleDateString('en-US', { month: 'short' }),
+        apps: 0,
+        developers: 0,
+      };
+    });
+    const bucketIndex = new Map(buckets.map((bucket, index) => [bucket.key, index]));
+
+    const addToBucket = (createdAt: string | null | undefined, field: 'apps' | 'developers') => {
+      if (!createdAt) return;
+      const date = new Date(createdAt);
+      if (Number.isNaN(date.getTime())) return;
+      const index = bucketIndex.get(`${date.getFullYear()}-${date.getMonth()}`);
+      if (index !== undefined) buckets[index][field] += 1;
+    };
+
+    apps.forEach((app) => addToBucket(app.created_at, 'apps'));
+    developers.forEach((developer) => addToBucket(developer.created_at, 'developers'));
+    return buckets;
+  }, [apps, chartRange, developers, now]);
+
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    apps.forEach((app) => {
+      const category = app.category?.trim() || 'Uncategorized';
+      counts.set(category, (counts.get(category) ?? 0) + 1);
+    });
+    return [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((first, second) => second.count - first.count)
+      .slice(0, 4);
+  }, [apps]);
+
+  const platforms = useMemo(() => {
+    const counts = new Map<string, number>([['Android', 0], ['iOS', 0], ['Web', 0], ['Other', 0]]);
+    apps.forEach((app) => {
+      const platform = String((app as typeof app & { platform?: string }).platform ?? '').toLowerCase();
+      const label = platform.includes('android') ? 'Android'
+        : platform === 'ios' || platform.includes('iphone') || platform.includes('ipad') ? 'iOS'
+        : platform.includes('web') ? 'Web'
+        : 'Other';
+      counts.set(label, (counts.get(label) ?? 0) + 1);
+    });
+    return [...counts.entries()].filter(([, count]) => count > 0).map(([name, value]) => ({ name, value }));
+  }, [apps]);
+
+  const recentActivity = useMemo(() => [
+    ...developers.map((developer) => ({
+      id: `developer-${developer.id}`,
+      title: 'Developer registered',
+      subject: developer.developer_name || developer.full_name || 'Developer',
+      status: developer.status,
+      createdAt: developer.created_at,
+      kind: 'developer' as const,
+    })),
+    ...apps.map((app) => ({
+      id: `app-${app.id}`,
+      title: 'App submitted',
+      subject: app.name || 'App',
+      status: app.status,
+      createdAt: app.created_at,
+      kind: 'app' as const,
+    })),
+  ].sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime()).slice(0, 4), [apps, developers]);
+
+  const pendingDevelopers = useMemo(
+    () => developers.filter((developer) => developer.status === 'pending').slice(0, 3),
+    [developers],
+  );
 
   const handleRefreshAll = async () => {
     await Promise.all([refreshDevelopers(), refreshApps(), refreshStats()]);
@@ -120,239 +209,193 @@ function AdminDashboard() {
   };
 
   const statCards = [
-    { 
-      label: 'Total Developers', 
-      value: stats.totalDevelopers, 
-      pending: stats.pendingDevelopers,
-      icon: Users, 
-      color: 'primary',
-      trend: stats.totalDevelopers > 0 ? '+12%' : undefined,
-      trendPositive: true,
-    },
-    { 
-      label: 'Total Apps', 
-      value: stats.totalApps, 
-      pending: stats.pendingApps,
-      icon: Package, 
-      color: 'secondary',
-      trend: stats.totalApps > 0 ? '+8%' : undefined,
-      trendPositive: true,
-    },
-    { 
-      label: 'Downloads', 
-      value: formatDownloads(stats.totalDownloads), 
-      icon: Download, 
-      color: 'success',
-      trend: stats.totalDownloads > 0 ? '+24%' : undefined,
-      trendPositive: true,
-    },
-    { 
-      label: 'Avg Rating', 
-      value: stats.avgRating.toFixed(1), 
-      icon: Star, 
-      color: 'warning',
-      trend: stats.avgRating > 0 ? '+0.3' : undefined,
-      trendPositive: true,
-    },
+    { label: 'Total Developers', value: stats.totalDevelopers.toLocaleString(), detail: `${stats.pendingDevelopers} awaiting review`, icon: Users, color: 'primary' },
+    { label: 'Total Apps', value: stats.totalApps.toLocaleString(), detail: `${stats.pendingApps} awaiting review`, icon: Package, color: 'secondary' },
+    { label: 'Downloads', value: formatDownloads(stats.totalDownloads), detail: 'Reported across all apps', icon: Download, color: 'success' },
+    { label: 'Avg Rating', value: stats.avgRating.toFixed(1), detail: 'Across rated apps', icon: Star, color: 'warning' },
   ];
 
   const isRefreshing = isRefreshingDev || isRefreshingApps;
+  const adminName = typeof user?.user_metadata?.full_name === 'string'
+    ? user.user_metadata.full_name.split(' ')[0]
+    : 'Naved';
+  const profileImage = typeof user?.user_metadata?.avatar_url === 'string' ? user.user_metadata.avatar_url : undefined;
+  const activityAgo = (createdAt: string) => {
+    const elapsed = Math.max(0, now.getTime() - new Date(createdAt).getTime());
+    const minutes = Math.floor(elapsed / 60_000);
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  };
+  const categoryColors: Record<string, string> = {
+    Android: 'hsl(var(--primary))',
+    iOS: 'hsl(var(--secondary))',
+    Web: 'hsl(var(--warning))',
+    Other: 'hsl(var(--success))',
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
-        <div>
-          <h1 className="text-2xl font-bold mb-1 flex items-center gap-2">
-            Dashboard Overview
-            <Zap className="w-5 h-5 text-warning" />
-          </h1>
-          <p className="text-muted-foreground">Welcome back, <span className="text-primary">Naved</span></p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Last updated indicator */}
-          <DataFreshIndicator lastUpdated={lastUpdated} />
-          
-          {/* Refresh Button */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefreshAll}
-              disabled={isRefreshing}
-              className="bg-white/5 border-white/10 hover:bg-white/10"
-            >
-              <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
-              Refresh
-            </Button>
-          </motion.div>
-          
-          {/* Live Indicator with green pulse */}
-          {isLive && <LiveIndicator label="Live Data" />}
-        </div>
-      </motion.div>
-
-      {/* Stats Grid with Trends */}
-      <motion.div 
-        variants={staggerContainer}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        {statCards.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            variants={staggerItem}
-            whileHover={{ scale: 1.02, y: -4 }}
-            className="admin-glass-card p-5 relative overflow-hidden group"
-          >
-            {/* Decorative gradient on hover */}
-            <div className={cn(
-              "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-              stat.color === 'primary' && "bg-gradient-to-br from-primary/5 to-transparent",
-              stat.color === 'secondary' && "bg-gradient-to-br from-secondary/5 to-transparent",
-              stat.color === 'success' && "bg-gradient-to-br from-success/5 to-transparent",
-              stat.color === 'warning' && "bg-gradient-to-br from-warning/5 to-transparent"
-            )} />
-            
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-3">
-                <div className={cn(
-                  "p-2.5 rounded-xl",
-                  stat.color === 'primary' && "bg-primary/15",
-                  stat.color === 'secondary' && "bg-secondary/15",
-                  stat.color === 'success' && "bg-success/15",
-                  stat.color === 'warning' && "bg-warning/15"
-                )}>
-                  <stat.icon className={cn(
-                    "w-5 h-5",
-                    stat.color === 'primary' && "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]",
-                    stat.color === 'secondary' && "text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary))]",
-                    stat.color === 'success' && "text-success drop-shadow-[0_0_8px_hsl(var(--success))]",
-                    stat.color === 'warning' && "text-warning drop-shadow-[0_0_8px_hsl(var(--warning))]"
-                  )} />
-                </div>
-                {stat.trend && (
-                  <TrendIndicator value={stat.trend} isPositive={stat.trendPositive} />
-                )}
-              </div>
-              <span className="text-sm text-muted-foreground block mb-1">{stat.label}</span>
-              <div className="flex items-end justify-between">
-                <p className="text-3xl font-bold">{stat.value}</p>
-                <MiniChart color={stat.color as any} />
-              </div>
-              {stat.pending !== undefined && stat.pending > 0 && (
-                <p className="text-sm text-warning mt-2 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  {stat.pending} pending review
-                </p>
-              )}
+    <div className="admin-dashboard min-h-screen px-3 pb-32 pt-3 text-foreground sm:px-5 sm:pb-32 lg:px-0 lg:pb-8 lg:pt-0">
+      <div className="mx-auto max-w-[1500px] space-y-4 sm:space-y-5">
+        <header className="flex min-h-14 items-center gap-3 sm:gap-4">
+          <Button variant="outline" size="icon" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-mobile-menu'))} className="admin-soft-button h-11 w-11 shrink-0 border-border bg-card text-foreground lg:hidden" aria-label="Open admin menu">
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <div className="admin-clay-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+              <Zap className="h-6 w-6" />
             </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Analytics Chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="admin-glass-card p-6"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Platform Growth
-          </h3>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="w-3 h-3 rounded-full bg-primary"></span>
-            Downloads over time
+            <div className="min-w-0">
+              <p className="truncate text-lg font-bold leading-tight sm:text-xl">Elora <span className="text-primary">X</span></p>
+              <p className="text-xs text-muted-foreground">Admin Panel</p>
+            </div>
           </div>
+          <DataFreshIndicator lastUpdated={lastUpdated} />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <NotificationBell />
+            <div className="admin-clay-icon flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-secondary/15 text-sm font-bold text-secondary" aria-label={`${adminName} admin profile`}>
+              {profileImage ? <img src={profileImage} alt="" className="h-full w-full object-cover" /> : adminName.slice(0, 1).toUpperCase()}
+            </div>
+          </div>
+        </header>
+
+        <section className="admin-welcome-card relative overflow-hidden rounded-[24px] border border-primary/20 px-4 py-4 shadow-[var(--shadow-admin-card)] sm:px-6 sm:py-5">
+          <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-2 sm:min-h-[148px]">
+            <div className="min-w-0 max-w-[62%] sm:max-w-[58%]">
+              <p className="text-sm font-medium text-muted-foreground sm:text-base">Welcome back,</p>
+              <h1 className="mt-1 break-words text-2xl font-bold leading-tight sm:text-4xl">{adminName} <span aria-hidden="true">👋</span></h1>
+              <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted-foreground sm:text-sm">Here&apos;s what&apos;s happening with your platform today.</p>
+            </div>
+            <div className="relative flex h-28 min-w-0 flex-1 items-center justify-center sm:h-32">
+              <div className="admin-clay-icon absolute left-[8%] top-2 flex h-11 w-11 items-center justify-center rounded-2xl bg-warning/15 text-warning sm:left-[18%] sm:h-14 sm:w-14">
+                <CalendarDays className="h-6 w-6" />
+              </div>
+              <div className="admin-clay-icon absolute right-[7%] top-1 flex h-12 w-12 items-center justify-center rounded-[18px] bg-primary text-primary-foreground sm:right-[12%] sm:h-16 sm:w-16">
+                <TrendingUp className="h-7 w-7 sm:h-9 sm:w-9" />
+              </div>
+              <div className="absolute bottom-2 left-[28%] flex h-12 items-end gap-1.5 sm:left-[32%] sm:h-16 sm:gap-2">
+                {[growthData.at(-4)?.apps ?? 0, growthData.at(-3)?.apps ?? 0, growthData.at(-2)?.apps ?? 0, growthData.at(-1)?.apps ?? 0].map((count, index) => {
+                  const maximum = Math.max(1, ...growthData.map((item) => item.apps));
+                  return <span key={`${index}-${count}`} className="admin-clay-icon w-3 rounded-t-md bg-primary/75 sm:w-4" style={{ height: `${Math.max(14, (count / maximum) * 100)}%` }} />;
+                })}
+              </div>
+              <div className="absolute bottom-1 right-0 rounded-2xl border border-border/70 bg-card/90 px-2.5 py-2 shadow-[var(--shadow-admin-card)] backdrop-blur-sm sm:right-2 sm:px-3.5">
+                <p className="whitespace-nowrap text-[10px] font-semibold sm:text-xs">{now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">{now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />Live overview</span>
+            {isLive && <span className="hidden sm:inline-flex"><LiveIndicator label="Connected" /></span>}
+          </div>
+          <Button variant="outline" size="sm" onClick={handleRefreshAll} disabled={isRefreshing} className="admin-soft-button h-9 border-border bg-card text-foreground">
+            <RefreshCw className={cn('mr-1.5 h-3.5 w-3.5', isRefreshing && 'animate-spin')} />Refresh
+          </Button>
         </div>
-        <StatsChart type="downloads" height={220} />
-      </motion.div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="admin-glass-card p-6"
-        >
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-warning" />
-            Pending Developers
-          </h3>
-          {developers.filter(d => d.status === 'pending').length === 0 ? (
-            <p className="text-muted-foreground text-sm">No pending developers</p>
-          ) : (
-            <motion.div 
-              variants={staggerContainer}
-              initial="hidden"
-              animate="show"
-              className="space-y-3"
-            >
-              {developers.filter(d => d.status === 'pending').slice(0, 3).map((dev) => (
-                <motion.div 
-                  key={dev.id} 
-                  variants={listItem}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5"
-                >
-                  <div>
-                    <p className="font-medium">{dev.developer_name}</p>
-                    <p className="text-sm text-muted-foreground">{dev.email}</p>
-                  </div>
-                  <StatusBadge status="pending" size="sm" />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
+        <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+          {statCards.map((stat) => (
+            <motion.section key={stat.label} variants={staggerItem} whileHover={{ y: -2 }} className="admin-clay-card min-w-0 p-3.5 sm:p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className={cn('admin-clay-icon flex h-10 w-10 items-center justify-center rounded-2xl sm:h-12 sm:w-12',
+                  stat.color === 'primary' && 'bg-primary/10 text-primary',
+                  stat.color === 'secondary' && 'bg-secondary/10 text-secondary',
+                  stat.color === 'success' && 'bg-success/10 text-success',
+                  stat.color === 'warning' && 'bg-warning/10 text-warning')}>
+                  <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                </div>
+                {stat.color === 'primary' || stat.color === 'secondary' ? <ArrowUpRight className="h-4 w-4 text-success" /> : null}
+              </div>
+              <p className="mt-3 text-[11px] font-medium leading-tight text-muted-foreground sm:text-sm">{stat.label}</p>
+              <p className="mt-0.5 truncate text-2xl font-bold tabular-nums sm:text-3xl">{stats.isLoading ? '—' : stat.value}</p>
+              <p className="mt-1 truncate text-[10px] text-muted-foreground sm:text-xs">{stat.detail}</p>
+            </motion.section>
+          ))}
         </motion.div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="admin-glass-card p-6"
-        >
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-warning" />
-            Pending Apps
-          </h3>
-          {pendingApps.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No pending apps</p>
-          ) : (
-            <motion.div 
-              variants={staggerContainer}
-              initial="hidden"
-              animate="show"
-              className="space-y-3"
-            >
-              {pendingApps.slice(0, 3).map((app) => (
-                <motion.div 
-                  key={app.id} 
-                  variants={listItem}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{app.icon}</span>
-                    <div>
-                      <p className="font-medium">{app.name}</p>
-                      <p className="text-sm text-muted-foreground">{app.developer_name}</p>
-                    </div>
-                  </div>
-                  <StatusBadge status="pending" size="sm" />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </motion.div>
+        <section className="admin-clay-card p-4 sm:p-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 sm:mb-4">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-bold sm:text-lg"><TrendingUp className="h-5 w-5 text-primary" />Platform Growth</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">New app submissions and developer registrations</p>
+            </div>
+            <select aria-label="Growth chart date range" value={chartRange} onChange={(event) => setChartRange(Number(event.target.value))} className="h-9 rounded-xl border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm outline-none focus:ring-2 focus:ring-ring">
+              <option value={3}>Last 3 months</option><option value={6}>Last 6 months</option><option value={12}>Last 12 months</option>
+            </select>
+          </div>
+          <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground sm:text-xs">
+            <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-primary" />Apps</span>
+            <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-secondary" />Developers</span>
+          </div>
+          <div className="h-[210px] w-full sm:h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={growthData} margin={{ top: 8, right: 6, left: -22, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="admin-app-growth" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.28} /><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} /></linearGradient>
+                  <linearGradient id="admin-developer-growth" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--secondary))" stopOpacity={0.2} /><stop offset="95%" stopColor="hsl(var(--secondary))" stopOpacity={0} /></linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="4 5" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={34} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 14, color: 'hsl(var(--popover-foreground))', boxShadow: 'var(--shadow-admin-floating)' }} />
+                <Area type="monotone" dataKey="apps" name="Apps submitted" stroke="hsl(var(--primary))" strokeWidth={3} fill="url(#admin-app-growth)" activeDot={{ r: 5 }} />
+                <Area type="monotone" dataKey="developers" name="Developers registered" stroke="hsl(var(--secondary))" strokeWidth={2.5} fill="url(#admin-developer-growth)" activeDot={{ r: 5 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <section className="admin-clay-card min-w-0 p-4 sm:p-5">
+            <div className="mb-4 flex items-center justify-between"><div><h2 className="flex items-center gap-2 text-base font-bold"><Layers className="h-4 w-4 text-secondary" />Top Categories</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps by store category</p></div><Button variant="ghost" size="icon" aria-label="Open categories" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-categories'))} className="h-8 w-8 text-muted-foreground"><ChevronRight className="h-4 w-4" /></Button></div>
+            {categories.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No categories to show yet</p> : <div className="space-y-3.5">{categories.map((category, index) => <div key={category.name}><div className="mb-1.5 flex items-center justify-between gap-2 text-xs"><span className="truncate font-medium">{category.name}</span><span className="shrink-0 tabular-nums text-muted-foreground">{Math.round((category.count / Math.max(1, apps.length)) * 100)}%</span></div><div className="h-2.5 overflow-hidden rounded-full bg-muted"><div className={cn('h-full rounded-full', ['bg-primary', 'bg-secondary', 'bg-warning', 'bg-success'][index])} style={{ width: `${Math.max(5, (category.count / Math.max(1, categories[0]?.count ?? 1)) * 100)}%` }} /></div></div>)}</div>}
+          </section>
+
+          <section className="admin-clay-card min-w-0 p-4 sm:p-5">
+            <div className="mb-2"><h2 className="flex items-center gap-2 text-base font-bold"><Smartphone className="h-4 w-4 text-primary" />Device Platforms</h2><p className="mt-0.5 text-xs text-muted-foreground">Distribution across submitted apps</p></div>
+            {platforms.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No platform data available</p> : <div className="flex min-h-[160px] items-center gap-2 sm:gap-4"><div className="h-[150px] min-w-0 flex-1"><ResponsiveContainer width="100%" height="100%"><RechartsPieChart><Pie data={platforms} dataKey="value" nameKey="name" innerRadius="48%" outerRadius="78%" paddingAngle={3} stroke="hsl(var(--card))" strokeWidth={3}>{platforms.map((platform) => <Cell key={platform.name} fill={categoryColors[platform.name] ?? 'hsl(var(--muted-foreground))'} />)}</Pie><Tooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 12, color: 'hsl(var(--popover-foreground))' }} /></RechartsPieChart></ResponsiveContainer></div><div className="min-w-[95px] flex-1 space-y-2.5">{platforms.map((platform) => <div key={platform.name} className="flex items-center justify-between gap-2 text-[11px] sm:text-xs"><span className="flex min-w-0 items-center gap-1.5"><i className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: categoryColors[platform.name] ?? 'hsl(var(--muted-foreground))' }} /><span className="truncate">{platform.name}</span></span><span className="font-semibold tabular-nums">{Math.round((platform.value / Math.max(1, apps.length)) * 100)}%</span></div>)}</div></div>}
+          </section>
+        </div>
+
+        <section className="admin-clay-card overflow-hidden">
+          <div className="flex items-center justify-between gap-2 px-4 pb-3 pt-4 sm:px-5">
+            <div className="min-w-0"><h2 className="flex items-center gap-2 text-base font-bold"><Users className="h-4 w-4 text-secondary" />Pending Developers</h2><p className="mt-0.5 text-xs text-muted-foreground">Developers awaiting approval</p></div>
+            <Button variant="ghost" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-developers'))} className="shrink-0 text-primary">View all <ChevronRight className="ml-1 h-4 w-4" /></Button>
+          </div>
+          {pendingDevelopers.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No developers awaiting review</p> : <div className="divide-y divide-border border-t border-border">{pendingDevelopers.map((developer) => <div key={developer.id} className="flex min-w-0 items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-5"><div className="admin-clay-icon flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary/10 text-xs font-semibold text-secondary">{developer.profile_photo_url ? <img src={developer.profile_photo_url} alt="" className="h-full w-full object-cover" /> : (developer.developer_name || developer.full_name || 'D').slice(0, 1).toUpperCase()}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold sm:text-sm">{developer.developer_name || developer.full_name || 'Developer'}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">{developer.email}</p></div><p className="hidden shrink-0 text-[10px] text-muted-foreground sm:block sm:text-xs">{new Date(developer.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p><Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-developers'))} className="admin-soft-button h-8 shrink-0 border-primary/20 bg-primary/5 px-2.5 text-xs text-primary sm:h-9 sm:px-4">Review</Button></div>)}</div>}
+        </section>
+
+        <section className="admin-clay-card overflow-hidden">
+          <div className="flex items-center justify-between gap-2 px-4 pb-3 pt-4 sm:px-5">
+            <div className="min-w-0"><h2 className="flex items-center gap-2 text-base font-bold"><Package className="h-4 w-4 text-secondary" />Pending Apps</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps waiting for review</p></div>
+            <Button variant="ghost" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-apps'))} className="shrink-0 text-primary">View all <ChevronRight className="ml-1 h-4 w-4" /></Button>
+          </div>
+          {pendingApps.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No apps awaiting review</p> : <div className="divide-y divide-border border-t border-border">{pendingApps.slice(0, 3).map((app) => <div key={app.id} className="flex min-w-0 items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-5"><div className="admin-clay-icon flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-primary/5 text-lg">{app.icon_url ? <img src={app.icon_url} alt="" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : app.icon || '📱'}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold sm:text-sm">{app.name}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">v{app.version || '—'} <span aria-hidden="true">·</span> {app.size || 'Size unavailable'}</p><p className="truncate text-[10px] text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p></div><StatusBadge status="pending" size="sm" /><Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-apps'))} className="admin-soft-button h-8 shrink-0 border-primary/20 bg-primary/5 px-2.5 text-xs text-primary sm:h-9 sm:px-4">Review</Button></div>)}</div>}
+        </section>
+
+        <section className="admin-clay-card overflow-hidden">
+          <div className="px-4 pb-3 pt-4 sm:px-5"><h2 className="flex items-center gap-2 text-base font-bold"><Activity className="h-4 w-4 text-success" />Recent Activity</h2><p className="mt-0.5 text-xs text-muted-foreground">Latest app submissions and developer registrations</p></div>
+          {recentActivity.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No recent activity yet</p> : <div className="divide-y divide-border border-t border-border">{recentActivity.map((activity) => <div key={activity.id} className="flex min-w-0 items-center gap-2.5 px-4 py-3 sm:gap-3 sm:px-5"><span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', activity.kind === 'app' ? 'bg-primary' : 'bg-success')} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium sm:text-sm">{activity.title}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">{activity.subject}</p></div><StatusBadge status={activity.status} size="sm" /><time className="shrink-0 text-[10px] text-muted-foreground sm:text-xs">{activityAgo(activity.createdAt)}</time></div>)}</div>}
+        </section>
       </div>
+
+      <nav aria-label="Admin dashboard navigation" className="admin-dashboard-nav fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-card/95 px-1.5 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[var(--shadow-admin-floating)] backdrop-blur-xl lg:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
+          {[
+            { label: 'Dashboard', icon: Home, tab: 'dashboard' as AdminTab },
+            { label: 'Developers', icon: Users, tab: 'developers' as AdminTab },
+            { label: 'Apps', icon: Package, tab: 'apps' as AdminTab },
+            { label: 'Analytics', icon: PieChart, tab: 'stats' as AdminTab },
+          ].map((item) => <Button key={item.label} variant="ghost" onClick={() => window.dispatchEvent(new CustomEvent(`admin-go-${item.tab}`))} aria-current={item.tab === 'dashboard' ? 'page' : undefined} className={cn('h-[58px] min-w-0 flex-col gap-1 rounded-2xl px-1 text-muted-foreground', item.tab === 'dashboard' && 'bg-primary/10 text-primary shadow-[var(--shadow-admin-card)]')}><item.icon className="h-5 w-5" /><span className="w-full truncate text-[9px] font-medium sm:text-[10px]">{item.label}</span></Button>)}
+          <Button variant="ghost" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-mobile-menu'))} className="h-[58px] min-w-0 flex-col gap-1 rounded-2xl px-1 text-muted-foreground"><MoreHorizontal className="h-5 w-5" /><span className="w-full truncate text-[9px] font-medium sm:text-[10px]">More</span></Button>
+        </div>
+      </nav>
     </div>
   );
 }

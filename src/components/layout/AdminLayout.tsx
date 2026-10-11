@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield } from 'lucide-react';
@@ -18,6 +18,23 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin } = useAuth();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const openMenu = () => setMobileSidebarOpen(true);
+    const goToTab = (event: Event) => {
+      const tab = event.type.replace('admin-go-', '') as AdminTab;
+      onTabChange(tab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    const navigateEvents: AdminTab[] = ['dashboard', 'developers', 'apps', 'stats'];
+    window.addEventListener('admin-open-mobile-menu', openMenu);
+    navigateEvents.forEach((tab) => window.addEventListener(`admin-go-${tab}`, goToTab));
+    return () => {
+      window.removeEventListener('admin-open-mobile-menu', openMenu);
+      navigateEvents.forEach((tab) => window.removeEventListener(`admin-go-${tab}`, goToTab));
+    };
+  }, [onTabChange]);
 
   if (!isAuthenticated || !isAdmin) {
     return (
@@ -62,9 +79,12 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
           activeTab={activeTab}
           onTabChange={onTabChange}
           onOpenChatbot={() => setIsChatbotOpen(true)}
+          mobileOpen={mobileSidebarOpen}
+          onMobileOpenChange={setMobileSidebarOpen}
+          showMobileMenuButton={activeTab !== 'dashboard'}
         />
 
-        <main className="flex-1 min-w-0 pb-6 pt-14 lg:pt-0">
+        <main className={`flex-1 min-w-0 pb-6 ${activeTab === 'dashboard' ? 'pt-3 lg:pt-0' : 'pt-14 lg:pt-0'}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
