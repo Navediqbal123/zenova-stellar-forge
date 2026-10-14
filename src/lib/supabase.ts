@@ -17,7 +17,7 @@ export const ADMIN_EMAIL = 'navedahmad9012@gmail.com';
 
 // Helper to check if user is admin
 export const isAdminEmail = (email: string | undefined | null): boolean => {
-  return email === ADMIN_EMAIL;
+  return email?.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
 };
 
 // Storage bucket names

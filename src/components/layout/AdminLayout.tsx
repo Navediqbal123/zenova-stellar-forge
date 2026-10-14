@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield } from 'lucide-react';
+import { LoaderCircle, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { ChatbotSupport, ChatbotTrigger } from '@/components/admin/ChatbotSupport';
@@ -16,7 +16,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutProps) {
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -35,6 +35,14 @@ export function AdminLayout({ children, activeTab, onTabChange }: AdminLayoutPro
       navigateEvents.forEach((tab) => window.removeEventListener(`admin-go-${tab}`, goToTab));
     };
   }, [onTabChange]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label="Checking admin access">
+        <LoaderCircle className="h-7 w-7 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !isAdmin) {
     return (
