@@ -3,18 +3,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Sample data for demonstration
-const generateChartData = () => {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-  return months.map((month, index) => ({
-    name: month,
-    downloads: Math.floor(50000 + Math.random() * 100000 + index * 15000),
-    developers: Math.floor(20 + Math.random() * 30 + index * 5),
-    apps: Math.floor(50 + Math.random() * 40 + index * 8),
-  }));
-};
-
-const chartData = generateChartData();
+export interface StatsChartDataPoint {
+  name: string;
+  downloads: number;
+  developers: number;
+  apps: number;
+}
 
 interface TrendIndicatorProps {
   value: string;
@@ -47,9 +41,10 @@ export function TrendIndicator({ value, isPositive = true, size = 'sm' }: TrendI
 interface StatsChartProps {
   type?: 'downloads' | 'developers' | 'apps';
   height?: number;
+  data?: StatsChartDataPoint[];
 }
 
-export function StatsChart({ type = 'downloads', height = 200 }: StatsChartProps) {
+export function StatsChart({ type = 'downloads', height = 200, data = [] }: StatsChartProps) {
   const dataKey = type;
   const colorVar = type === 'downloads' ? 'hsl(var(--primary))' : 
                    type === 'developers' ? 'hsl(var(--secondary))' : 
@@ -61,8 +56,12 @@ export function StatsChart({ type = 'downloads', height = 200 }: StatsChartProps
       animate={{ opacity: 1, y: 0 }}
       className="w-full"
     >
-      <ResponsiveContainer width="100%" height={height}>
-        <AreaChart data={chartData}>
+      {data.length === 0 ? (
+        <div className="flex w-full items-center justify-center text-sm text-muted-foreground" style={{ height }}>
+          Historical data is unavailable
+        </div>
+      ) : <ResponsiveContainer width="100%" height={height}>
+        <AreaChart data={data}>
           <defs>
             <linearGradient id={`gradient-${type}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={colorVar} stopOpacity={0.3} />
@@ -103,7 +102,7 @@ export function StatsChart({ type = 'downloads', height = 200 }: StatsChartProps
             fill={`url(#gradient-${type})`}
           />
         </AreaChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer>}
     </motion.div>
   );
 }
@@ -113,7 +112,7 @@ interface MiniChartProps {
   color?: 'primary' | 'secondary' | 'success' | 'warning';
 }
 
-export function MiniChart({ data = [30, 40, 35, 50, 49, 60, 70, 91, 125], color = 'primary' }: MiniChartProps) {
+export function MiniChart({ data = [], color = 'primary' }: MiniChartProps) {
   const chartData = data.map((value, index) => ({ value, index }));
   const colorVar = `hsl(var(--${color}))`;
 

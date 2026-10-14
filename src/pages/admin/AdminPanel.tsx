@@ -34,6 +34,9 @@ import {
   Smartphone,
   ArrowUpRight,
   PieChart,
+  ChevronRight,
+  Home,
+  MoreHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,9 +50,9 @@ import { AdminLayout, AdminTab } from '@/components/layout/AdminLayout';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { adminAPI } from '@/lib/axios';
 import { useDevelopersQuery } from '@/hooks/useDevelopersQuery';
-import { useAppsQuery } from '@/hooks/useAppsQuery';
+import { useAppsQuery, type AppData } from '@/hooks/useAppsQuery';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
-import { TrendIndicator } from '@/components/admin/AdminStatsChart';
+import { StatsChart } from '@/components/admin/AdminStatsChart';
 import { triggerConfetti, triggerCelebrationConfetti } from '@/lib/confetti';
 import { LiveIndicator, DataFreshIndicator } from '@/components/ui/LiveIndicator';
 import { notifyDeveloperApproved, notifyAppApproved, getDeveloperUserIdById } from '@/lib/notifications';
@@ -92,7 +95,7 @@ export default function AdminPanel() {
 
   return (
     <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      {activeTab === 'dashboard' && <AdminDashboard />}
+      {activeTab === 'dashboard' && <AdminDashboard onTabChange={setActiveTab} />}
       {activeTab === 'developers' && <AdminDevelopers />}
       {activeTab === 'apps' && <AdminApps />}
       {activeTab === 'edit-apps' && <AdminEditAppsTab />}
@@ -105,10 +108,10 @@ export default function AdminPanel() {
 }
 
 // Dashboard Tab with Charts and Trends
-function AdminDashboard() {
+function AdminDashboard({ onTabChange }: { onTabChange: (tab: AdminTab) => void }) {
   const { developers, refresh: refreshDevelopers, isRefreshing: isRefreshingDev } = useDevelopersQuery();
   const { apps, pendingApps, refresh: refreshApps, isRefreshing: isRefreshingApps } = useAppsQuery();
-  const { stats, isLive, lastUpdated, refresh: refreshStats } = useRealTimeStats(30000); // Auto-refresh every 30s
+  const { stats, isLoading: isStatsLoading, isLive, lastUpdated, refresh: refreshStats } = useRealTimeStats(30000); // Auto-refresh every 30s
   const { toast } = useToast();
   const { user } = useAuth();
   const [chartRange, setChartRange] = useState(6);
@@ -157,13 +160,15 @@ function AdminDashboard() {
   }, [apps]);
 
   const platforms = useMemo(() => {
-    const counts = new Map<string, number>([['Android', 0], ['iOS', 0], ['Web', 0], ['Other', 0]]);
+    const counts = new Map<string, number>();
     apps.forEach((app) => {
       const platform = String((app as typeof app & { platform?: string }).platform ?? '').toLowerCase();
       const label = platform.includes('android') ? 'Android'
         : platform === 'ios' || platform.includes('iphone') || platform.includes('ipad') ? 'iOS'
         : platform.includes('web') ? 'Web'
-        : 'Other';
+        : platform ? 'Other'
+        : app.apk_url || app.aab_url ? 'Android'
+        : 'Unspecified';
       counts.set(label, (counts.get(label) ?? 0) + 1);
     });
     return [...counts.entries()].filter(([, count]) => count > 0).map(([name, value]) => ({ name, value }));
@@ -234,6 +239,7 @@ function AdminDashboard() {
     iOS: 'hsl(var(--secondary))',
     Web: 'hsl(var(--warning))',
     Other: 'hsl(var(--success))',
+    Unspecified: 'hsl(var(--muted-foreground))',
   };
 
   return (
@@ -256,7 +262,7 @@ function AdminDashboard() {
           <div className="flex items-center gap-2 sm:gap-3">
             <NotificationBell />
             <div className="admin-clay-icon flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-secondary/15 text-sm font-bold text-secondary" aria-label={`${adminName} admin profile`}>
-              {profileImage ? <img src={profileImage} alt="" className="h-full w-full object-cover" /> : adminName.slice(0, 1).toUpperCase()}
+              <DashboardAvatar src={profileImage} name={adminName} />
             </div>
           </div>
         </header>
@@ -313,7 +319,7 @@ function AdminDashboard() {
                 {stat.color === 'primary' || stat.color === 'secondary' ? <ArrowUpRight className="h-4 w-4 text-success" /> : null}
               </div>
               <p className="mt-3 text-[11px] font-medium leading-tight text-muted-foreground sm:text-sm">{stat.label}</p>
-              <p className="mt-0.5 truncate text-2xl font-bold tabular-nums sm:text-3xl">{stats.isLoading ? '—' : stat.value}</p>
+              <p className="mt-0.5 truncate text-2xl font-bold tabular-nums sm:text-3xl">{isStatsLoading ? '—' : stat.value}</p>
               <p className="mt-1 truncate text-[10px] text-muted-foreground sm:text-xs">{stat.detail}</p>
             </motion.section>
           ))}
@@ -353,7 +359,7 @@ function AdminDashboard() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           <section className="admin-clay-card min-w-0 p-4 sm:p-5">
-            <div className="mb-4 flex items-center justify-between"><div><h2 className="flex items-center gap-2 text-base font-bold"><Layers className="h-4 w-4 text-secondary" />Top Categories</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps by store category</p></div><Button variant="ghost" size="icon" aria-label="Open categories" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-categories'))} className="h-8 w-8 text-muted-foreground"><ChevronRight className="h-4 w-4" /></Button></div>
+            <div className="mb-4 flex items-center justify-between"><div><h2 className="flex items-center gap-2 text-base font-bold"><Layers className="h-4 w-4 text-secondary" />Top Categories</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps by store category</p></div><Button variant="ghost" size="icon" aria-label="Open categories" onClick={() => onTabChange('categories')} className="h-8 w-8 text-muted-foreground"><ChevronRight className="h-4 w-4" /></Button></div>
             {categories.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No categories to show yet</p> : <div className="space-y-3.5">{categories.map((category, index) => <div key={category.name}><div className="mb-1.5 flex items-center justify-between gap-2 text-xs"><span className="truncate font-medium">{category.name}</span><span className="shrink-0 tabular-nums text-muted-foreground">{Math.round((category.count / Math.max(1, apps.length)) * 100)}%</span></div><div className="h-2.5 overflow-hidden rounded-full bg-muted"><div className={cn('h-full rounded-full', ['bg-primary', 'bg-secondary', 'bg-warning', 'bg-success'][index])} style={{ width: `${Math.max(5, (category.count / Math.max(1, categories[0]?.count ?? 1)) * 100)}%` }} /></div></div>)}</div>}
           </section>
 
@@ -366,17 +372,17 @@ function AdminDashboard() {
         <section className="admin-clay-card overflow-hidden">
           <div className="flex items-center justify-between gap-2 px-4 pb-3 pt-4 sm:px-5">
             <div className="min-w-0"><h2 className="flex items-center gap-2 text-base font-bold"><Users className="h-4 w-4 text-secondary" />Pending Developers</h2><p className="mt-0.5 text-xs text-muted-foreground">Developers awaiting approval</p></div>
-            <Button variant="ghost" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-developers'))} className="shrink-0 text-primary">View all <ChevronRight className="ml-1 h-4 w-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={() => onTabChange('developers')} className="shrink-0 text-primary">View all <ChevronRight className="ml-1 h-4 w-4" /></Button>
           </div>
-          {pendingDevelopers.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No developers awaiting review</p> : <div className="divide-y divide-border border-t border-border">{pendingDevelopers.map((developer) => <div key={developer.id} className="flex min-w-0 items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-5"><div className="admin-clay-icon flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary/10 text-xs font-semibold text-secondary">{developer.profile_photo_url ? <img src={developer.profile_photo_url} alt="" className="h-full w-full object-cover" /> : (developer.developer_name || developer.full_name || 'D').slice(0, 1).toUpperCase()}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold sm:text-sm">{developer.developer_name || developer.full_name || 'Developer'}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">{developer.email}</p></div><p className="hidden shrink-0 text-[10px] text-muted-foreground sm:block sm:text-xs">{new Date(developer.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p><Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-developers'))} className="admin-soft-button h-8 shrink-0 border-primary/20 bg-primary/5 px-2.5 text-xs text-primary sm:h-9 sm:px-4">Review</Button></div>)}</div>}
+          {pendingDevelopers.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No developers awaiting review</p> : <div className="divide-y divide-border border-t border-border">{pendingDevelopers.map((developer) => <div key={developer.id} className="flex min-w-0 items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-5"><div className="admin-clay-icon flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary/10 text-xs font-semibold text-secondary">{developer.profile_photo_url ? <img src={developer.profile_photo_url} alt="" className="h-full w-full object-cover" onError={(event) => event.currentTarget.remove()} /> : (developer.developer_name || developer.full_name || 'D').slice(0, 1).toUpperCase()}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold sm:text-sm">{developer.developer_name || developer.full_name || 'Developer'}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">{developer.email}</p><p className="text-[10px] text-muted-foreground sm:hidden">Submitted {new Date(developer.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p></div><p className="hidden shrink-0 text-[10px] text-muted-foreground sm:block sm:text-xs">{new Date(developer.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p><Button variant="outline" size="sm" onClick={() => onTabChange('developers')} className="admin-soft-button h-8 shrink-0 border-primary/20 bg-primary/5 px-2.5 text-xs text-primary sm:h-9 sm:px-4">Review</Button></div>)}</div>}
         </section>
 
         <section className="admin-clay-card overflow-hidden">
           <div className="flex items-center justify-between gap-2 px-4 pb-3 pt-4 sm:px-5">
             <div className="min-w-0"><h2 className="flex items-center gap-2 text-base font-bold"><Package className="h-4 w-4 text-secondary" />Pending Apps</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps waiting for review</p></div>
-            <Button variant="ghost" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-apps'))} className="shrink-0 text-primary">View all <ChevronRight className="ml-1 h-4 w-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={() => onTabChange('apps')} className="shrink-0 text-primary">View all <ChevronRight className="ml-1 h-4 w-4" /></Button>
           </div>
-          {pendingApps.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No apps awaiting review</p> : <div className="divide-y divide-border border-t border-border">{pendingApps.slice(0, 3).map((app) => <div key={app.id} className="flex min-w-0 items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-5"><div className="admin-clay-icon flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-primary/5 text-lg">{app.icon_url ? <img src={app.icon_url} alt="" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.style.display = 'none'; }} /> : app.icon || '📱'}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold sm:text-sm">{app.name}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">v{app.version || '—'} <span aria-hidden="true">·</span> {app.size || 'Size unavailable'}</p><p className="truncate text-[10px] text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p></div><StatusBadge status="pending" size="sm" /><Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-apps'))} className="admin-soft-button h-8 shrink-0 border-primary/20 bg-primary/5 px-2.5 text-xs text-primary sm:h-9 sm:px-4">Review</Button></div>)}</div>}
+          {pendingApps.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No apps awaiting review</p> : <div className="divide-y divide-border border-t border-border">{pendingApps.slice(0, 3).map((app) => <div key={app.id} className="flex min-w-0 items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-5"><DashboardAppIcon app={app} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold sm:text-sm">{app.name}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">v{app.version || '—'} <span aria-hidden="true">·</span> {app.size || 'Size unavailable'}</p><p className="truncate text-[10px] text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p></div><StatusBadge status="pending" size="sm" /><Button variant="outline" size="sm" onClick={() => onTabChange('apps')} className="admin-soft-button h-8 shrink-0 border-primary/20 bg-primary/5 px-2.5 text-xs text-primary sm:h-9 sm:px-4">Review</Button></div>)}</div>}
         </section>
 
         <section className="admin-clay-card overflow-hidden">
@@ -392,7 +398,7 @@ function AdminDashboard() {
             { label: 'Developers', icon: Users, tab: 'developers' as AdminTab },
             { label: 'Apps', icon: Package, tab: 'apps' as AdminTab },
             { label: 'Analytics', icon: PieChart, tab: 'stats' as AdminTab },
-          ].map((item) => <Button key={item.label} variant="ghost" onClick={() => window.dispatchEvent(new CustomEvent(`admin-go-${item.tab}`))} aria-current={item.tab === 'dashboard' ? 'page' : undefined} className={cn('h-[58px] min-w-0 flex-col gap-1 rounded-2xl px-1 text-muted-foreground', item.tab === 'dashboard' && 'bg-primary/10 text-primary shadow-[var(--shadow-admin-card)]')}><item.icon className="h-5 w-5" /><span className="w-full truncate text-[9px] font-medium sm:text-[10px]">{item.label}</span></Button>)}
+          ].map((item) => <Button key={item.label} variant="ghost" onClick={() => onTabChange(item.tab)} aria-current={activeTab === item.tab ? 'page' : undefined} className={cn('h-[58px] min-w-0 flex-col gap-1 rounded-2xl px-1 text-muted-foreground', activeTab === item.tab && 'bg-primary/10 text-primary shadow-[var(--shadow-admin-card)]')}><item.icon className="h-5 w-5" /><span className="w-full truncate text-[9px] font-medium sm:text-[10px]">{item.label}</span></Button>)}
           <Button variant="ghost" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-mobile-menu'))} className="h-[58px] min-w-0 flex-col gap-1 rounded-2xl px-1 text-muted-foreground"><MoreHorizontal className="h-5 w-5" /><span className="w-full truncate text-[9px] font-medium sm:text-[10px]">More</span></Button>
         </div>
       </nav>
