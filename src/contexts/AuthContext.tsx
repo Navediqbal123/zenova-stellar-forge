@@ -62,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize auth state
   useEffect(() => {
     let mounted = true;
+    let initialSessionResolved = false;
 
     if (isLoggingOut) {
       return () => {
@@ -87,24 +88,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDeveloperProfile(null);
       }
 
-      setIsLoading(false);
+      // Keep protected routes behind the loading state until getSession has
+      // finished restoring persisted credentials; INITIAL_SESSION can arrive
+      // before the storage read resolves in some browser environments.
+      if (event !== 'INITIAL_SESSION' || initialSessionResolved) {
+        setIsLoading(false);
+      }
     });
     authSubscriptionRef.current = subscription;
 
     // Then get the initial session
-    supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: initialSession }, error }) => {
       if (!mounted || logoutInProgressRef.current) return;
+
+      if (error) {
+        console.error('Error restoring auth session:', error);
+      }
 
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
 
       if (initialSession?.user) {
         const profile = await fetchDeveloperProfile(initialSession.user.id);
-        if (mounted) {
+        if (mounted && !logoutInProgressRef.current) {
           setDeveloperProfile(profile);
         }
+      } else {
+        setDeveloperProfile(null);
       }
 
+      initialSessionResolved = true;
+      if (mounted && !logoutInProgressRef.current) setIsLoading(false);
+    }).catch((error: unknown) => {
+      if (!mounted || logoutInProgressRef.current) return;
+      console.error('Error restoring auth session:', error);
+      initialSessionResolved = true;
       setIsLoading(false);
     });
 
