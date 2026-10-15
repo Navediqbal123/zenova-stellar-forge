@@ -52,7 +52,7 @@ import { adminAPI } from '@/lib/axios';
 import { useDevelopersQuery } from '@/hooks/useDevelopersQuery';
 import { useAppsQuery, type AppData } from '@/hooks/useAppsQuery';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
-import { StatsChart } from '@/components/admin/AdminStatsChart';
+import { StatsChart, TrendIndicator } from '@/components/admin/AdminStatsChart';
 import { triggerConfetti, triggerCelebrationConfetti } from '@/lib/confetti';
 import { LiveIndicator, DataFreshIndicator } from '@/components/ui/LiveIndicator';
 import { notifyDeveloperApproved, notifyAppApproved, getDeveloperUserIdById } from '@/lib/notifications';
@@ -95,7 +95,7 @@ export default function AdminPanel() {
 
   return (
     <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      {activeTab === 'dashboard' && <AdminDashboard onTabChange={setActiveTab} />}
+      {activeTab === 'dashboard' && <AdminDashboard activeTab={activeTab} onTabChange={setActiveTab} />}
       {activeTab === 'developers' && <AdminDevelopers />}
       {activeTab === 'apps' && <AdminApps />}
       {activeTab === 'edit-apps' && <AdminEditAppsTab />}
@@ -107,8 +107,41 @@ export default function AdminPanel() {
   );
 }
 
+function DashboardAvatar({ src, name }: { src?: string; name: string }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const canLoadImage = Boolean(src && /^(https?:\/\/|\/)/i.test(src) && !imageFailed);
+
+  useEffect(() => setImageFailed(false), [src]);
+
+  if (canLoadImage && src) {
+    return <img src={src} alt={`${name} profile`} className="h-full w-full object-cover" onError={() => setImageFailed(true)} />;
+  }
+
+  return <span aria-hidden="true">{name.slice(0, 1).toUpperCase()}</span>;
+}
+
+function DashboardAppIcon({ app }: { app: AppData }) {
+  const imageSource = app.icon_url || app.icon;
+  const [imageFailed, setImageFailed] = useState(false);
+  const canLoadImage = Boolean(imageSource && /^(https?:\/\/|\/)/i.test(imageSource) && !imageFailed);
+
+  useEffect(() => setImageFailed(false), [imageSource]);
+
+  return (
+    <div className="admin-clay-icon flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-primary/10 text-primary">
+      {canLoadImage ? (
+        <img src={imageSource} alt={`${app.name} icon`} className="h-full w-full object-cover" onError={() => setImageFailed(true)} />
+      ) : app.icon && !/^(https?:\/\/|\/)/i.test(app.icon) ? (
+        <span className="text-xl" aria-hidden="true">{app.icon}</span>
+      ) : (
+        <Package className="h-5 w-5" aria-hidden="true" />
+      )}
+    </div>
+  );
+}
+
 // Dashboard Tab with Charts and Trends
-function AdminDashboard({ onTabChange }: { onTabChange: (tab: AdminTab) => void }) {
+function AdminDashboard({ activeTab, onTabChange }: { activeTab: AdminTab; onTabChange: (tab: AdminTab) => void }) {
   const { developers, refresh: refreshDevelopers, isRefreshing: isRefreshingDev } = useDevelopersQuery();
   const { apps, pendingApps, refresh: refreshApps, isRefreshing: isRefreshingApps } = useAppsQuery();
   const { stats, isLoading: isStatsLoading, isLive, lastUpdated, refresh: refreshStats } = useRealTimeStats(30000); // Auto-refresh every 30s

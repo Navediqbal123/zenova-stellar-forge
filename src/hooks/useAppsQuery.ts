@@ -15,6 +15,7 @@ export interface AppData {
   icon: string;
   icon_url?: string;
   apk_url?: string;
+  aab_url?: string | null;
   screenshots: string[];
   version: string;
   size: string;
