@@ -52,12 +52,13 @@ import { adminAPI } from '@/lib/axios';
 import { useDevelopersQuery } from '@/hooks/useDevelopersQuery';
 import { useAppsQuery, type AppData } from '@/hooks/useAppsQuery';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
-import { StatsChart, TrendIndicator } from '@/components/admin/AdminStatsChart';
+import { MiniChart, StatsChart, TrendIndicator } from '@/components/admin/AdminStatsChart';
 import { triggerConfetti, triggerCelebrationConfetti } from '@/lib/confetti';
 import { LiveIndicator, DataFreshIndicator } from '@/components/ui/LiveIndicator';
 import { notifyDeveloperApproved, notifyAppApproved, getDeveloperUserIdById } from '@/lib/notifications';
 import { NotificationBell } from '@/components/NotificationBell';
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import growthIllustration from '@/assets/admin-growth-clay.png';
 
 // Animation variants
 const staggerContainer = {
@@ -147,7 +148,7 @@ function AdminDashboard({ activeTab, onTabChange }: { activeTab: AdminTab; onTab
   const { stats, isLoading: isStatsLoading, isLive, lastUpdated, refresh: refreshStats } = useRealTimeStats(30000); // Auto-refresh every 30s
   const { toast } = useToast();
   const { user } = useAuth();
-  const [chartRange, setChartRange] = useState(6);
+  const [chartRange, setChartRange] = useState(7);
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -247,8 +248,8 @@ function AdminDashboard({ activeTab, onTabChange }: { activeTab: AdminTab; onTab
   };
 
   const statCards = [
-    { label: 'Total Developers', value: stats.totalDevelopers.toLocaleString(), detail: `${stats.pendingDevelopers} awaiting review`, icon: Users, color: 'primary' },
-    { label: 'Total Apps', value: stats.totalApps.toLocaleString(), detail: `${stats.pendingApps} awaiting review`, icon: Package, color: 'secondary' },
+    { label: 'Total Developers', value: stats.totalDevelopers.toLocaleString(), detail: `${stats.pendingDevelopers} awaiting review`, icon: Users, color: 'primary', history: growthData.map((point) => point.developers) },
+    { label: 'Total Apps', value: stats.totalApps.toLocaleString(), detail: `${stats.pendingApps} awaiting review`, icon: Package, color: 'secondary', history: growthData.map((point) => point.apps) },
     { label: 'Downloads', value: formatDownloads(stats.totalDownloads), detail: 'Reported across all apps', icon: Download, color: 'success' },
     { label: 'Avg Rating', value: stats.avgRating.toFixed(1), detail: 'Across rated apps', icon: Star, color: 'warning' },
   ];
@@ -302,28 +303,15 @@ function AdminDashboard({ activeTab, onTabChange }: { activeTab: AdminTab; onTab
 
         <section className="admin-welcome-card relative overflow-hidden rounded-[24px] border border-primary/20 px-4 py-4 shadow-[var(--shadow-admin-card)] sm:px-6 sm:py-5">
           <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-2 sm:min-h-[148px]">
-            <div className="min-w-0 max-w-[62%] sm:max-w-[58%]">
+            <div className="min-w-0 max-w-[56%] sm:max-w-[52%]">
               <p className="text-sm font-medium text-muted-foreground sm:text-base">Welcome back,</p>
               <h1 className="mt-1 break-words text-2xl font-bold leading-tight sm:text-4xl">{adminName} <span aria-hidden="true">👋</span></h1>
               <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted-foreground sm:text-sm">Here&apos;s what&apos;s happening with your platform today.</p>
             </div>
-            <div className="relative flex h-28 min-w-0 flex-1 items-center justify-center sm:h-32">
-              <div className="admin-clay-icon absolute left-[8%] top-2 flex h-11 w-11 items-center justify-center rounded-2xl bg-warning/15 text-warning sm:left-[18%] sm:h-14 sm:w-14">
-                <CalendarDays className="h-6 w-6" />
-              </div>
-              <div className="admin-clay-icon absolute right-[7%] top-1 flex h-12 w-12 items-center justify-center rounded-[18px] bg-primary text-primary-foreground sm:right-[12%] sm:h-16 sm:w-16">
-                <TrendingUp className="h-7 w-7 sm:h-9 sm:w-9" />
-              </div>
-              <div className="absolute bottom-2 left-[28%] flex h-12 items-end gap-1.5 sm:left-[32%] sm:h-16 sm:gap-2">
-                {[growthData.at(-4)?.apps ?? 0, growthData.at(-3)?.apps ?? 0, growthData.at(-2)?.apps ?? 0, growthData.at(-1)?.apps ?? 0].map((count, index) => {
-                  const maximum = Math.max(1, ...growthData.map((item) => item.apps));
-                  return <span key={`${index}-${count}`} className="admin-clay-icon w-3 rounded-t-md bg-primary/75 sm:w-4" style={{ height: `${Math.max(14, (count / maximum) * 100)}%` }} />;
-                })}
-              </div>
-              <div className="absolute bottom-1 right-0 rounded-2xl border border-border/70 bg-card/90 px-2.5 py-2 shadow-[var(--shadow-admin-card)] backdrop-blur-sm sm:right-2 sm:px-3.5">
-                <p className="whitespace-nowrap text-[10px] font-semibold sm:text-xs">{now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">{now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
-              </div>
+            <img src={growthIllustration} alt="" aria-hidden="true" className="pointer-events-none absolute right-[12%] top-1/2 h-36 w-40 -translate-y-1/2 object-contain drop-shadow-xl sm:right-[15%] sm:h-48 sm:w-56" />
+            <div className="absolute bottom-2 right-2 z-10 rounded-2xl border border-border/70 bg-card/90 px-2.5 py-2 shadow-[var(--shadow-admin-card)] backdrop-blur-sm sm:right-4 sm:px-3.5">
+              <p className="whitespace-nowrap text-[10px] font-semibold sm:text-xs">{now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">{now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
             </div>
           </div>
         </section>
@@ -342,14 +330,10 @@ function AdminDashboard({ activeTab, onTabChange }: { activeTab: AdminTab; onTab
           {statCards.map((stat) => (
             <motion.section key={stat.label} variants={staggerItem} whileHover={{ y: -2 }} className="admin-clay-card min-w-0 p-3.5 sm:p-5">
               <div className="flex items-center justify-between gap-2">
-                <div className={cn('admin-clay-icon flex h-10 w-10 items-center justify-center rounded-2xl sm:h-12 sm:w-12',
-                  stat.color === 'primary' && 'bg-primary/10 text-primary',
-                  stat.color === 'secondary' && 'bg-secondary/10 text-secondary',
-                  stat.color === 'success' && 'bg-success/10 text-success',
-                  stat.color === 'warning' && 'bg-warning/10 text-warning')}>
+                <div className={cn('admin-clay-icon flex h-10 w-10 items-center justify-center rounded-2xl sm:h-12 sm:w-12', `admin-clay-icon-${stat.color}`)}>
                   <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                {stat.color === 'primary' || stat.color === 'secondary' ? <ArrowUpRight className="h-4 w-4 text-success" /> : null}
+                {stat.history?.some((value) => value > 0) && <MiniChart data={stat.history} color={stat.color === 'primary' ? 'primary' : 'secondary'} />}
               </div>
               <p className="mt-3 text-[11px] font-medium leading-tight text-muted-foreground sm:text-sm">{stat.label}</p>
               <p className="mt-0.5 truncate text-2xl font-bold tabular-nums sm:text-3xl">{isStatsLoading ? '—' : stat.value}</p>
@@ -365,7 +349,7 @@ function AdminDashboard({ activeTab, onTabChange }: { activeTab: AdminTab; onTab
               <p className="mt-0.5 text-xs text-muted-foreground">New app submissions and developer registrations</p>
             </div>
             <select aria-label="Growth chart date range" value={chartRange} onChange={(event) => setChartRange(Number(event.target.value))} className="h-9 rounded-xl border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm outline-none focus:ring-2 focus:ring-ring">
-              <option value={3}>Last 3 months</option><option value={6}>Last 6 months</option><option value={12}>Last 12 months</option>
+              <option value={3}>Last 3 months</option><option value={7}>Last 7 months</option><option value={12}>Last 12 months</option>
             </select>
           </div>
           <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground sm:text-xs">
@@ -392,19 +376,19 @@ function AdminDashboard({ activeTab, onTabChange }: { activeTab: AdminTab; onTab
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           <section className="admin-clay-card min-w-0 p-4 sm:p-5">
-            <div className="mb-4 flex items-center justify-between"><div><h2 className="flex items-center gap-2 text-base font-bold"><Layers className="h-4 w-4 text-secondary" />Top Categories</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps by store category</p></div><Button variant="ghost" size="icon" aria-label="Open categories" onClick={() => onTabChange('categories')} className="h-8 w-8 text-muted-foreground"><ChevronRight className="h-4 w-4" /></Button></div>
-            {categories.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No categories to show yet</p> : <div className="space-y-3.5">{categories.map((category, index) => <div key={category.name}><div className="mb-1.5 flex items-center justify-between gap-2 text-xs"><span className="truncate font-medium">{category.name}</span><span className="shrink-0 tabular-nums text-muted-foreground">{Math.round((category.count / Math.max(1, apps.length)) * 100)}%</span></div><div className="h-2.5 overflow-hidden rounded-full bg-muted"><div className={cn('h-full rounded-full', ['bg-primary', 'bg-secondary', 'bg-warning', 'bg-success'][index])} style={{ width: `${Math.max(5, (category.count / Math.max(1, categories[0]?.count ?? 1)) * 100)}%` }} /></div></div>)}</div>}
+            <div className="mb-4 flex items-center justify-between"><div><h2 className="flex items-center gap-2 text-base font-bold"><span className="admin-clay-icon admin-clay-icon-secondary flex h-9 w-9 items-center justify-center rounded-xl"><Layers className="h-4 w-4" /></span>Top Categories</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps by store category</p></div><Button variant="ghost" size="icon" aria-label="Open categories" onClick={() => onTabChange('categories')} className="h-8 w-8 text-muted-foreground"><ChevronRight className="h-4 w-4" /></Button></div>
+            {categories.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No categories to show yet</p> : <div className="space-y-3.5">{categories.map((category, index) => <div key={category.name}><div className="mb-1.5 flex items-center justify-between gap-2 text-xs"><span className="truncate font-medium">{category.name}</span><span className="shrink-0 tabular-nums text-muted-foreground">{Math.round((category.count / Math.max(1, apps.length)) * 100)}%</span></div><div className="h-2.5 overflow-hidden rounded-full bg-muted"><div className={cn('h-full rounded-full', ['bg-primary', 'bg-secondary', 'bg-warning', 'bg-success'][index])} style={{ width: `${Math.max(5, (category.count / Math.max(1, apps.length)) * 100)}%` }} /></div></div>)}</div>}
           </section>
 
           <section className="admin-clay-card min-w-0 p-4 sm:p-5">
-            <div className="mb-2"><h2 className="flex items-center gap-2 text-base font-bold"><Smartphone className="h-4 w-4 text-primary" />Device Platforms</h2><p className="mt-0.5 text-xs text-muted-foreground">Distribution across submitted apps</p></div>
+            <div className="mb-2"><h2 className="flex items-center gap-2 text-base font-bold"><span className="admin-clay-icon admin-clay-icon-primary flex h-9 w-9 items-center justify-center rounded-xl"><Smartphone className="h-4 w-4" /></span>Device Platforms</h2><p className="mt-0.5 text-xs text-muted-foreground">Distribution across submitted apps</p></div>
             {platforms.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No platform data available</p> : <div className="flex min-h-[160px] items-center gap-2 sm:gap-4"><div className="h-[150px] min-w-0 flex-1"><ResponsiveContainer width="100%" height="100%"><RechartsPieChart><Pie data={platforms} dataKey="value" nameKey="name" innerRadius="48%" outerRadius="78%" paddingAngle={3} stroke="hsl(var(--card))" strokeWidth={3}>{platforms.map((platform) => <Cell key={platform.name} fill={categoryColors[platform.name] ?? 'hsl(var(--muted-foreground))'} />)}</Pie><Tooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 12, color: 'hsl(var(--popover-foreground))' }} /></RechartsPieChart></ResponsiveContainer></div><div className="min-w-[95px] flex-1 space-y-2.5">{platforms.map((platform) => <div key={platform.name} className="flex items-center justify-between gap-2 text-[11px] sm:text-xs"><span className="flex min-w-0 items-center gap-1.5"><i className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: categoryColors[platform.name] ?? 'hsl(var(--muted-foreground))' }} /><span className="truncate">{platform.name}</span></span><span className="font-semibold tabular-nums">{Math.round((platform.value / Math.max(1, apps.length)) * 100)}%</span></div>)}</div></div>}
           </section>
         </div>
 
         <section className="admin-clay-card overflow-hidden">
           <div className="flex items-center justify-between gap-2 px-4 pb-3 pt-4 sm:px-5">
-            <div className="min-w-0"><h2 className="flex items-center gap-2 text-base font-bold"><Users className="h-4 w-4 text-secondary" />Pending Developers</h2><p className="mt-0.5 text-xs text-muted-foreground">Developers awaiting approval</p></div>
+            <div className="min-w-0"><h2 className="flex items-center gap-2 text-base font-bold"><span className="admin-clay-icon admin-clay-icon-secondary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"><Users className="h-4 w-4" /></span>Pending Developers</h2><p className="mt-0.5 text-xs text-muted-foreground">Developers awaiting approval</p></div>
             <Button variant="ghost" size="sm" onClick={() => onTabChange('developers')} className="shrink-0 text-primary">View all <ChevronRight className="ml-1 h-4 w-4" /></Button>
           </div>
           {pendingDevelopers.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No developers awaiting review</p> : <div className="divide-y divide-border border-t border-border">{pendingDevelopers.map((developer) => <div key={developer.id} className="flex min-w-0 items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-5"><div className="admin-clay-icon flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary/10 text-xs font-semibold text-secondary">{developer.profile_photo_url ? <img src={developer.profile_photo_url} alt="" className="h-full w-full object-cover" onError={(event) => event.currentTarget.remove()} /> : (developer.developer_name || developer.full_name || 'D').slice(0, 1).toUpperCase()}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold sm:text-sm">{developer.developer_name || developer.full_name || 'Developer'}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">{developer.email}</p><p className="text-[10px] text-muted-foreground sm:hidden">Submitted {new Date(developer.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p></div><p className="hidden shrink-0 text-[10px] text-muted-foreground sm:block sm:text-xs">{new Date(developer.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</p><Button variant="outline" size="sm" onClick={() => onTabChange('developers')} className="admin-soft-button h-8 shrink-0 border-primary/20 bg-primary/5 px-2.5 text-xs text-primary sm:h-9 sm:px-4">Review</Button></div>)}</div>}
@@ -412,26 +396,26 @@ function AdminDashboard({ activeTab, onTabChange }: { activeTab: AdminTab; onTab
 
         <section className="admin-clay-card overflow-hidden">
           <div className="flex items-center justify-between gap-2 px-4 pb-3 pt-4 sm:px-5">
-            <div className="min-w-0"><h2 className="flex items-center gap-2 text-base font-bold"><Package className="h-4 w-4 text-secondary" />Pending Apps</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps waiting for review</p></div>
+            <div className="min-w-0"><h2 className="flex items-center gap-2 text-base font-bold"><span className="admin-clay-icon admin-clay-icon-secondary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"><Package className="h-4 w-4" /></span>Pending Apps</h2><p className="mt-0.5 text-xs text-muted-foreground">Apps waiting for review</p></div>
             <Button variant="ghost" size="sm" onClick={() => onTabChange('apps')} className="shrink-0 text-primary">View all <ChevronRight className="ml-1 h-4 w-4" /></Button>
           </div>
           {pendingApps.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No apps awaiting review</p> : <div className="divide-y divide-border border-t border-border">{pendingApps.slice(0, 3).map((app) => <div key={app.id} className="flex min-w-0 items-center gap-2.5 px-3 py-3 sm:gap-3 sm:px-5"><DashboardAppIcon app={app} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold sm:text-sm">{app.name}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">v{app.version || '—'} <span aria-hidden="true">·</span> {app.size || 'Size unavailable'}</p><p className="truncate text-[10px] text-muted-foreground">{app.developer_name || 'Unknown Developer'}</p></div><StatusBadge status="pending" size="sm" /><Button variant="outline" size="sm" onClick={() => onTabChange('apps')} className="admin-soft-button h-8 shrink-0 border-primary/20 bg-primary/5 px-2.5 text-xs text-primary sm:h-9 sm:px-4">Review</Button></div>)}</div>}
         </section>
 
         <section className="admin-clay-card overflow-hidden">
-          <div className="px-4 pb-3 pt-4 sm:px-5"><h2 className="flex items-center gap-2 text-base font-bold"><Activity className="h-4 w-4 text-success" />Recent Activity</h2><p className="mt-0.5 text-xs text-muted-foreground">Latest app submissions and developer registrations</p></div>
-          {recentActivity.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No recent activity yet</p> : <div className="divide-y divide-border border-t border-border">{recentActivity.map((activity) => <div key={activity.id} className="flex min-w-0 items-center gap-2.5 px-4 py-3 sm:gap-3 sm:px-5"><span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', activity.kind === 'app' ? 'bg-primary' : 'bg-success')} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium sm:text-sm">{activity.title}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">{activity.subject}</p></div><StatusBadge status={activity.status} size="sm" /><time className="shrink-0 text-[10px] text-muted-foreground sm:text-xs">{activityAgo(activity.createdAt)}</time></div>)}</div>}
+          <div className="px-4 pb-3 pt-4 sm:px-5"><h2 className="flex items-center gap-2 text-base font-bold"><span className="admin-clay-icon admin-clay-icon-success flex h-9 w-9 items-center justify-center rounded-xl"><Activity className="h-4 w-4" /></span>Recent Activity</h2><p className="mt-0.5 text-xs text-muted-foreground">Latest app submissions and developer registrations</p></div>
+          {recentActivity.length === 0 ? <p className="border-t border-border px-4 py-5 text-sm text-muted-foreground sm:px-5">No recent activity yet</p> : <div className="divide-y divide-border border-t border-border">{recentActivity.map((activity) => <div key={activity.id} className="flex min-w-0 items-center gap-2.5 px-4 py-3 sm:gap-3 sm:px-5"><span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', activity.status === 'approved' ? 'bg-success' : activity.status === 'rejected' ? 'bg-destructive' : activity.kind === 'app' ? 'bg-primary' : 'bg-warning')} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium sm:text-sm">{activity.title}</p><p className="truncate text-[10px] text-muted-foreground sm:text-xs">{activity.subject}</p></div><StatusBadge status={activity.status} size="sm" /><time className="shrink-0 text-[10px] text-muted-foreground sm:text-xs">{activityAgo(activity.createdAt)}</time></div>)}</div>}
         </section>
       </div>
 
-      <nav aria-label="Admin dashboard navigation" className="admin-dashboard-nav fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-card/95 px-1.5 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[var(--shadow-admin-floating)] backdrop-blur-xl lg:hidden">
+      <nav aria-label="Admin dashboard navigation" className="admin-dashboard-nav fixed bottom-3 left-1/2 z-40 w-[min(calc(100%-1.5rem),36rem)] -translate-x-1/2 rounded-[24px] border border-border/70 bg-card/95 px-1.5 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[var(--shadow-admin-floating)] backdrop-blur-xl lg:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
           {[
             { label: 'Dashboard', icon: Home, tab: 'dashboard' as AdminTab },
             { label: 'Developers', icon: Users, tab: 'developers' as AdminTab },
             { label: 'Apps', icon: Package, tab: 'apps' as AdminTab },
             { label: 'Analytics', icon: PieChart, tab: 'stats' as AdminTab },
-          ].map((item) => <Button key={item.label} variant="ghost" onClick={() => onTabChange(item.tab)} aria-current={activeTab === item.tab ? 'page' : undefined} className={cn('h-[58px] min-w-0 flex-col gap-1 rounded-2xl px-1 text-muted-foreground', activeTab === item.tab && 'bg-primary/10 text-primary shadow-[var(--shadow-admin-card)]')}><item.icon className="h-5 w-5" /><span className="w-full truncate text-[9px] font-medium sm:text-[10px]">{item.label}</span></Button>)}
+          ].map((item) => <Button key={item.label} variant="ghost" onClick={() => onTabChange(item.tab)} aria-current={activeTab === item.tab ? 'page' : undefined} className={cn('h-[58px] min-w-0 flex-col gap-1 rounded-2xl border border-transparent px-1 text-muted-foreground', activeTab === item.tab && 'border-primary/15 bg-primary/10 text-primary shadow-[var(--shadow-admin-card)]')}><item.icon className="h-5 w-5" /><span className="w-full truncate text-[9px] font-medium sm:text-[10px]">{item.label}</span></Button>)}
           <Button variant="ghost" onClick={() => window.dispatchEvent(new CustomEvent('admin-open-mobile-menu'))} className="h-[58px] min-w-0 flex-col gap-1 rounded-2xl px-1 text-muted-foreground"><MoreHorizontal className="h-5 w-5" /><span className="w-full truncate text-[9px] font-medium sm:text-[10px]">More</span></Button>
         </div>
       </nav>
