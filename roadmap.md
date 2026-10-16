@@ -1,4 +1,4 @@
-- [ ] Fix TypeScript errors in the admin dashboard and remove fabricated chart data.
+- [ ] Match the existing Admin Dashboard to the attached claymorphism reference without replacing real data or working controls.
 - [ ] Preserve secure admin access while preventing pre-authentication denial and matching the configured admin email safely.
 - [ ] Complete dashboard navigation, review actions, image fallbacks, and mobile overflow checks.
 - [ ] Validate TypeScript/build diagnostics and inspect the protected preview; document auth-related verification blockers.
